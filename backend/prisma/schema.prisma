@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  firstName    String
+  lastName     String
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resetPasswordToken    String?   @unique
+  resetPasswordExpires  DateTime?
+  notifications  Notification[]
+  
+  vendor       Vendor?
+  customer     Customer?
+  
+  @@index([email])
+}
+model Vendor {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  businessName    String
+  description     String?
+  logo            String?
+  
+  // Contact & Location
+  businessPhone   String?
+  businessEmail   String?
+  address         Json?    // {street, city, state, zipCode, country}
+  
+  // Shipping & Policies
+  shippingZones   String[] @default([])  // ["GA", "FL", "SC", "NC"]
+  returnPolicy    String?  // "30-day return policy"
+  shippingPolicy  String?  // "Free shipping over $500"
+  
+  // Performance
+  responseTime    Int?     @default(24)  // Hours to respond
+  rating          Float?   @default(0)   // Average rating
+  totalReviews    Int      @default(0)
+  
+  // Payment & Status
+  stripeAccountId   String?   @unique  // ✅ Add @unique
+  stripeAccountStatus String? @default("NOT_CONNECTED")  // ✅ ADD THIS
+  onboardingComplete Boolean  @default(false)  // ✅ ADD THIS
+  payoutsEnabled    Boolean   @default(false)  // ✅ ADD THIS
+  commissionRate  Float    @default(0.06)
+  isVerified      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  
+  user            User     @relation(fields: [userId], references: [id])
+  products        Product[]
+  orders          Order[]
+  
+  @@index([userId])
+  @@index([rating])
+}
+
+model Customer {
+  id               String     @id @default(uuid())
+  userId           String     @unique
+  stripeCustomerId String?
+  
+  user             User       @relation(fields: [userId], references: [id])
+  cartItems        CartItem[]
+  addresses        Address[]
+  orders           Order[]
+  reviews          Review[]  
+  wishlist       Wishlist[] 
+  
+  @@index([userId])
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  customerId String
+  street     String
+  city       String
+  state      String
+  zipCode    String
+  country    String   @default("US")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  
+  customer   Customer @relation(fields: [customerId], references: [id])
+  orders     Order[]
+  
+  @@index([customerId])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  
+  products    Product[]
+}
+
+model Product {
+  id             String      @id @default(uuid())
+  vendorId       String
+  categoryId     String
+  name           String
+  description    String
+  price          Float
+  compareAtPrice Float?
+  sku            String?     @unique
+  stockQuantity  Int         @default(0)
+  images         String[]
+  isActive       Boolean     @default(true)
+  
+  // Furniture-specific fields
+  dimensions     Json?       // {width: 80, height: 40, depth: 90, weight: 25, unit: "cm"}
+  materials      String[]    @default([])
+  colors         String[]    @default([])
+  roomType       String?     // "Living Room", "Bedroom", "Dining Room", "Office", "Outdoor"
+  style          String?     // "Modern", "Traditional", "Rustic", "Contemporary", "Industrial"
+  assemblyRequired Boolean   @default(false)
+  brand          String?
+  warranty       String?     // "2 years manufacturer warranty"
+  careInstructions String?   // "Wipe with damp cloth. Avoid direct sunlight."
+  rating         Float?      @default(0)
+  totalReviews   Int         @default(0)
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  
+  vendor         Vendor      @relation(fields: [vendorId], references: [id])
+  category       Category    @relation(fields: [categoryId], references: [id])
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  reviews        Review[]  
+  wishlistItems  Wishlist[]
+  variants       ProductVariant[]  // ← VARIANTS RELATIONSHIP
+  
+  @@index([vendorId])
+  @@index([categoryId])
+  @@index([name])
+  @@index([roomType])
+  @@index([style])
+}
+
+model CartItem {
+  id         String   @id @default(uuid())
+  customerId String
+  productId  String
+  variantId  String?   // ← ADD THIS
+  quantity   Int      @default(1)
+  addedAt    DateTime @default(now())
+  
+  customer   Customer        @relation(fields: [customerId], references: [id])
+  product    Product         @relation(fields: [productId], references: [id])
+  variant    ProductVariant? @relation(fields: [variantId], references: [id])  // ← ADD THIS
+  
+  @@unique([customerId, productId, variantId])  // ← CHANGED: was [customerId, productId]
+  @@index([customerId])
+}
+model Order {
+  id              String      @id @default(uuid())
+  customerId      String
+  vendorId        String
+  addressId       String
+  orderNumber     String      @unique
+  status          OrderStatus @default(PENDING)
+  subtotal        Float
+  tax             Float       @default(0)
+  shippingCost    Float       @default(0)
+  total           Float
+  commission      Float
+  stripePaymentId String?
+  trackingNumber  String?     // ← ADD THIS
+  trackingUrl     String?     // ← ADD THIS
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  customer              Customer      @relation(fields: [customerId], references: [id])
+  vendor                Vendor        @relation(fields: [vendorId], references: [id])
+  address               Address       @relation(fields: [addressId], references: [id])
+  items                 OrderItem[]
+  stripePaymentIntentId String?
+  paymentStatus         PaymentStatus @default(PENDING)
+  
+  @@index([customerId])
+  @@index([vendorId])
+  @@index([orderNumber])
+}
+
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String
+  variantId String?  // ← ADD THIS
+  quantity  Int
+  price     Float
+  
+  order     Order           @relation(fields: [orderId], references: [id])
+  product   Product         @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])  // ← ADD THIS
+  
+  @@index([orderId])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  productId  String
+  customerId String
+  rating     Int      // 1-5 stars
+  comment    String?
+  createdAt  DateTime @default(now())
+  
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@unique([productId, customerId])
+  @@index([productId])
+  @@index([customerId])
+}
+
+model Wishlist {
+  id         String   @id @default(uuid())
+  customerId String
+  productId  String
+  createdAt  DateTime @default(now())
+  
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([customerId, productId])
+  @@index([customerId])
+  @@index([productId])
+}
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // 'ORDER_PLACED', 'ORDER_STATUS_CHANGED', 'PRODUCT_REVIEWED', etc.
+  title     String
+  message   String
+  data      Json?    // Extra data (orderId, productId, etc.)
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model ProductVariant {
+  id             String      @id @default(uuid())
+  productId      String
+  
+  color          String?
+  size           String?
+  
+  price          Float
+  compareAtPrice Float?
+  sku            String?     @unique
+  stockQuantity  Int         @default(0)
+  images         String[]    @default([])
+  isActive       Boolean     @default(true)
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  
+  product        Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems      CartItem[]  // ← ADD THIS
+  orderItems     OrderItem[] // ← ADD THIS
+  
+  @@index([productId])
+  @@index([color])
+  @@index([size])
+}
