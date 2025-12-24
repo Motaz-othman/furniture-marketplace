@@ -1,3 +1,4 @@
+// src/app/dashboard/products/page.js
 'use client';
 
 import { useState } from 'react';
@@ -66,7 +67,7 @@ export default function ProductsPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   // Inline editing states
-  const [editingCell, setEditingCell] = useState(null); // { productId, field, value }
+  const [editingCell, setEditingCell] = useState(null);
   
   // Variants dialog
   const [variantsDialogOpen, setVariantsDialogOpen] = useState(false);
@@ -74,56 +75,35 @@ export default function ProductsPage() {
   const [variants, setVariants] = useState([]);
 
   // Fetch products
-// Fetch products
-const { data, isLoading, error } = useQuery({
-  queryKey: ['vendor-products', page],
-  queryFn: async () => {
-    try {
-      console.log('Fetching vendor products...'); // Debug log
-      const result = await productsService.getVendorProducts({ page, limit: 100 });
-      console.log('Result:', result); // Debug log
-      
-      // Always return a valid object
-      return result || { products: [], pagination: { page: 1, totalPages: 1, totalCount: 0 } };
-    } catch (error) {
-      console.error('Query error:', error); // Debug log
-      // Return empty structure on error
-      return { products: [], pagination: { page: 1, totalPages: 1, totalCount: 0 } };
-    }
-  },
-  // Add these options to prevent undefined
-  retry: false,
-  staleTime: 0,
-});
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['vendor-products', page],
+    queryFn: async () => {
+      try {
+        const result = await productsService.getVendorProducts({ page, limit: 100 });
+        return result || { products: [], pagination: { page: 1, totalPages: 1, totalCount: 0 } };
+      } catch (error) {
+        return { products: [], pagination: { page: 1, totalPages: 1, totalCount: 0 } };
+      }
+    },
+    retry: false,
+    staleTime: 0,
+  });
 
-// Handle the response format
-const products = data?.products || [];
-const pagination = data?.pagination || { page: 1, totalPages: 1, totalCount: 0 };
+  const products = data?.products || [];
+  const pagination = data?.pagination || { page: 1, totalPages: 1, totalCount: 0 };
 
   // Fetch variants for a product
-
-const fetchVariants = async (productId) => {
-  try {
-    const result = await variantsService.getProductVariants(productId);
-    console.log('Variants result:', result); // Debug log
-    
-    // Handle different response formats
-    if (Array.isArray(result)) {
-      return result;
+  const fetchVariants = async (productId) => {
+    try {
+      const result = await variantsService.getProductVariants(productId);
+      if (Array.isArray(result)) return result;
+      if (result?.variants) return result.variants;
+      if (result?.data?.variants) return result.data.variants;
+      return [];
+    } catch (error) {
+      return [];
     }
-    if (result?.variants) {
-      return result.variants;
-    }
-    if (result?.data?.variants) {
-      return result.data.variants;
-    }
-    
-    return [];
-  } catch (error) {
-    console.error('Error fetching variants:', error);
-    return [];
-  }
-};
+  };
 
   // Apply filters
   const filteredProducts = data?.products?.filter(product => {
@@ -141,16 +121,15 @@ const fetchVariants = async (productId) => {
   }) || [];
 
   // Get unique categories from products
+  const categoriesMap = new Map();
+  data?.products?.forEach(product => {
+    if (product.category && product.category.id) {
+      categoriesMap.set(product.category.id, product.category);
+    }
+  });
+  const categories = Array.from(categoriesMap.values());
 
-const categoriesMap = new Map();
-data?.products?.forEach(product => {
-  if (product.category && product.category.id) {
-    categoriesMap.set(product.category.id, product.category);
-  }
-});
-const categories = Array.from(categoriesMap.values());
-
-  // Update product mutation (for inline editing)
+  // Update product mutation
   const updateProductMutation = useMutation({
     mutationFn: ({ productId, data }) => productsService.updateProduct(productId, data),
     onSuccess: () => {
@@ -163,10 +142,9 @@ const categories = Array.from(categoriesMap.values());
     },
   });
 
-  // Toggle status mutation - FIXED ENDPOINT
+  // Toggle status mutation
   const toggleStatusMutation = useMutation({
     mutationFn: async (productId) => {
-      // Use the toggle endpoint
       return await productsService.toggleProductStatus(productId);
     },
     onSuccess: () => {
@@ -189,97 +167,77 @@ const categories = Array.from(categoriesMap.values());
       setSelectedProducts([]);
       setBulkActionDialogOpen(false);
     },
-    onError: (error) => {
+    onError: () => {
       toast.error('Failed to delete products');
     },
   });
 
-// Bulk duplicate mutation
-const bulkDuplicateMutation = useMutation({
-  mutationFn: async (productIds) => {
-    const products = data?.products?.filter(p => productIds.includes(p.id));
-    const results = {
-      success: 0,
-      failed: 0,
-      errors: []
-    };
-    
-    // Get vendorId from the first product
-    const vendorId = products[0]?.vendorId;
-    
-    if (!vendorId) {
-      throw new Error('Vendor ID not found');
-    }
-    
-    for (let i = 0; i < products.length; i++) {
-      try {
-        const product = products[i];
-        
-        // Generate unique random suffix for SKU
-        const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
-        
-        // Remove "(Copy)" from name if it already exists, then add new one
-        const baseName = product.name.replace(/\s*\(Copy\)$/i, '');
-        
-        const duplicateData = {
-          vendorId: vendorId, // ← ADD THIS
-          name: `${baseName} (Copy)`,
-          description: product.description,
-          categoryId: product.categoryId,
-          price: product.price,
-          compareAtPrice: product.compareAtPrice || undefined, 
-          sku: product.sku ? `${product.sku}-${randomSuffix}` : null,
-          stockQuantity: product.stockQuantity,
-          images: product.images,
-          dimensions: product.dimensions,
-          materials: product.materials,
-          colors: product.colors,
-          roomType: product.roomType,
-          style: product.style,
-          assemblyRequired: product.assemblyRequired,
-          brand: product.brand,
-          warranty: product.warranty,
-          careInstructions: product.careInstructions || '',
-          isActive: false,
-        };
-        
-        console.log(`📋 Duplicating product ${i + 1}/${products.length}:`, duplicateData.name);
-        
-        await productsService.createProduct(duplicateData);
-        results.success++;
-        
-        // Add delay between products
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-      } catch (error) {
-        console.error(`❌ Failed to duplicate product ${i + 1}:`, error);
-        results.failed++;
-        results.errors.push({
-          product: products[i].name,
-          error: error?.error || error?.message || 'Unknown error'
-        });
+  // Bulk duplicate mutation
+  const bulkDuplicateMutation = useMutation({
+    mutationFn: async (productIds) => {
+      const products = data?.products?.filter(p => productIds.includes(p.id));
+      const results = { success: 0, failed: 0, errors: [] };
+      
+      const vendorId = products[0]?.vendorId;
+      if (!vendorId) throw new Error('Vendor ID not found');
+      
+      for (let i = 0; i < products.length; i++) {
+        try {
+          const product = products[i];
+          const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+          const baseName = product.name.replace(/\s*\(Copy\)$/i, '');
+          
+          const duplicateData = {
+            vendorId: vendorId,
+            name: `${baseName} (Copy)`,
+            description: product.description,
+            categoryId: product.categoryId,
+            price: product.price,
+            compareAtPrice: product.compareAtPrice || undefined,
+            sku: product.sku ? `${product.sku}-${randomSuffix}` : null,
+            stockQuantity: product.stockQuantity,
+            images: product.images,
+            dimensions: product.dimensions,
+            materials: product.materials,
+            colors: product.colors,
+            roomType: product.roomType,
+            style: product.style,
+            assemblyRequired: product.assemblyRequired,
+            brand: product.brand,
+            warranty: product.warranty,
+            careInstructions: product.careInstructions || '',
+            isActive: false,
+          };
+          
+          await productsService.createProduct(duplicateData);
+          results.success++;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          results.failed++;
+          results.errors.push({
+            product: products[i].name,
+            error: error?.error || error?.message || 'Unknown error'
+          });
+        }
       }
-    }
-    
-    return results;
-  },
-  onSuccess: (results) => {
-    queryClient.invalidateQueries(['vendor-products']);
-    
-    if (results.failed === 0) {
-      toast.success(`${results.success} product(s) duplicated successfully`);
-    } else {
-      toast.error(`${results.success} succeeded, ${results.failed} failed. Check console for details.`);
-      console.error('Duplication errors:', results.errors);
-    }
-    
-    setSelectedProducts([]);
-  },
-  onError: (error) => {
-    console.error('Bulk duplicate error:', error);
-    toast.error('Failed to duplicate products');
-  },
-});
+      
+      return results;
+    },
+    onSuccess: (results) => {
+      queryClient.invalidateQueries(['vendor-products']);
+      
+      if (results.failed === 0) {
+        toast.success(`${results.success} product(s) duplicated successfully`);
+      } else {
+        toast.error(`${results.success} succeeded, ${results.failed} failed`);
+      }
+      
+      setSelectedProducts([]);
+    },
+    onError: () => {
+      toast.error('Failed to duplicate products');
+    },
+  });
 
   // Update variant stock mutation
   const updateVariantMutation = useMutation({
@@ -291,7 +249,7 @@ const bulkDuplicateMutation = useMutation({
         fetchVariants(selectedProductVariants.id).then(setVariants);
       }
     },
-    onError: (error) => {
+    onError: () => {
       toast.error('Failed to update variant');
     },
   });
@@ -359,25 +317,20 @@ const bulkDuplicateMutation = useMutation({
     setEditingCell(null);
   };
 
-
-const handleOpenVariants = async (product) => {
-  setSelectedProductVariants(product);
-  setVariantsDialogOpen(true);
-  
-  try {
-    console.log('Fetching variants for product:', product.id); // Debug
-    const productVariants = await fetchVariants(product.id);
-    console.log('Fetched variants:', productVariants); // Debug
-    setVariants(productVariants || []);
-  } catch (error) {
-    console.error('Error loading variants:', error);
-    setVariants([]);
-  }
-};
+  const handleOpenVariants = async (product) => {
+    setSelectedProductVariants(product);
+    setVariantsDialogOpen(true);
+    
+    try {
+      const productVariants = await fetchVariants(product.id);
+      setVariants(productVariants || []);
+    } catch (error) {
+      setVariants([]);
+    }
+  };
 
   const allSelected = filteredProducts.length > 0 && selectedProducts.length === filteredProducts.length;
   const someSelected = selectedProducts.length > 0 && !allSelected;
-
   const activeFiltersCount = [categoryFilter !== 'all', statusFilter !== 'all', stockFilter !== 'all'].filter(Boolean).length;
 
   return (
@@ -397,39 +350,19 @@ const handleOpenVariants = async (product) => {
       </div>
 
       {/* Filters & Bulk Actions */}
-      <div className="flex items-center justify-between gap-4">
-        {/* Filters */}
-        <Popover open={showFilters} onOpenChange={setShowFilters}>
+      <div className="flex items-center gap-4 flex-wrap">
+        <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="relative">
+            <Button variant="outline" size="sm">
               <Filter className="mr-2 h-4 w-4" />
               Filters
               {activeFiltersCount > 0 && (
-                <span className="ml-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {activeFiltersCount}
-                </span>
+                <Badge className="ml-2 bg-blue-600">{activeFiltersCount}</Badge>
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80" align="start">
+          <PopoverContent className="w-80">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">Filters</h4>
-                {activeFiltersCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setCategoryFilter('all');
-                      setStatusFilter('all');
-                      setStockFilter('all');
-                    }}
-                  >
-                    Clear all
-                  </Button>
-                )}
-              </div>
-
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -635,7 +568,7 @@ const handleOpenVariants = async (product) => {
                       ) : (
                         <button
                           onClick={() => startEditing(product.id, 'price', product.price)}
-                          className="font-medium hover:text-blue-600 cursor-pointer"
+                          className="font-semibold hover:text-blue-600 cursor-pointer"
                         >
                           ${product.price.toFixed(2)}
                         </button>
@@ -662,7 +595,7 @@ const handleOpenVariants = async (product) => {
                       ) : (
                         <button
                           onClick={() => startEditing(product.id, 'compareAtPrice', product.compareAtPrice || '')}
-                          className="text-sm text-gray-500 hover:text-blue-600 cursor-pointer"
+                          className="text-gray-500 line-through hover:text-blue-600 cursor-pointer"
                         >
                           {product.compareAtPrice ? `$${product.compareAtPrice.toFixed(2)}` : '—'}
                         </button>

@@ -1,8 +1,8 @@
+// src/app/dashboard/layout.js
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/stores/authStore';
+import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Package, 
@@ -28,28 +28,62 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export default function DashboardLayout({ children }) {
-  const router = useRouter();
-  const { user, isAuthenticated, initialize, logout } = useAuthStore();
+  const pathname = usePathname();
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    initialize();
+    // Check auth directly from localStorage
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
     
-    if (!isAuthenticated) {
-      router.push('/auth/login');
+    if (!token || !userStr) {
+      // Not logged in
+      window.location.href = '/auth/login';
+      return;
     }
-  }, [isAuthenticated, initialize, router]);
+
+    try {
+      const userData = JSON.parse(userStr);
+      
+      if (userData.role !== 'VENDOR') {
+        // Not a vendor - redirect based on role
+        if (userData.role === 'ADMIN') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/account';
+        }
+        return;
+      }
+
+      // Valid vendor user
+      setUser(userData);
+      setIsLoading(false);
+    } catch (e) {
+      // Invalid user data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/auth/login';
+    }
+  }, []);
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/auth/login';
   };
 
-  if (!user) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   const navigation = [
@@ -76,16 +110,27 @@ export default function DashboardLayout({ children }) {
 
           {/* Navigation */}
           <nav className="mt-8 flex-1 px-2 space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="group flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <item.icon className="mr-3 h-5 w-5 text-gray-500 group-hover:text-gray-700" />
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive = pathname === item.href || 
+                (item.href !== '/dashboard' && pathname.startsWith(item.href));
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <item.icon className={`mr-3 h-5 w-5 ${
+                    isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'
+                  }`} />
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* User info at bottom */}
@@ -128,17 +173,28 @@ export default function DashboardLayout({ children }) {
                 </h1>
               </div>
               <nav className="mt-8 px-2 space-y-1">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className="group flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  >
-                    <item.icon className="mr-3 h-5 w-5 text-gray-500" />
-                    {item.name}
-                  </Link>
-                ))}
+                {navigation.map((item) => {
+                  const isActive = pathname === item.href || 
+                    (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                  
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                        isActive 
+                          ? 'bg-blue-50 text-blue-600' 
+                          : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                      }`}
+                    >
+                      <item.icon className={`mr-3 h-5 w-5 ${
+                        isActive ? 'text-blue-600' : 'text-gray-500'
+                      }`} />
+                      {item.name}
+                    </Link>
+                  );
+                })}
               </nav>
             </div>
           </div>

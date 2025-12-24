@@ -24,12 +24,12 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    return response; // ← IMPORTANT: Return the full response
+    return response.data; // ← FIX: Return response.data, not response
   },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
     }
     return Promise.reject(error.response?.data || error);
   }

@@ -1,20 +1,18 @@
+// src/app/auth/login/page.js
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/stores/authStore';
+import { authService } from '@/lib/api/auth.service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const router = useRouter();
-  const login = useAuthStore((state) => state.login);
-  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -28,13 +26,37 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
+      // Call login API directly
+      const response = await authService.login(formData.email, formData.password);
+      
+      console.log('Login response:', response);
+      
+      // authService.login already stores token and user in localStorage
+      // Get the role from response
+      const role = response?.user?.role;
+      
+      console.log('User role:', role);
+      
       toast.success('Login successful!');
-      router.push('/dashboard');
+
+      // Small delay to ensure localStorage is written
+      setTimeout(() => {
+        // Role-based redirect
+        if (role === 'ADMIN') {
+          window.location.href = '/admin';
+        } else if (role === 'VENDOR') {
+          window.location.href = '/dashboard';
+        } else if (role === 'CUSTOMER') {
+          window.location.href = '/account';
+        } else {
+          window.location.href = '/';
+        }
+      }, 100);
+      
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.error || 'Login failed. Please check your credentials.');
       toast.error('Login failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -50,10 +72,10 @@ export default function LoginPage() {
     <Card className="shadow-lg">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">
-          Vendor Login
+          Welcome Back
         </CardTitle>
         <CardDescription className="text-center">
-          Enter your credentials to access your dashboard
+          Enter your credentials to access your account
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,7 +92,7 @@ export default function LoginPage() {
               id="email"
               name="email"
               type="email"
-              placeholder="vendor@example.com"
+              placeholder="you@example.com"
               value={formData.email}
               onChange={handleChange}
               required
@@ -79,7 +101,15 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link 
+                href="/auth/forgot-password" 
+                className="text-sm text-primary hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <Input
               id="password"
               name="password"
@@ -97,7 +127,14 @@ export default function LoginPage() {
             className="w-full" 
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              'Sign In'
+            )}
           </Button>
 
           <div className="text-center text-sm">

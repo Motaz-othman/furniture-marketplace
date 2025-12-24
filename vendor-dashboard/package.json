@@ -33,7 +33,7 @@
     "react-hook-form": "^7.68.0",
     "react-hot-toast": "^2.6.0",
     "react-image-crop": "^11.0.10",
-    "recharts": "^3.5.1",
+    "recharts": "^3.6.0",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.9"
   },
