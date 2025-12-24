@@ -1,3 +1,4 @@
+// backend/src/modules/auth/auth.controller.js
 import prisma from '../../shared/config/db.js';
 import { hashPassword, comparePassword } from '../../shared/utils/bcrypt.util.js';
 import { generateToken } from '../../shared/utils/jwt.util.js';
@@ -165,7 +166,7 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// Change password
+// Change password - ✅ FIXED: Uses passwordHash instead of password
 export const changePassword = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -176,8 +177,12 @@ export const changePassword = async (req, res) => {
       where: { id: userId }
     });
 
-    // Verify current password
-    const validPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // ✅ FIX: Use passwordHash (the correct field name in Prisma schema)
+    const validPassword = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!validPassword) {
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
@@ -185,9 +190,10 @@ export const changePassword = async (req, res) => {
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    // ✅ FIX: Update passwordHash (not password)
     await prisma.user.update({
       where: { id: userId },
-      data: { password: hashedPassword }
+      data: { passwordHash: hashedPassword }
     });
 
     res.json({ message: 'Password changed successfully' });
@@ -251,9 +257,9 @@ export const forgotPassword = async (req, res) => {
       }
     });
 
-    // Send email
+    // Send email (wrapped in try-catch in case email service is not configured)
     try {
-      // await sendPasswordResetEmail(email, resetToken);
+      await sendPasswordResetEmail(email, resetToken);
     } catch (emailError) {
       console.error('Failed to send email:', emailError);
       // Reset the token since email failed
@@ -268,9 +274,7 @@ export const forgotPassword = async (req, res) => {
     }
 
     res.json({ 
-      message: 'If that email exists, a password reset link has been sent.',
-
-      
+      message: 'If that email exists, a password reset link has been sent.'
     });
 
   } catch (error) {
@@ -311,7 +315,7 @@ export const resetPassword = async (req, res) => {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordHash: hashedPassword,  // ✅ Changed from 'password'
+        passwordHash: hashedPassword,
         resetPasswordToken: null,
         resetPasswordExpires: null
       }
@@ -322,5 +326,22 @@ export const resetPassword = async (req, res) => {
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({ error: 'Failed to reset password' });
+  }
+};
+export const getMe = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true, email: true, firstName: true, lastName: true, 
+        role: true, createdAt: true, updatedAt: true,
+        vendor: { select: { id: true, businessName: true, isVerified: true } },
+        customer: { select: { id: true } }
+      }
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get user' });
   }
 };

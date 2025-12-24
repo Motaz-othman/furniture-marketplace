@@ -1,3 +1,4 @@
+// backend/src/modules/orders/orders.controller.js
 import prisma from '../../shared/config/db.js';
 import { notifyOrderPlaced, notifyOrderStatusChanged, notifyOrderCancelled } from '../../shared/services/notification.service.js';
 import { createPaymentIntent, createPaymentIntentWithTransfer } from '../../shared/services/stripe.service.js';
@@ -7,6 +8,15 @@ const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 7);
   return `ORD-${timestamp}-${random}`.toUpperCase();
+};
+
+// ✅ NEW: Generate unique tracking number (auto-generated, no duplicates)
+const generateTrackingNumber = (vendorId, orderId) => {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const vendorPrefix = vendorId.substring(0, 4).toUpperCase();
+  const orderSuffix = orderId.substring(0, 4).toUpperCase();
+  return `TRK-${vendorPrefix}-${timestamp}${random}-${orderSuffix}`;
 };
 
 // Create order from cart (checkout)
@@ -22,7 +32,7 @@ export const createOrder = async (req, res) => {
         product: {
           include: { vendor: true }
         },
-        variant: true // ← ADDED VARIANT
+        variant: true
       }
     });
 
@@ -30,10 +40,9 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
-    // ✅ ENHANCED VALIDATION - Check all invalid items at once
+    // Validate all items
     const invalidItems = [];
     for (const item of cartItems) {
-      // Check if product was deleted
       if (!item.product) {
         invalidItems.push({ 
           reason: 'Product no longer exists', 
@@ -42,7 +51,6 @@ export const createOrder = async (req, res) => {
         continue;
       }
       
-      // Check if product is inactive
       if (!item.product.isActive) {
         invalidItems.push({ 
           reason: 'Product is no longer available', 
@@ -51,7 +59,7 @@ export const createOrder = async (req, res) => {
         continue;
       }
 
-      // ✅ VARIANT VALIDATION
+      // Variant validation
       if (item.variantId) {
         if (!item.variant) {
           invalidItems.push({ 
@@ -70,7 +78,6 @@ export const createOrder = async (req, res) => {
           continue;
         }
 
-        // Check variant stock
         if (item.variant.stockQuantity < item.quantity) {
           invalidItems.push({ 
             reason: 'Insufficient stock',
@@ -81,7 +88,6 @@ export const createOrder = async (req, res) => {
           });
         }
       } else {
-        // Check product stock (no variant)
         if (item.product.stockQuantity < item.quantity) {
           invalidItems.push({ 
             reason: 'Insufficient stock',
@@ -93,7 +99,6 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // If any invalid items, return detailed error
     if (invalidItems.length > 0) {
       return res.status(400).json({ 
         error: 'Some items in your cart are no longer available. Please remove them and try again.',
@@ -120,20 +125,19 @@ export const createOrder = async (req, res) => {
       itemsByVendor[vendorId].push(item);
     }
 
-    // ✅ USE TRANSACTION - All or nothing
+    // Create orders in transaction
     const orders = await prisma.$transaction(async (tx) => {
       const createdOrders = [];
 
-      // Create separate order for each vendor
       for (const [vendorId, items] of Object.entries(itemsByVendor)) {
-        // ✅ CALCULATE SUBTOTAL USING VARIANT PRICE IF AVAILABLE
+        // Calculate subtotal using variant price if available
         const subtotal = items.reduce((sum, item) => {
           const price = item.variant ? item.variant.price : item.product.price;
           return sum + (price * item.quantity);
         }, 0);
 
-        const tax = subtotal * 0.08; // 8% tax
-        const shippingCost = 50; // Fixed shipping
+        const tax = subtotal * 0.08;
+        const shippingCost = 50;
         const total = subtotal + tax + shippingCost;
         const commission = subtotal * items[0].product.vendor.commissionRate;
 
@@ -152,9 +156,9 @@ export const createOrder = async (req, res) => {
             items: {
               create: items.map(item => ({
                 productId: item.productId,
-                variantId: item.variantId || undefined, // ← ADDED VARIANT
+                variantId: item.variantId || undefined,
                 quantity: item.quantity,
-                price: item.variant ? item.variant.price : item.product.price // ← USE VARIANT PRICE
+                price: item.variant ? item.variant.price : item.product.price
               }))
             }
           },
@@ -162,7 +166,7 @@ export const createOrder = async (req, res) => {
             items: {
               include: { 
                 product: true,
-                variant: true // ← ADDED VARIANT
+                variant: true
               }
             },
             vendor: {
@@ -174,10 +178,9 @@ export const createOrder = async (req, res) => {
 
         createdOrders.push(order);
 
-        // ✅ UPDATE STOCK - VARIANT OR PRODUCT
+        // Update stock
         for (const item of items) {
           if (item.variantId) {
-            // Decrement variant stock
             await tx.productVariant.update({
               where: { id: item.variantId },
               data: {
@@ -187,7 +190,6 @@ export const createOrder = async (req, res) => {
               }
             });
           } else {
-            // Decrement product stock
             await tx.product.update({
               where: { id: item.productId },
               data: {
@@ -208,7 +210,7 @@ export const createOrder = async (req, res) => {
       return createdOrders;
     });
 
-    // ✅ NOTIFY VENDORS
+    // Notify vendors
     for (const order of orders) {
       try {
         const vendor = await prisma.vendor.findUnique({
@@ -223,7 +225,7 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // ✅ CREATE PAYMENT INTENT FOR ORDERS (with split payment)
+    // Create payment intents
     const ordersWithPayment = await Promise.all(
       orders.map(async (order) => {
         try {
@@ -238,7 +240,6 @@ export const createOrder = async (req, res) => {
 
           let paymentIntent;
 
-          // Use split payment if vendor has connected Stripe account
           if (vendor.stripeAccountId && vendor.onboardingComplete && vendor.payoutsEnabled) {
             paymentIntent = await createPaymentIntentWithTransfer(
               order.total,
@@ -253,7 +254,6 @@ export const createOrder = async (req, res) => {
               {}
             );
           } else {
-            // Fallback to regular payment if vendor not connected
             paymentIntent = await createPaymentIntent(
               order.total,
               {
@@ -268,7 +268,6 @@ export const createOrder = async (req, res) => {
             console.log(`Warning: Vendor ${order.vendorId} doesn't have Stripe connected. Using regular payment.`);
           }
 
-          // Update order with payment intent
           await prisma.order.update({
             where: { id: order.id },
             data: {
@@ -299,11 +298,11 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// Get customer's orders (WITH PAGINATION)
+// Get customer's orders
 export const getCustomerOrders = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
-    const { page = 1, limit = 10, status } = req.query; // ← ADDED PAGINATION
+    const { page = 1, limit = 10, status } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const take = parseInt(limit);
@@ -320,7 +319,7 @@ export const getCustomerOrders = async (req, res) => {
           items: {
             include: { 
               product: true,
-              variant: true // ← ADDED VARIANT
+              variant: true
             }
           },
           vendor: {
@@ -351,11 +350,11 @@ export const getCustomerOrders = async (req, res) => {
   }
 };
 
-// Get vendor's orders (WITH PAGINATION)
+// Get vendor's orders
 export const getVendorOrders = async (req, res) => {
   try {
     const vendorId = req.user.vendor.id;
-    const { page = 1, limit = 10, status } = req.query; // ← ADDED PAGINATION
+    const { page = 1, limit = 10, status } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const take = parseInt(limit);
@@ -372,7 +371,7 @@ export const getVendorOrders = async (req, res) => {
           items: {
             include: { 
               product: true,
-              variant: true // ← ADDED VARIANT
+              variant: true
             }
           },
           customer: {
@@ -419,7 +418,7 @@ export const getOrderById = async (req, res) => {
         items: {
           include: { 
             product: true,
-            variant: true // ← ADDED VARIANT
+            variant: true
           }
         },
         vendor: {
@@ -440,7 +439,7 @@ export const getOrderById = async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Check if user has access to this order
+    // Check access
     const isCustomer = order.customer.userId === userId;
     const isVendor = order.vendor.userId === userId;
     const isAdmin = req.user.role === 'ADMIN';
@@ -457,22 +456,17 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-// Update order status (vendor only) - WITH TRACKING
+// ✅ UPDATED: Update order status with AUTO-GENERATED tracking number
 export const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, trackingNumber, trackingUrl } = req.body; // ← ADDED TRACKING
+    const { status, carrierTrackingNumber, carrierTrackingUrl } = req.body;
     const vendorId = req.user.vendor.id;
 
     // Valid statuses
     const validStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
-    }
-
-    // ✅ REQUIRE TRACKING FOR SHIPPED STATUS
-    if (status === 'SHIPPED' && !trackingNumber) {
-      return res.status(400).json({ error: 'Tracking number is required for shipped orders' });
     }
 
     // Find order
@@ -484,18 +478,25 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Check if vendor owns this order
+    // Check vendor ownership
     if (order.vendorId !== vendorId) {
       return res.status(403).json({ error: 'Not your order' });
     }
 
-    // Update status
+    // Build update data
     const updateData = { status };
-    if (trackingNumber) {
-      updateData.trackingNumber = trackingNumber;
+
+    // ✅ AUTO-GENERATE tracking number when status changes to SHIPPED
+    if (status === 'SHIPPED' && !order.trackingNumber) {
+      updateData.trackingNumber = generateTrackingNumber(vendorId, id);
     }
-    if (trackingUrl) {
-      updateData.trackingUrl = trackingUrl;
+
+    // Optional: vendor can also provide carrier tracking (UPS, FedEx, etc.)
+    if (carrierTrackingNumber) {
+      updateData.carrierTrackingNumber = carrierTrackingNumber;
+    }
+    if (carrierTrackingUrl) {
+      updateData.carrierTrackingUrl = carrierTrackingUrl;
     }
 
     const updatedOrder = await prisma.order.update({
@@ -505,13 +506,13 @@ export const updateOrderStatus = async (req, res) => {
         items: {
           include: { 
             product: true,
-            variant: true // ← ADDED VARIANT
+            variant: true
           }
         }
       }
     });
 
-    // ✅ NOTIFY CUSTOMER
+    // Notify customer
     try {
       const customer = await prisma.customer.findUnique({
         where: { id: updatedOrder.customerId },
@@ -546,7 +547,7 @@ export const cancelOrder = async (req, res) => {
       include: { 
         items: {
           include: {
-            variant: true // ← ADDED VARIANT
+            variant: true
           }
         }
       }
@@ -564,18 +565,16 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
-    // ✅ USE TRANSACTION - Update order AND restore stock
+    // Use transaction to update order AND restore stock
     const updatedOrder = await prisma.$transaction(async (tx) => {
-      // Update order status
       const cancelledOrder = await tx.order.update({
         where: { id },
         data: { status: 'CANCELLED' }
       });
 
-      // ✅ RESTORE STOCK - VARIANT OR PRODUCT
+      // Restore stock
       for (const item of order.items) {
         if (item.variantId) {
-          // Restore variant stock
           await tx.productVariant.update({
             where: { id: item.variantId },
             data: {
@@ -585,7 +584,6 @@ export const cancelOrder = async (req, res) => {
             }
           });
         } else {
-          // Restore product stock
           await tx.product.update({
             where: { id: item.productId },
             data: {
@@ -600,7 +598,7 @@ export const cancelOrder = async (req, res) => {
       return cancelledOrder;
     });
 
-    // ✅ NOTIFY CUSTOMER
+    // Notify customer
     try {
       const customer = await prisma.customer.findUnique({
         where: { id: customerId },

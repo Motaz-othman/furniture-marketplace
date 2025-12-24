@@ -29,6 +29,7 @@ model User {
   email        String   @unique
   passwordHash String
   role         Role     @default(CUSTOMER)
+  isBlocked             Boolean   @default(false)   // ← ADD THIS LINE
   firstName    String
   lastName     String
   phone        String?
@@ -45,42 +46,39 @@ model User {
   @@index([email])
 }
 model Vendor {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  businessName    String
-  description     String?
-  logo            String?
+  id                  String    @id @default(uuid())
+  userId              String    @unique
+  businessName        String
+  description         String?
+  logo                String?
+  businessPhone       String?
+  businessEmail       String?
+  address             Json?
+  shippingZones       String[]
+  returnPolicy        String?
+  shippingPolicy      String?
+  responseTime        Int?
+  rating              Float     @default(0)
+  totalReviews        Int       @default(0)
+  stripeAccountId     String?
+  stripeAccountStatus String?   @default("PENDING")
+  onboardingComplete  Boolean   @default(false)
+  payoutsEnabled      Boolean   @default(false)
+  commissionRate      Float     @default(0.06)
   
-  // Contact & Location
-  businessPhone   String?
-  businessEmail   String?
-  address         Json?    // {street, city, state, zipCode, country}
+  // ADD THESE NEW FIELDS:
+  status              String    @default("PENDING")   // PENDING, APPROVED, VERIFIED
+  adminRating         Float?                          // Manual rating by admin (1-5)
+  adminNotes          String?                         // Admin notes about vendor
   
-  // Shipping & Policies
-  shippingZones   String[] @default([])  // ["GA", "FL", "SC", "NC"]
-  returnPolicy    String?  // "30-day return policy"
-  shippingPolicy  String?  // "Free shipping over $500"
-  
-  // Performance
-  responseTime    Int?     @default(24)  // Hours to respond
-  rating          Float?   @default(0)   // Average rating
-  totalReviews    Int      @default(0)
-  
-  // Payment & Status
-  stripeAccountId   String?   @unique  // ✅ Add @unique
-  stripeAccountStatus String? @default("NOT_CONNECTED")  // ✅ ADD THIS
-  onboardingComplete Boolean  @default(false)  // ✅ ADD THIS
-  payoutsEnabled    Boolean   @default(false)  // ✅ ADD THIS
-  commissionRate  Float    @default(0.06)
-  isVerified      Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  
-  user            User     @relation(fields: [userId], references: [id])
-  products        Product[]
-  orders          Order[]
-  
-  @@index([userId])
-  @@index([rating])
+  isVerified          Boolean   @default(false)       // Keep for backwards compatibility
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  user                User      @relation(fields: [userId], references: [id])
+  products            Product[]
+  orders              Order[]
 }
 
 model Customer {

@@ -17,6 +17,7 @@ import paymentsRoutes from './modules/payments/payments.routes.js';
 import searchRoutes from './modules/search/search.routes.js';
 import variantsRoutes from './modules/products/variants.routes.js';
 import addressesRoutes from './modules/addresses/addresses.routes.js';
+import adminRoutes from './modules/admin/admin.routes.js';
 
 
 
@@ -69,6 +70,7 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api', variantsRoutes);
 app.use('/api/addresses', addressesRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 // 404 handler
