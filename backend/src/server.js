@@ -18,6 +18,9 @@ import searchRoutes from './modules/search/search.routes.js';
 import variantsRoutes from './modules/products/variants.routes.js';
 import addressesRoutes from './modules/addresses/addresses.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
+import { registry } from './integrations/index.js';
+import integrationsRoutes from './integrations/router.js';
+
 
 
 
@@ -71,6 +74,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api', variantsRoutes);
 app.use('/api/addresses', addressesRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/integrations', integrationsRoutes);
 
 
 // 404 handler
@@ -82,7 +86,14 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`🔒 Security: Rate limiting, Validation, Headers, Error handling`);
-});
+const startServer = async () => {
+  // Load all integrations
+  await registry.loadAll();
+  
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📦 Integrations loaded: ${registry.getCodes().join(', ') || 'none'}`);
+  });
+};
+
+startServer();

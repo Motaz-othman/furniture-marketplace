@@ -152,6 +152,11 @@ model Product {
   
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+    source         String      @default("MANUAL")
+  externalId     String?
+  externalData   Json?
+  lastSyncAt     DateTime?
+  
   
   vendor         Vendor      @relation(fields: [vendorId], references: [id])
   category       Category    @relation(fields: [categoryId], references: [id])
@@ -166,6 +171,8 @@ model Product {
   @@index([name])
   @@index([roomType])
   @@index([style])
+    @@unique([externalId, source])
+  @@index([source])
 }
 
 model CartItem {
@@ -201,6 +208,12 @@ model Order {
   notes           String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+
+    source           String     @default("DIRECT")
+  externalOrderId  String?
+  externalData     Json?
+   @@index([source])
+  @@index([externalOrderId])
   
   customer              Customer      @relation(fields: [customerId], references: [id])
   vendor                Vendor        @relation(fields: [vendorId], references: [id])
@@ -308,4 +321,40 @@ model ProductVariant {
   @@index([productId])
   @@index([color])
   @@index([size])
+}
+
+model IntegrationProvider {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  name          String
+  type          String
+  apiKey        String?
+  apiSecret     String?
+  isActive      Boolean   @default(false)
+  settings      Json?
+  lastSyncAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  syncLogs      SyncLog[]
+}
+
+model SyncLog {
+  id            String    @id @default(uuid())
+  source        String
+  type          String
+  status        String
+  itemsTotal    Int       @default(0)
+  itemsSynced   Int       @default(0)
+  itemsFailed   Int       @default(0)
+  errors        Json?
+  data          Json?
+  createdAt     DateTime  @default(now())
+
+  providerId    String?
+  provider      IntegrationProvider? @relation(fields: [providerId], references: [id])
+
+  @@index([source])
+  @@index([type])
+  @@index([createdAt])
 }
