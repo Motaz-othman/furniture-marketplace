@@ -1,12 +1,16 @@
 import Header from './Header';
 import Footer from './Footer';
+import MobileBottomNav from './MobileBottomNav';
 
 export default function MainLayout({ children, transparentHeader = false }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <Header transparent={transparentHeader} />
-      <main className="flex-1">{children}</main>
+      <main>{children}</main>
       <Footer />
-    </div>
+      
+      {/* Mobile Bottom Navigation - Shows only on mobile */}
+      <MobileBottomNav />
+    </>
   );
 }

@@ -1,0 +1,134 @@
+/* ============================================
+   FOOTER.CSS - Footer Section
+   Includes: Footer grid, newsletter,
+   payment methods, security badges
+   ============================================ */
+
+   footer { 
+    background-color: var(--text-main); 
+    color: #fff; 
+    padding: 50px 40px 20px;
+  }
+  
+  .footer-grid { 
+    display: grid; 
+    grid-template-columns: 1.5fr 1fr 1fr 1fr; 
+    gap: 40px; 
+    max-width: var(--container-width);
+    margin: 0 auto 30px;
+  }
+  
+  .footer-col h4 { 
+    font-size: 12px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-bottom: 20px; 
+    opacity: 0.8; 
+  }
+  
+  .footer-col ul li { 
+    margin-bottom: 12px; 
+    font-size: 13px; 
+    color: #ccc; 
+    cursor: pointer; 
+  }
+  
+  .footer-col ul li:hover { 
+    color: #fff; 
+  }
+  
+  /* Newsletter */
+  .newsletter input { 
+    padding: 12px; 
+    width: 70%; 
+    border: none; 
+    background: rgba(255,255,255,0.1); 
+    color: #fff; 
+    font-size: 13px;
+    border-radius: 4px 0 0 4px;
+  }
+  
+  .newsletter input::placeholder { 
+    color: rgba(255,255,255,0.5); 
+  }
+  
+  .newsletter button { 
+    padding: 12px 20px; 
+    border: none; 
+    background: #fff; 
+    color: #000; 
+    font-weight: 600; 
+    cursor: pointer; 
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    transition: background 0.3s;
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .newsletter button:hover { 
+    background: #f0f0f0; 
+  }
+  
+  /* Footer Bottom */
+  .footer-bottom {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .footer-bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-size: 13px;
+    color: #ccc;
+  }
+  
+  .footer-trust {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  /* Payment Methods */
+  .payment-methods {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .payment-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    margin-right: 8px;
+  }
+  
+  .payment-icon {
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.1);
+    padding: 6px 10px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+  }
+  
+  /* Security Badges */
+  .security-badges {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  
+  .security-badge {
+    font-size: 12px;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }

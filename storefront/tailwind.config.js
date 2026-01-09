@@ -1,32 +1,80 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: [
-      './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-      './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-      './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-    ],
-    theme: {
-      extend: {
-        colors: {
-          cream: '#FAF8F5',
-          beige: '#F0EBE3',
-          charcoal: '#2C2C2C',
-          muted: '#6B6B6B',
-          accent: '#8B7355',
-          'accent-hover': '#6B5A45',
-          'header-dark': '#4A5440',
-          'border-light': '#E8E4DC',
-          olive: '#4A5440',
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // Brand colors from your design
+        accent: {
+          DEFAULT: '#aa7c6d',
+          secondary: '#d4a373',
+          dark: '#9a6c5d',
         },
-        fontFamily: {
-          serif: ['Playfair Display', 'serif'],
-          sans: ['Inter', 'sans-serif'],
+        sale: '#d14444',
+        
+        // Backgrounds
+        'bg-secondary': '#f9f9f9',
+        'bg-warm': '#fafaf8',
+        'bg-warm-dark': '#f5f4f1',
+        
+        // Text
+        'text-main': '#1a1a1a',
+        'text-light': '#555555',
+        
+        // Border
+        'border-main': '#e5e5e5',
+      },
+      
+      fontFamily: {
+        serif: ['var(--font-serif)', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+      },
+      
+      maxWidth: {
+        'container': '1440px',
+      },
+      
+      boxShadow: {
+        'card': '0 2px 8px rgba(0,0,0,0.06)',
+        'card-hover': '0 12px 32px rgba(0,0,0,0.14)',
+        'proof': '0 2px 4px rgba(0,0,0,0.1)',
+      },
+      
+      backdropBlur: {
+        'hero': '12px',
+      },
+      
+      transitionDuration: {
+        'card': '400ms',
+      },
+      
+      zIndex: {
+        'header': '100',
+        'hero': '1',
+        'hero-overlay': '2',
+        'hero-content': '3',
+      },
+      
+      animation: {
+        'fade-in': 'fadeIn 0.8s ease-in-out',
+        'slide-in': 'slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
-        boxShadow: {
-          'card': '0px 4px 20px rgba(0, 0, 0, 0.08)',
-          'button': '0px 4px 12px rgba(139, 115, 85, 0.25)',
+        slideIn: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
         },
       },
     },
-    plugins: [],
-  }
+  },
+  plugins: [],
+}
