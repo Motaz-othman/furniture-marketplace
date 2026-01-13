@@ -143,11 +143,32 @@
       right: 0;
       z-index: 100;
       background: #fff;
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+      position: relative;
     }
     
+    /* Hamburger - Positioned on left */
+    .mobile-menu-toggle {
+      display: block;
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+    }
+    
+    /* Logo - Centered */
     .logo {
       font-size: 20px;
-      margin: 0 auto;
+      margin: 0;
+      text-align: center;
+    }
+    
+    .logo-link {
+      position: relative;
+      z-index: 1;
     }
     
     .search-box {
@@ -173,17 +194,6 @@
     /* Add padding for fixed header */
     .hero {
       margin-top: 50px;
-    }
-    
-    /* Show hamburger */
-    .mobile-menu-toggle {
-      display: block;
-      position: absolute;
-      left: 12px;
-    }
-  
-    .header-container .logo {
-      margin: 0 auto;
     }
     
     /* Mobile Bottom Nav */

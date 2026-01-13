@@ -128,7 +128,7 @@ export default function Header() {
           <div className="mobile-menu-header">
             {/* Logo in mobile menu - also clickable */}
             <Link href="/" className="logo-link" onClick={() => setIsMobileMenuOpen(false)}>
-              <div className="logo">Furnivo</div>
+              <div className="logo">LiviPoint</div>
             </Link>
             <button 
               className="mobile-menu-close"
