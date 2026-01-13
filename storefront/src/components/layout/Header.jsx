@@ -48,7 +48,7 @@ export default function Header() {
 
         {/* Logo - CLICKABLE - Goes to Homepage */}
         <Link href="/" className="logo-link">
-          <div className="logo">Furnivo</div>
+          <div className="logo">LiviPoint</div>
         </Link>
         
         {/* Search Box - FRIENDLY PLACEHOLDER + ICON */}
