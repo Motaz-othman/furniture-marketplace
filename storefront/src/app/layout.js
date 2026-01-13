@@ -33,7 +33,7 @@ const cormorant = Cormorant({
 });
 
 export const metadata = {
-  title: 'Furnivo - Quality Furniture Store',
+  title: 'LiviPoint - Quality Furniture Store',
   description: 'Discover carefully selected furniture for your home',
 };
 
