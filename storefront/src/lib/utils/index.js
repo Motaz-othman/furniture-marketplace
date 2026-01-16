@@ -17,6 +17,17 @@ export {
     deepClone,
     isEmpty,
   } from './helpers.js';
-  
+
   // Export classname utility
   export { cn } from './cn.js';
+
+  // Export product transformation utilities
+  export {
+    transformApiProductToFrontend,
+    transformApiProductsToFrontend,
+    mergeProductWithInventory,
+    getVariantColor,
+    getVariantMainImage,
+    calculateDiscountPercentage,
+    isProductInStock
+  } from './productTransform.js';

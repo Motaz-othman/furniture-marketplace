@@ -5,13 +5,11 @@
 
 import { handleApiCall, get } from './client';
 import {
-  fakeProducts,
-  getProductById as getFakeProductById,
-  getProductBySlug as getFakeProductBySlug,
-  getProductsByCategory as getFakeProductsByCategory,
-  getFeaturedProducts as getFakeFeaturedProducts,
-  getNewProducts as getFakeNewProducts,
-  getSaleProducts as getFakeSaleProducts,
+  // New API format functions - Using these for all 42 products
+  getProductsApiFormat,
+  getFeaturedProductsApiFormat,
+  getNewProductsApiFormat,
+  productsApiFormat,
 } from '@/lib/fake-data';
 
 /**
@@ -26,45 +24,45 @@ export async function getProducts(params = {}) {
       const response = await get('/products', { params });
       return response;
     },
-    // Fake data
+    // Fake data - Using API format (all 42 products)
     () => {
       // Simple pagination simulation
       const page = params.page || 1;
       const limit = params.limit || 20;
       const start = (page - 1) * limit;
       const end = start + limit;
-      
-      let products = [...fakeProducts];
-      
+
+      let products = getProductsApiFormat();
+
       // Filter by category if provided
       if (params.categoryId) {
-        products = getFakeProductsByCategory(params.categoryId);
+        products = products.filter(p => p.categoryId === params.categoryId);
       }
-      
+
       // Filter by featured
       if (params.featured === 'true') {
-        products = getFakeFeaturedProducts();
+        products = products.filter(p => p.isFeatured);
       }
-      
+
       // Filter by new
       if (params.new === 'true') {
-        products = getFakeNewProducts();
+        products = products.filter(p => p.isNew);
       }
-      
+
       // Filter by sale
       if (params.sale === 'true') {
-        products = getFakeSaleProducts();
+        products = products.filter(p => p.isOnSale);
       }
-      
+
       // Search by name
       if (params.search) {
         const searchLower = params.search.toLowerCase();
-        products = products.filter(p => 
+        products = products.filter(p =>
           p.name.toLowerCase().includes(searchLower) ||
           p.description.toLowerCase().includes(searchLower)
         );
       }
-      
+
       // Sort
       if (params.sortBy) {
         if (params.sortBy === 'price-asc') {
@@ -77,9 +75,9 @@ export async function getProducts(params = {}) {
           products.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
         }
       }
-      
+
       const paginatedProducts = products.slice(start, end);
-      
+
       return {
         data: paginatedProducts,
         pagination: {
@@ -107,7 +105,8 @@ export async function getProductById(id) {
     },
     // Fake data
     () => {
-      const product = getFakeProductById(id);
+      const products = getProductsApiFormat();
+      const product = products.find(p => p.id === id);
       if (!product) {
         throw new Error('Product not found');
       }
@@ -130,7 +129,8 @@ export async function getProductBySlug(slug) {
     },
     // Fake data
     () => {
-      const product = getFakeProductBySlug(slug);
+      const products = getProductsApiFormat();
+      const product = products.find(p => p.slug === slug);
       if (!product) {
         throw new Error('Product not found');
       }
@@ -150,9 +150,9 @@ export async function getFeaturedProducts() {
       const response = await get('/products', { params: { featured: true } });
       return response;
     },
-    // Fake data
+    // Fake data - Using API format
     () => {
-      return { data: getFakeFeaturedProducts() };
+      return { data: getFeaturedProductsApiFormat() };
     }
   );
 }
@@ -168,9 +168,9 @@ export async function getNewProducts() {
       const response = await get('/products', { params: { new: true } });
       return response;
     },
-    // Fake data
+    // Fake data - Using API format
     () => {
-      return { data: getFakeNewProducts() };
+      return { data: getNewProductsApiFormat() };
     }
   );
 }
@@ -186,9 +186,10 @@ export async function getSaleProducts() {
       const response = await get('/products', { params: { sale: true } });
       return response;
     },
-    // Fake data
+    // Fake data - Using API format
     () => {
-      return { data: getFakeSaleProducts() };
+      const products = getProductsApiFormat();
+      return { data: products.filter(p => p.isOnSale).slice(0, 8) };
     }
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { User, Heart, ShoppingCart } from 'lucide-react';
 import { useParentCategories } from '@/lib/hooks';
 import { getSubcategories } from '@/lib/fake-data';
 import MegaMenu from './MegaMenu';
@@ -77,11 +78,18 @@ export default function Header() {
           </button>
         </form>
         
-        {/* Header Actions - Using Link components */}
+        {/* Header Actions - Using Icon components */}
         <div className="header-actions">
-          <Link href="/account" className="action-link">Account</Link>
-          <Link href="/wishlist" className="action-link">Wishlist</Link>
-          <Link href="/cart" className="action-link">Cart (0)</Link>
+          <Link href="/account" className="action-link" aria-label="Account">
+            <User size={20} />
+          </Link>
+          <Link href="/wishlist" className="action-link" aria-label="Wishlist">
+            <Heart size={20} />
+          </Link>
+          <Link href="/cart" className="action-link cart-link" aria-label="Shopping Cart">
+            <ShoppingCart size={20} />
+            <span className="cart-count">0</span>
+          </Link>
         </div>
       </header>
 

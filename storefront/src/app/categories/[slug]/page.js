@@ -9,10 +9,16 @@ import { formatPrice } from '@/lib/utils';
 export default function CategoryPage({ params }) {
   // Next.js 15: params is a Promise, unwrap it with use()
   const { slug } = use(params);
-  
+
   // Get category data
   const category = getCategoryBySlug(slug);
-  
+
+  // Get products for this category
+  const products = getProductsByCategorySlug(slug);
+
+  // Get subcategories if this is a parent category
+  const subcategories = category?.parentId === null ? getSubcategories(category.id) : [];
+
   // If category not found, show 404
   if (!category) {
     return (
@@ -27,12 +33,6 @@ export default function CategoryPage({ params }) {
       </MainLayout>
     );
   }
-
-  // Get products for this category
-  const products = getProductsByCategorySlug(slug);
-  
-  // Get subcategories if this is a parent category
-  const subcategories = category.parentId === null ? getSubcategories(category.id) : [];
 
   return (
     <MainLayout>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import MainLayout from '@/components/layout/MainLayout';
 import { useFeaturedProducts, useNewProducts } from '@/lib/hooks';
 import { useParentCategories } from '@/lib/hooks';
@@ -12,7 +13,7 @@ function ProductCard({ product, index }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   
   return (
-    <div className="product-card">
+    <Link href={`/products/${product.slug}`} className="product-card">
       <div className="product-image">
         {product.badge && (
           <span 
@@ -25,7 +26,10 @@ function ProductCard({ product, index }) {
         
         <button 
           className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
-          onClick={() => setIsWishlisted(!isWishlisted)}
+          onClick={(e) => {
+            e.preventDefault();
+            setIsWishlisted(!isWishlisted);
+          }}
           aria-label="Add to wishlist"
         >
           <span className="heart-icon">{isWishlisted ? '❤' : '♡'}</span>
@@ -45,7 +49,10 @@ function ProductCard({ product, index }) {
               <button
                 key={idx}
                 className={`image-dot ${idx === currentImageIndex ? 'active' : ''}`}
-                onClick={() => setCurrentImageIndex(idx)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentImageIndex(idx);
+                }}
                 onMouseEnter={() => setCurrentImageIndex(idx)}
                 aria-label={`View image ${idx + 1}`}
               />
@@ -54,7 +61,12 @@ function ProductCard({ product, index }) {
         )}
         
         <div className="quick-view-overlay">
-          <button className="quick-view-btn-enhanced">Quick View</button>
+          <button 
+            className="quick-view-btn-enhanced"
+            onClick={(e) => e.preventDefault()}
+          >
+            Quick View
+          </button>
         </div>
       </div>
       
@@ -88,13 +100,12 @@ function ProductCard({ product, index }) {
           {formatPrice(product.price)}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [scrollY, setScrollY] = useState(0);
 
   // Fetch data using hooks
   const { data: categoriesData, isLoading: categoriesLoading } = useParentCategories();
@@ -112,13 +123,6 @@ export default function HomePage() {
       setCurrentSlide((prev) => (prev + 1) % 3);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
-
-  // Track scroll position for back to top button
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Hero slides
@@ -154,7 +158,7 @@ export default function HomePage() {
   };
 
   return (
-    <MainLayout transparentHeader={true}>
+    <MainLayout>
       {/* HERO CAROUSEL */}
       <section className="hero">
         {heroSlides.map((slide, index) => (
@@ -204,7 +208,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
+      {/* CATEGORIES - FIXED WITH LINKS! */}
       <section className="categories-section">
         <div className="container">
           <div className="section-header category-header">
@@ -221,10 +225,14 @@ export default function HomePage() {
               <button className="carousel-arrow carousel-arrow-left" onClick={() => scrollCategories('left')}>‹</button>
               <div className="category-scroll" id="category-scroll">
                 {categories.map((cat) => (
-                  <div className="cat-card" key={cat.id}>
+                  <Link 
+                    href={`/categories/${cat.slug}`} 
+                    key={cat.id}
+                    className="cat-card"
+                  >
                     <div className="cat-name-top">{cat.name}</div>
                     <img src={cat.imageUrl} alt={cat.name} />
-                  </div>
+                  </Link>
                 ))}
               </div>
               <button className="carousel-arrow carousel-arrow-right" onClick={() => scrollCategories('right')}>›</button>
@@ -265,7 +273,7 @@ export default function HomePage() {
               <h2 className="section-title">Trending Now</h2>
               <p className="section-subtitle">Our most popular pieces this season</p>
             </div>
-            <a href="#" className="section-link">View All</a>
+            <Link href="/products" className="section-link">View All</Link>
           </div>
           
           {featuredLoading ? (
@@ -284,86 +292,71 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* NEW ARRIVALS */}
+      <section className="product-section" style={{ background: '#fafaf8' }}>
+        <div className="container">
+          <div className="section-header product-header">
+            <div>
+              <h2 className="section-title">New Arrivals</h2>
+              <p className="section-subtitle">Fresh additions to our curated collection</p>
+            </div>
+            <Link href="/products?filter=new" className="section-link">View All</Link>
+          </div>
+          
+          {newLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>Loading products...</div>
+          ) : (
+            <div className="product-carousel-wrapper">
+              <button className="carousel-arrow carousel-arrow-left" onClick={() => scrollProducts('left')}>‹</button>
+              <div className="products-scroll">
+                {newProducts.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} />
+                ))}
+              </div>
+              <button className="carousel-arrow carousel-arrow-right" onClick={() => scrollProducts('right')}>›</button>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* BRAND STORY */}
       <section className="brand-story-section">
         <div className="container">
           <div className="brand-story-content">
             <div className="brand-story-text">
-              <h2 className="brand-story-title">Curated for Your Home</h2>
-              <p className="brand-story-para">
-                We believe finding the perfect furniture shouldn't be complicated. That's why we've done 
-                the hard work for you—carefully selecting pieces from trusted suppliers and bringing them 
-                together in one convenient place.
+              <h2 className="section-title" style={{ textAlign: 'left' }}>Our Story</h2>
+              <p className="brand-story-description">
+                At Furnivo, we believe your home should tell your story. That's why we've spent years building relationships 
+                with the world's finest furniture makers, bringing you pieces that combine timeless design with modern craftsmanship.
               </p>
-              <p className="brand-story-para">
-                Whether you're furnishing your first apartment or redesigning your entire home, we're here 
-                to make quality furniture accessible and affordable. Browse our collection and discover 
-                pieces you'll love.
+              <p className="brand-story-description">
+                Every item in our collection is carefully vetted for quality, sustainability, and style. We don't just sell furniture—we 
+                help you create spaces that inspire, comfort, and endure.
               </p>
-              <div className="brand-values">
-                <div className="brand-value">
-                  <div className="brand-value-icon">✓</div>
-                  <div>
-                    <h4>Thoughtfully Selected</h4>
-                    <p>Every piece chosen for quality and design</p>
-                  </div>
-                </div>
-                <div className="brand-value">
-                  <div className="brand-value-icon">★</div>
-                  <div>
-                    <h4>Trusted Sources</h4>
-                    <p>Working with reliable manufacturers</p>
-                  </div>
-                </div>
-                <div className="brand-value">
-                  <div className="brand-value-icon">◆</div>
-                  <div>
-                    <h4>Great Value</h4>
-                    <p>Quality furniture at fair prices</p>
-                  </div>
-                </div>
-              </div>
+              <Link href="/about" className="btn" style={{ marginTop: '20px' }}>Learn More About Us</Link>
             </div>
             <div className="brand-story-image">
-              <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80" alt="Curated for Your Home" />
+              <img 
+                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80" 
+                alt="Our showroom" 
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* LIVE CHAT WIDGET */}
-      <div className="chat-widget">
-        <button className="chat-button" aria-label="Open chat">
-          <span className="chat-icon">💬</span>
-        </button>
-      </div>
-
-      {/* AS FEATURED IN SECTION */}
+      {/* FEATURED IN / TRUST BADGES */}
       <section className="featured-in">
         <div className="container">
           <h3 className="featured-title">As Featured In</h3>
           <div className="featured-logos">
-            <div className="featured-logo">Architectural Digest</div>
-            <div className="featured-logo">Dwell Magazine</div>
-            <div className="featured-logo">Apartment Therapy</div>
-            <div className="featured-logo">Elle Decor</div>
-            <div className="featured-logo">Design Milk</div>
+            <div className="featured-logo">ARCHITECTURAL DIGEST</div>
+            <div className="featured-logo">ELLE DECOR</div>
+            <div className="featured-logo">DWELL</div>
+            <div className="featured-logo">INTERIOR DESIGN</div>
           </div>
         </div>
       </section>
-
-      {/* BACK TO TOP BUTTON */}
-      <button 
-        className="back-to-top"
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        style={{ 
-          opacity: scrollY > 500 ? 1 : 0,
-          pointerEvents: scrollY > 500 ? 'auto' : 'none'
-        }}
-        aria-label="Back to top"
-      >
-        <span className="back-to-top-icon">↑</span>
-      </button>
     </MainLayout>
   );
 }

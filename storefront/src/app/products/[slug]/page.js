@@ -5,27 +5,25 @@ import Link from 'next/link';
 import MainLayout from '@/components/layout/MainLayout';
 import { useProducts } from '@/lib/hooks';
 import { formatPrice } from '@/lib/utils';
+import '../../../styles/product-detail.css';
 
 export default function ProductDetailPage({ params }) {
-  // Next.js 15: params is a Promise, must unwrap with React.use()
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
-  
-  // Fetch all products and find the current one
+
   const { data: productsData, isLoading } = useProducts({ limit: 100 });
   const allProducts = productsData?.data || [];
   const product = allProducts.find(p => p.slug === slug);
 
-  // State
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [openAccordion, setOpenAccordion] = useState('overview');
 
-  // Get related products (same category, exclude current)
   const relatedProducts = allProducts
     .filter(p => {
-      const productCategoryId = typeof product?.category === 'object' 
-        ? product.category.id 
+      const productCategoryId = typeof product?.category === 'object'
+        ? product.category.id
         : product?.categoryId;
       const pCategoryId = typeof p.category === 'object'
         ? p.category.id
@@ -38,6 +36,7 @@ export default function ProductDetailPage({ params }) {
     return (
       <MainLayout>
         <div className="product-detail-loading">
+          <div className="loading-spinner"></div>
           <p>Loading product...</p>
         </div>
       </MainLayout>
@@ -58,8 +57,8 @@ export default function ProductDetailPage({ params }) {
     );
   }
 
-  const categoryName = typeof product.category === 'string' 
-    ? product.category 
+  const categoryName = typeof product.category === 'string'
+    ? product.category
     : product.category?.name || '';
 
   const handleQuantityChange = (delta) => {
@@ -67,211 +66,289 @@ export default function ProductDetailPage({ params }) {
   };
 
   const handleAddToCart = () => {
-    // TODO: Add to cart functionality in next phase
     alert(`Added ${quantity} x ${product.name} to cart!`);
   };
+
+  const discountPercentage = product.compareAtPrice
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
+    : 0;
 
   return (
     <MainLayout>
       <div className="product-detail-page">
+
+        {/* Breadcrumbs */}
+        <nav className="breadcrumbs">
+          <Link href="/">Home</Link>
+          <span>/</span>
+          <Link href="/products">Products</Link>
+          <span>/</span>
+          <Link href={`/categories/${product.category?.slug || 'all'}`}>
+            {categoryName}
+          </Link>
+          <span>/</span>
+          <span>{product.name}</span>
+        </nav>
+
         <div className="product-detail-container">
-          
-          {/* Breadcrumbs */}
-          <nav className="breadcrumbs">
-            <Link href="/" className="breadcrumb-link">Home</Link>
-            <span className="breadcrumb-separator">›</span>
-            <Link href="/products" className="breadcrumb-link">Products</Link>
-            <span className="breadcrumb-separator">›</span>
-            <Link href={`/categories/${product.category?.slug}`} className="breadcrumb-link">
-              {categoryName}
-            </Link>
-            <span className="breadcrumb-separator">›</span>
-            <span className="breadcrumb-current">{product.name}</span>
-          </nav>
 
-          {/* Main Product Section */}
-          <div className="product-detail-main">
-            
-            {/* Image Gallery */}
-            <div className="product-gallery">
-              {/* Main Image */}
-              <div className="gallery-main">
-                <img 
-                  src={product.images[selectedImage]?.imageUrl || product.images[0]?.imageUrl}
-                  alt={product.name}
-                  className="gallery-main-image"
-                />
-                
-                {/* Badges */}
-                <div className="gallery-badges">
-                  {product.isNew && <span className="badge-detail new">New</span>}
-                  {product.isOnSale && <span className="badge-detail sale">Sale</span>}
-                  {product.isFeatured && <span className="badge-detail featured">Featured</span>}
+          {/* Left: Image Gallery */}
+          <div className="product-gallery-section">
+            <div className="gallery-main-image">
+              <img
+                src={product.images[selectedImage]?.imageUrl || product.images[0]?.imageUrl}
+                alt={product.name}
+              />
+
+              {/* Badges */}
+              {(product.isNew || product.isOnSale || product.isFeatured) && (
+                <div className="product-badges">
+                  {product.isNew && <span className="badge badge-new">NEW ARRIVAL</span>}
+                  {product.isOnSale && discountPercentage > 0 && (
+                    <span className="badge badge-sale">{discountPercentage}% OFF SALE</span>
+                  )}
+                  {product.isFeatured && <span className="badge badge-featured">FEATURED</span>}
                 </div>
-              </div>
+              )}
+            </div>
 
-              {/* Thumbnails */}
-              {product.images.length > 1 && (
-                <div className="gallery-thumbnails">
-                  {product.images.map((image, index) => (
+            {product.images.length > 1 && (
+              <div className="gallery-thumbnails">
+                {product.images.map((image, index) => (
+                  <button
+                    key={image.id}
+                    className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
+                    onClick={() => setSelectedImage(index)}
+                  >
+                    <img src={image.imageUrl} alt={`View ${index + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right: Product Info */}
+          <div className="product-info-section">
+
+            {/* Brand & Collection */}
+            {(product.brand || product.collection) && (
+              <div className="product-brand">
+                {product.brand && <span>{product.brand}</span>}
+                {product.collection && <span className="collection"> • {product.collection}</span>}
+              </div>
+            )}
+
+            {/* Title */}
+            <h1 className="product-title">{product.name}</h1>
+
+            {/* SKU & Stock */}
+            <div className="product-meta-top">
+              <span className="sku">SKU: {product.sku}</span>
+              <span className="stock-status">
+                {product.inStock ? (
+                  <>
+                    <span className="status-icon">✓</span>
+                    In stock & ready to ship
+                  </>
+                ) : (
+                  <>
+                    <span className="status-icon">○</span>
+                    Sold out
+                  </>
+                )}
+              </span>
+            </div>
+
+            {/* Price */}
+            <div className="product-pricing">
+              {product.compareAtPrice && (
+                <span className="price-original">${product.compareAtPrice.toFixed(2)}</span>
+              )}
+              <span className="price-current">${product.price.toFixed(2)}</span>
+              {product.compareAtPrice && (
+                <span className="price-save">Save {discountPercentage}%</span>
+              )}
+            </div>
+
+            {/* Short Description */}
+            {product.shortDescription && (
+              <p className="product-description">{product.shortDescription}</p>
+            )}
+
+            {/* Variants/Options */}
+            {product.variants && product.variants.length > 1 && (
+              <div className="product-variants">
+                <label>Options:</label>
+                <div className="variant-options">
+                  {product.variants.map((variant) => (
                     <button
-                      key={image.id}
-                      className={`gallery-thumb ${selectedImage === index ? 'active' : ''}`}
-                      onClick={() => setSelectedImage(index)}
+                      key={variant.id}
+                      className={`variant-btn ${selectedVariant?.id === variant.id ? 'selected' : ''}`}
+                      onClick={() => setSelectedVariant(variant)}
                     >
-                      <img src={image.imageUrl} alt={`${product.name} view ${index + 1}`} />
+                      {variant.name || variant.variantName}
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* Quantity */}
+            <div className="quantity-section">
+              <label>Quantity:</label>
+              <div className="quantity-selector">
+                <button
+                  className="qty-btn"
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1}
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  min="1"
+                />
+                <button
+                  className="qty-btn"
+                  onClick={() => handleQuantityChange(1)}
+                >
+                  +
+                </button>
+              </div>
             </div>
 
-            {/* Product Info */}
-            <div className="product-info-detail">
-              
-              {/* Category */}
-              <p className="product-category-detail">{categoryName}</p>
+            {/* Add to Cart */}
+            <button
+              className="btn-add-to-cart"
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+            >
+              {product.inStock ? 'Add to Cart' : 'Sold Out'}
+            </button>
 
-              {/* Title */}
-              <h1 className="product-title-detail">{product.name}</h1>
+            {/* Overview - Fixed Text */}
+            <div className="product-overview">
+              <p>{product.description || product.shortDescription || 'No description available.'}</p>
+            </div>
 
-              {/* Price */}
-              <div className="product-price-detail">
-                {product.compareAtPrice && (
-                  <span className="price-compare">{formatPrice(product.compareAtPrice)}</span>
-                )}
-                <span className="price-main">{formatPrice(product.price)}</span>
-                {product.compareAtPrice && (
-                  <span className="price-savings">
-                    Save {Math.round((1 - product.price / product.compareAtPrice) * 100)}%
-                  </span>
-                )}
-              </div>
+            {/* Accordion Section */}
+            <div className="product-accordions">
 
-              {/* Short Description */}
-              {product.shortDescription && (
-                <p className="product-short-description">{product.shortDescription}</p>
-              )}
-
-              {/* Variants */}
-              {product.variants && product.variants.length > 0 && (
-                <div className="product-variants">
-                  <label className="variant-label">Options:</label>
-                  <div className="variant-options">
-                    {product.variants.map((variant) => (
-                      <button
-                        key={variant.id}
-                        className={`variant-btn ${selectedVariant?.id === variant.id ? 'active' : ''}`}
-                        onClick={() => setSelectedVariant(variant)}
-                      >
-                        {variant.name}
-                      </button>
-                    ))}
+          {/* Details Accordion */}
+          <div className="accordion-item">
+            <button
+              className={`accordion-header ${openAccordion === 'details' ? 'active' : ''}`}
+              onClick={() => setOpenAccordion(openAccordion === 'details' ? '' : 'details')}
+            >
+              <h3>Details</h3>
+              <span className="accordion-icon">+</span>
+            </button>
+            <div className={`accordion-content ${openAccordion === 'details' ? 'open' : ''}`}>
+              <div className="accordion-body">
+                <div className="details-grid">
+                  <div className="detail-row">
+                    <span className="detail-label">SKU:</span>
+                    <span className="detail-value">{product.sku}</span>
                   </div>
-                </div>
-              )}
-
-              {/* Quantity Selector */}
-              <div className="quantity-section">
-                <label className="quantity-label">Quantity:</label>
-                <div className="quantity-selector">
-                  <button 
-                    className="quantity-btn"
-                    onClick={() => handleQuantityChange(-1)}
-                  >
-                    −
-                  </button>
-                  <input 
-                    type="number" 
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="quantity-input"
-                    min="1"
-                  />
-                  <button 
-                    className="quantity-btn"
-                    onClick={() => handleQuantityChange(1)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Add to Cart Button */}
-              <button 
-                className="add-to-cart-btn-detail"
-                onClick={handleAddToCart}
-              >
-                Add to Cart — {formatPrice(product.price * quantity)}
-              </button>
-
-              {/* Additional Info */}
-              <div className="product-meta">
-                <div className="meta-item">
-                  <span className="meta-label">SKU:</span>
-                  <span className="meta-value">{product.sku}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="meta-label">Stock:</span>
-                  <span className={`meta-value ${product.stockQuantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                    {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
-                  </span>
+                  {product.brand && (
+                    <div className="detail-row">
+                      <span className="detail-label">Brand:</span>
+                      <span className="detail-value">{product.brand}</span>
+                    </div>
+                  )}
+                  {product.collection && (
+                    <div className="detail-row">
+                      <span className="detail-label">Collection:</span>
+                      <span className="detail-value">{product.collection}</span>
+                    </div>
+                  )}
+                  {product.provider && (
+                    <div className="detail-row">
+                      <span className="detail-label">Provider:</span>
+                      <span className="detail-value">{product.provider}</span>
+                    </div>
+                  )}
+                  {product.stockQuantity !== undefined && (
+                    <div className="detail-row">
+                      <span className="detail-label">Stock:</span>
+                      <span className="detail-value">{product.stockQuantity} units</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Description Section */}
-          <div className="product-description-section">
-            <h2 className="section-title-detail">Description</h2>
-            <div className="product-description-content">
-              {product.description || product.shortDescription || 'No description available.'}
+          {/* Dimensions Accordion */}
+          <div className="accordion-item">
+            <button
+              className={`accordion-header ${openAccordion === 'dimensions' ? 'active' : ''}`}
+              onClick={() => setOpenAccordion(openAccordion === 'dimensions' ? '' : 'dimensions')}
+            >
+              <h3>Dimensions</h3>
+              <span className="accordion-icon">+</span>
+            </button>
+            <div className={`accordion-content ${openAccordion === 'dimensions' ? 'open' : ''}`}>
+              <div className="accordion-body">
+                {product.dimensions ? (
+                  <div className="dimensions-table">
+                    <div className="dimension-row">
+                      <span>Height:</span>
+                      <span>{product.dimensions.height} {product.dimensions.unit || 'cm'}</span>
+                    </div>
+                    <div className="dimension-row">
+                      <span>Width:</span>
+                      <span>{product.dimensions.width} {product.dimensions.unit || 'cm'}</span>
+                    </div>
+                    <div className="dimension-row">
+                      <span>Length/Depth:</span>
+                      <span>{product.dimensions.length} {product.dimensions.unit || 'cm'}</span>
+                    </div>
+                    <div className="dimension-row">
+                      <span>Weight:</span>
+                      <span>{product.dimensions.weight} {product.dimensions.weightUnit || 'kg'}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p>Dimensions not available</p>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Specifications Section */}
-          {product.specifications && (
-            <div className="product-specifications-section">
-              <h2 className="section-title-detail">Specifications</h2>
-              <div className="specifications-grid">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="spec-item">
-                    <span className="spec-label">{key}:</span>
-                    <span className="spec-value">{value}</span>
-                  </div>
-                ))}
-              </div>
             </div>
-          )}
-
-          {/* Related Products */}
-          {relatedProducts.length > 0 && (
-            <div className="related-products-section">
-              <h2 className="section-title-detail">You May Also Like</h2>
-              <div className="related-products-grid">
-                {relatedProducts.map((relatedProduct) => (
-                  <Link 
-                    key={relatedProduct.id}
-                    href={`/products/${relatedProduct.slug}`}
-                    className="related-product-card"
-                  >
-                    <div className="related-product-image">
-                      <img 
-                        src={relatedProduct.images[0]?.imageUrl} 
-                        alt={relatedProduct.name}
-                      />
-                    </div>
-                    <div className="related-product-info">
-                      <h3 className="related-product-name">{relatedProduct.name}</h3>
-                      <p className="related-product-price">{formatPrice(relatedProduct.price)}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
+          </div>
         </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="related-products-section">
+            <h2>You May Also Like</h2>
+            <div className="related-products-grid">
+              {relatedProducts.map((relatedProduct) => (
+                <Link
+                  key={relatedProduct.id}
+                  href={`/products/${relatedProduct.slug}`}
+                  className="related-product-card"
+                >
+                  <div className="related-image">
+                    <img
+                      src={relatedProduct.images[0]?.imageUrl}
+                      alt={relatedProduct.name}
+                    />
+                  </div>
+                  <div className="related-info">
+                    <h3>{relatedProduct.name}</h3>
+                    <p className="related-price">{formatPrice(relatedProduct.price)}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </MainLayout>
   );
