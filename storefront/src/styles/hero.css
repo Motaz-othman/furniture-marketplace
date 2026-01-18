@@ -1,12 +1,123 @@
 /* ============================================
+   TOP FEATURES BAR
+   ============================================ */
+
+.top-features-bar {
+  background: #000;
+  color: #fff;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.top-features {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.top-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.top-feature-icon {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.top-feature-text {
+  white-space: nowrap;
+}
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .top-features-bar {
+    padding: 8px 0;
+  }
+
+  .top-features {
+    gap: 20px;
+  }
+
+  .top-feature {
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .top-feature-icon {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  .top-features {
+    gap: 12px;
+  }
+
+  .top-feature {
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .top-feature-icon {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-features-bar {
+    padding: 6px 0;
+  }
+
+  .top-features {
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 8px;
+  }
+
+  .top-features::-webkit-scrollbar {
+    display: none;
+  }
+
+  .top-feature {
+    font-size: 9px;
+    gap: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .top-feature-text {
+    display: inline;
+  }
+
+}
+
+@media (max-width: 360px) {
+  .top-feature {
+    font-size: 8px;
+    gap: 3px;
+  }
+
+  .top-feature-icon {
+    font-size: 10px;
+  }
+}
+/* ============================================
    HERO.CSS - Hero Carousel Section
    ============================================ */
 
    .hero {
-    position: relative; 
-    height: 80vh; 
-    display: flex; 
-    align-items: center; 
+    position: relative;
+    height: 60vh;
+    display: flex;
+    align-items: center;
     justify-content: center;
     overflow: hidden;
   }
@@ -108,36 +219,72 @@
     background: rgba(255,255,255,0.7);
   }
   
-  .hero-features-panel {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 32px;
-    flex-wrap: wrap;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(12px);
-    border-radius: 12px;
-    padding: 24px 48px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  }
   
-  .hero-feature {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #fff;
-  }
   
-  .hero-feature-icon {
-    font-size: 20px;
-    opacity: 0.95;
-  }
   
-  .hero-feature-text {
-    font-size: 13px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    opacity: 0.98;
+
+/* Mobile Responsive Styles */
+@media (max-width: 1024px) {
+  .hero {
+    height: 55vh;
   }
+
+  .hero-title {
+    font-size: 3.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    height: 50vh;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 28px;
+  }
+
+  .btn-hero {
+    margin-bottom: 24px;
+  }
+
+  .hero-dots {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    height: 45vh;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  .hero-dots {
+    gap: 8px;
+  }
+
+  .hero-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .hero-dot.active {
+    width: 24px;
+  }
+}

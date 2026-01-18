@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Home, ShoppingBag, Search, ShoppingCart, User } from 'lucide-react';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
@@ -17,38 +18,38 @@ export default function MobileBottomNav() {
   return (
     <nav className="mobile-bottom-nav">
       {/* Home */}
-      <Link 
-        href="/" 
+      <Link
+        href="/"
         className={`mobile-nav-item ${isActive('/') && pathname === '/' ? 'active' : ''}`}
       >
-        <span className="mobile-nav-icon">🏠</span>
+        <Home size={22} strokeWidth={1.5} />
         <span>Home</span>
       </Link>
 
       {/* Shop */}
-      <Link 
-        href="/products" 
+      <Link
+        href="/products"
         className={`mobile-nav-item ${isActive('/products') ? 'active' : ''}`}
       >
-        <span className="mobile-nav-icon">🛋️</span>
+        <ShoppingBag size={22} strokeWidth={1.5} />
         <span>Shop</span>
       </Link>
 
       {/* Search */}
-      <Link 
-        href="/search" 
+      <Link
+        href="/products"
         className={`mobile-nav-item ${isActive('/search') ? 'active' : ''}`}
       >
-        <span className="mobile-nav-icon">🔍</span>
+        <Search size={22} strokeWidth={1.5} />
         <span>Search</span>
       </Link>
 
       {/* Cart */}
-      <Link 
-        href="/cart" 
+      <Link
+        href="/cart"
         className={`mobile-nav-item ${isActive('/cart') ? 'active' : ''}`}
       >
-        <span className="mobile-nav-icon">🛒</span>
+        <ShoppingCart size={22} strokeWidth={1.5} />
         <span>Cart</span>
         {cartItemsCount > 0 && (
           <span className="mobile-nav-badge">{cartItemsCount}</span>
@@ -56,11 +57,11 @@ export default function MobileBottomNav() {
       </Link>
 
       {/* Account */}
-      <Link 
-        href="/account" 
+      <Link
+        href="/account"
         className={`mobile-nav-item ${isActive('/account') ? 'active' : ''}`}
       >
-        <span className="mobile-nav-icon">👤</span>
+        <User size={22} strokeWidth={1.5} />
         <span>Account</span>
       </Link>
     </nav>

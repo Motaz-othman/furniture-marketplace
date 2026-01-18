@@ -3,6 +3,13 @@
  * Converts between API format and frontend display format
  */
 
+import { categories } from '../fake-data/categories';
+
+// Helper to get category by ID
+function getCategoryByIdLocal(id) {
+  return categories.find(cat => cat.id === id);
+}
+
 /**
  * Transform API product format to frontend format
  * @param {Object} apiProduct - Product in API format
@@ -69,9 +76,13 @@ export function transformApiProductToFrontend(apiProduct) {
   const isOnSale = mainVariant.price?.retailPrice < mainVariant.price?.listPrice;
 
   // Get category info
-  const category = apiProduct.categories?.[0];
-  const categoryPath = category?.path?.split('/') || [];
+  const apiCategory = apiProduct.categories?.[0];
+  const categoryPath = apiCategory?.path?.split('/') || [];
   const categorySlug = categoryPath[categoryPath.length - 1] || 'uncategorized';
+
+  // Look up the actual category from our categories data to get parentId
+  const categoryId = mainVariant.custom?.categoryId || null;
+  const fullCategoryData = categoryId ? getCategoryByIdLocal(categoryId) : null;
 
   // Build the frontend product object
   return {
@@ -85,12 +96,18 @@ export function transformApiProductToFrontend(apiProduct) {
     sku: mainVariant.sku,
     upc: mainVariant.upc,
 
-    // Category info - extract from custom field
-    categoryId: mainVariant.custom?.categoryId || null,
-    category: {
+    // Category info - extract from custom field with full data
+    categoryId: categoryId,
+    category: fullCategoryData ? {
+      id: fullCategoryData.id,
+      name: fullCategoryData.name,
+      slug: fullCategoryData.slug,
+      parentId: fullCategoryData.parentId,
+      path: fullCategoryData.path
+    } : {
       name: categorySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
       slug: categorySlug,
-      path: category?.path
+      path: apiCategory?.path
     },
 
     // Stock/inventory (will be populated from inventory endpoint)

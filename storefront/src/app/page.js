@@ -1,51 +1,116 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import MainLayout from '@/components/layout/MainLayout';
 import { useFeaturedProducts, useNewProducts } from '@/lib/hooks';
 import { useParentCategories } from '@/lib/hooks';
 import { formatPrice } from '@/lib/utils';
 
+// Empty State Component
+function EmptyState({ icon, title, description, actionText, actionLink }) {
+  return (
+    <div className="empty-state">
+      <div className="empty-state-illustration">
+        <span className="empty-state-icon">{icon}</span>
+        <div className="empty-state-circles">
+          <div className="circle circle-1"></div>
+          <div className="circle circle-2"></div>
+          <div className="circle circle-3"></div>
+        </div>
+      </div>
+      <h3 className="empty-state-title">{title}</h3>
+      <p className="empty-state-description">{description}</p>
+      {actionText && actionLink && (
+        <Link href={actionLink} className="empty-state-action">
+          {actionText}
+        </Link>
+      )}
+    </div>
+  );
+}
+
+// Helper function to extract color hex from variant
+function getColorFromVariant(variant) {
+  if (!variant.attributes) return null;
+  const colorAttr = variant.attributes.find(attr => attr.attribute === 'color');
+  return colorAttr?.normalizedValues?.[0]?.hexValue || null;
+}
+
 // Product Card Component
 function ProductCard({ product, index }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+
+  // Get images for the selected variant
+  const getVariantImages = (variantIndex) => {
+    if (!product.variants || !product.variants[variantIndex]) return product.images;
+
+    const variant = product.variants[variantIndex];
+    const variantImages = product.images.filter(img =>
+      img.variantProductIds && img.variantProductIds.includes(variant.id)
+    );
+
+    return variantImages.length > 0 ? variantImages : product.images;
+  };
+
+  const currentImages = getVariantImages(selectedVariantIndex);
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    alert(`Added ${product.name} to cart!`);
+  };
+
   return (
     <Link href={`/products/${product.slug}`} className="product-card">
       <div className="product-image">
-        {product.badge && (
-          <span 
-            className="badge" 
-            style={product.badge === 'Sale' ? { background: 'var(--sale-color)', color: '#fff' } : {}}
+        {(product.isNew || product.isOnSale) && (
+          <span
+            className="badge"
+            style={product.isOnSale ? { background: 'var(--sale-color)', color: '#fff' } : {}}
           >
-            {product.isNew ? 'New' : product.isOnSale ? 'Sale' : ''}
+            {product.isNew ? 'New' : 'Sale'}
           </span>
         )}
-        
-        <button 
-          className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
-          onClick={(e) => {
-            e.preventDefault();
-            setIsWishlisted(!isWishlisted);
-          }}
-          aria-label="Add to wishlist"
-        >
-          <span className="heart-icon">{isWishlisted ? '❤' : '♡'}</span>
-        </button>
-        
+
+        {/* Action Buttons */}
+        <div className="product-actions">
+          <button
+            className={`action-btn wishlist-btn ${isWishlisted ? 'active' : ''}`}
+            onClick={(e) => {
+              e.preventDefault();
+              setIsWishlisted(!isWishlisted);
+            }}
+            aria-label="Add to wishlist"
+            title="Add to Wishlist"
+          >
+            <span className="action-icon">{isWishlisted ? '❤' : '♡'}</span>
+          </button>
+
+          <button
+            className="action-btn add-to-cart-btn"
+            onClick={handleAddToCart}
+            aria-label="Add to cart"
+            title="Add to Cart"
+          >
+            <span className="action-icon">🛒</span>
+          </button>
+        </div>
+
         <div className="product-image-wrapper">
-          <img 
-            src={product.images[currentImageIndex]?.imageUrl || product.images[0]?.imageUrl} 
+          <img
+            src={currentImages[currentImageIndex]?.imageUrl || currentImages[0]?.imageUrl}
             alt={product.name}
             className="product-img"
+            loading="lazy"
           />
         </div>
-        
-        {product.images && product.images.length > 1 && (
+
+        {currentImages && currentImages.length > 1 && (
           <div className="image-dots">
-            {product.images.map((_, idx) => (
+            {currentImages.map((_, idx) => (
               <button
                 key={idx}
                 className={`image-dot ${idx === currentImageIndex ? 'active' : ''}`}
@@ -59,38 +124,44 @@ function ProductCard({ product, index }) {
             ))}
           </div>
         )}
-        
-        <div className="quick-view-overlay">
-          <button 
-            className="quick-view-btn-enhanced"
-            onClick={(e) => e.preventDefault()}
-          >
-            Quick View
-          </button>
-        </div>
       </div>
-      
+
       <div className="product-info">
         <h3>{product.name}</h3>
-        
+
         {product.variants && product.variants.length > 0 && (
           <div className="color-swatches">
-            {product.variants.slice(0, 3).map((variant, idx) => (
-              <div 
-                key={variant.id}
-                className={`color-swatch ${idx === 0 ? 'active' : ''}`}
-                style={{ background: idx === 0 ? '#8b7355' : idx === 1 ? '#4a5568' : '#2d3748' }}
-                title={variant.variantName}
-              />
-            ))}
+            {product.variants.slice(0, 3).map((variant, idx) => {
+              const colorHex = getColorFromVariant(variant);
+
+              return colorHex ? (
+                <div
+                  key={variant.id}
+                  className={`color-swatch ${idx === selectedVariantIndex ? 'active' : ''}`}
+                  style={{ background: colorHex }}
+                  title={variant.variantName || variant.name}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedVariantIndex(idx);
+                    setCurrentImageIndex(0); // Reset to first image when changing variant
+                  }}
+                  onMouseEnter={(e) => {
+                    e.preventDefault();
+                    setSelectedVariantIndex(idx);
+                    setCurrentImageIndex(0);
+                  }}
+                />
+              ) : null;
+            })}
           </div>
         )}
         
-        {product.stockQuantity <= 5 && product.stockQuantity > 0 && (
-          <p className="stock-indicator low-stock">Only {product.stockQuantity} left!</p>
-        )}
-        {product.stockQuantity > 5 && (
-          <p className="stock-indicator in-stock">✓ In Stock</p>
+        {product.stockQuantity === 0 ? (
+          <p className="stock-indicator out-of-stock">Out of Stock</p>
+        ) : product.stockQuantity <= 5 ? (
+          <p className="stock-indicator low-stock">Low Stock</p>
+        ) : (
+          <p className="stock-indicator in-stock">In Stock</p>
         )}
         
         <div className={`product-price ${product.compareAtPrice ? 'sale' : ''}`}>
@@ -106,23 +177,67 @@ function ProductCard({ product, index }) {
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const heroRef = useRef(null);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   // Fetch data using hooks
-  const { data: categoriesData, isLoading: categoriesLoading } = useParentCategories();
-  const { data: featuredData, isLoading: featuredLoading } = useFeaturedProducts();
-  const { data: newData, isLoading: newLoading } = useNewProducts();
+  const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError, refetch: refetchCategories } = useParentCategories();
+  const { data: featuredData, isLoading: featuredLoading, error: featuredError, refetch: refetchFeatured } = useFeaturedProducts();
+  const { data: newData, isLoading: newLoading, error: newError, refetch: refetchNew } = useNewProducts();
 
   // Extract data from response
   const categories = categoriesData?.data || [];
   const featuredProducts = featuredData?.data || [];
   const newProducts = newData?.data || [];
 
-  // Hero carousel auto-advance
+  // Hero carousel auto-advance with pause support
   useEffect(() => {
+    if (isPaused) return;
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % 3);
-    }, 5000);
+    }, 7000); // Increased to 7 seconds for better readability
     return () => clearInterval(interval);
+  }, [isPaused]);
+
+  // Keyboard navigation for hero carousel
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        setCurrentSlide((prev) => (prev + 1) % 3);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Swipe gesture handlers for hero carousel
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    touchEndX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    const swipeThreshold = 50;
+    const diff = touchStartX.current - touchEndX.current;
+
+    if (Math.abs(diff) > swipeThreshold) {
+      if (diff > 0) {
+        // Swipe left - go to next slide
+        setCurrentSlide((prev) => (prev + 1) % 3);
+      } else {
+        // Swipe right - go to previous slide
+        setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1));
+      }
+    }
   }, []);
 
   // Hero slides
@@ -131,51 +246,69 @@ export default function HomePage() {
       title: "Quality Furniture, Carefully Selected",
       subtitle: "Handpicked pieces from trusted makers worldwide",
       cta: "Shop Collection",
+      link: "/products",
       image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=2400&q=80"
     },
     {
       title: "New Arrivals Every Week",
       subtitle: "Discover the latest additions to our curated collection",
       cta: "See What's New",
+      link: "/products?filter=new",
       image: "https://images.unsplash.com/photo-1567016432779-094069958ea5?auto=format&fit=crop&w=2400&q=80"
     },
     {
       title: "Try Before You Buy with AR",
       subtitle: "See furniture in your space with augmented reality",
-      cta: "Launch AR Preview",
+      cta: "Coming Soon",
+      link: "#",
       image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=2400&q=80"
     }
   ];
 
-  const scrollCategories = (direction) => {
-    const container = document.getElementById('category-scroll');
-    container?.scrollBy({ left: direction === 'left' ? -300 : 300, behavior: 'smooth' });
-  };
+  // Scroll carousel using native scroll
+  const scrollCarousel = (direction, containerId) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-  const scrollProducts = (direction) => {
-    const container = document.getElementById('products-scroll');
-    container?.scrollBy({ left: direction === 'left' ? -300 : 300, behavior: 'smooth' });
+    const scrollAmount = 300;
+    container.scrollBy({
+      left: direction === 'right' ? scrollAmount : -scrollAmount,
+      behavior: 'smooth'
+    });
   };
 
   return (
     <MainLayout>
       {/* HERO CAROUSEL */}
-      <section className="hero">
+      <section
+        className="hero"
+        ref={heroRef}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {heroSlides.map((slide, index) => (
-          <div 
+          <div
             key={index}
             className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
           >
-            <img src={slide.image} className="hero-bg" alt={slide.title} />
+            <img
+              src={slide.image}
+              className="hero-bg"
+              alt={slide.title}
+              loading={index === 0 ? "eager" : "lazy"}
+            />
             <div className="hero-overlay"></div>
           </div>
         ))}
-        
+
         <div className="hero-content">
           <h1 className="hero-title">{heroSlides[currentSlide].title}</h1>
           <p className="hero-subtitle">{heroSlides[currentSlide].subtitle}</p>
-          <a href="#" className="btn btn-hero">{heroSlides[currentSlide].cta}</a>
-          
+          <Link href={heroSlides[currentSlide].link} className="btn btn-hero">{heroSlides[currentSlide].cta}</Link>
+
           <div className="hero-dots">
             {heroSlides.map((_, index) => (
               <button
@@ -186,25 +319,6 @@ export default function HomePage() {
               />
             ))}
           </div>
-          
-          <div className="hero-features-panel">
-            <div className="hero-feature">
-              <span className="hero-feature-icon">✓</span>
-              <span className="hero-feature-text">Curated Selection</span>
-            </div>
-            <div className="hero-feature">
-              <span className="hero-feature-icon">★</span>
-              <span className="hero-feature-text">Quality Verified</span>
-            </div>
-            <div className="hero-feature">
-              <span className="hero-feature-icon">◆</span>
-              <span className="hero-feature-text">AR Preview</span>
-            </div>
-            <div className="hero-feature">
-              <span className="hero-feature-icon">⚡</span>
-              <span className="hero-feature-text">Fast Delivery</span>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -214,52 +328,84 @@ export default function HomePage() {
           <div className="section-header category-header">
             <div>
               <h2 className="section-title">Explore Our Collections</h2>
-              <p className="section-subtitle">Discover the perfect pieces to bring your vision to life</p>
             </div>
           </div>
-          
+
           {categoriesLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>Loading categories...</div>
+            <div className="skeleton-carousel">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="skeleton-category-card">
+                  <div className="skeleton-image"></div>
+                  <div className="skeleton-text"></div>
+                </div>
+              ))}
+            </div>
+          ) : categoriesError ? (
+            <div className="error-state">
+              <div className="error-icon">⚠️</div>
+              <p className="error-message">Unable to load categories</p>
+              <button className="error-retry-btn" onClick={() => refetchCategories()}>
+                Try Again
+              </button>
+            </div>
+          ) : categories.length === 0 ? (
+            <EmptyState
+              icon="🏠"
+              title="No Collections Yet"
+              description="We're curating amazing furniture collections for you. Check back soon!"
+              actionText="Browse All Products"
+              actionLink="/products"
+            />
           ) : (
             <div className="category-carousel-wrapper">
-              <button className="carousel-arrow carousel-arrow-left" onClick={() => scrollCategories('left')}>‹</button>
-              <div className="category-scroll" id="category-scroll">
+              <button
+                className="carousel-arrow carousel-arrow-left"
+                onClick={() => scrollCarousel('left', 'categories-scroll')}
+                aria-label="Scroll categories left"
+              >‹</button>
+              <div className="categories-scroll" id="categories-scroll">
                 {categories.map((cat) => (
-                  <Link 
-                    href={`/categories/${cat.slug}`} 
+                  <Link
+                    href={`/categories/${cat.slug}`}
                     key={cat.id}
-                    className="cat-card"
+                    className="subcategory-card"
                   >
-                    <div className="cat-name-top">{cat.name}</div>
-                    <img src={cat.imageUrl} alt={cat.name} />
+                    <div className="subcategory-image">
+                      <img src={cat.imageUrl} alt={cat.name} loading="lazy" />
+                    </div>
+                    <h3 className="subcategory-name">{cat.name}</h3>
                   </Link>
                 ))}
               </div>
-              <button className="carousel-arrow carousel-arrow-right" onClick={() => scrollCategories('right')}>›</button>
+              <button
+                className="carousel-arrow carousel-arrow-right"
+                onClick={() => scrollCarousel('right', 'categories-scroll')}
+                aria-label="Scroll categories right"
+              >›</button>
             </div>
           )}
         </div>
       </section>
 
-      {/* SOCIAL PROOF BAR */}
+      {/* OFFER BAR */}
       <section className="social-proof-bar">
         <div className="container">
           <div className="proof-stats">
             <div className="proof-stat">
-              <div className="proof-number">10,000+</div>
-              <div className="proof-label">Happy Customers</div>
+              <div className="proof-number">🎉</div>
+              <div className="proof-label">20% Off First Order</div>
             </div>
             <div className="proof-stat">
-              <div className="proof-number">5,000+</div>
-              <div className="proof-label">Five-Star Reviews</div>
+              <div className="proof-number">🚚</div>
+              <div className="proof-label">Free Shipping Over $500</div>
             </div>
             <div className="proof-stat">
-              <div className="proof-number">99%</div>
-              <div className="proof-label">Satisfaction Rate</div>
+              <div className="proof-number">💳</div>
+              <div className="proof-label">Buy Now, Pay Later</div>
             </div>
             <div className="proof-stat">
-              <div className="proof-number">24/7</div>
-              <div className="proof-label">Customer Support</div>
+              <div className="proof-number">🔄</div>
+              <div className="proof-label">30-Day Easy Returns</div>
             </div>
           </div>
         </div>
@@ -271,24 +417,82 @@ export default function HomePage() {
           <div className="section-header product-header">
             <div>
               <h2 className="section-title">Trending Now</h2>
-              <p className="section-subtitle">Our most popular pieces this season</p>
             </div>
             <Link href="/products" className="section-link">View All</Link>
           </div>
           
           {featuredLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>Loading products...</div>
+            <div className="skeleton-carousel">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="skeleton-product-card">
+                  <div className="skeleton-image"></div>
+                  <div className="skeleton-content">
+                    <div className="skeleton-text"></div>
+                    <div className="skeleton-text short"></div>
+                    <div className="skeleton-text price"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : featuredError ? (
+            <div className="error-state">
+              <div className="error-icon">⚠️</div>
+              <p className="error-message">Unable to load trending products</p>
+              <button className="error-retry-btn" onClick={() => refetchFeatured()}>
+                Try Again
+              </button>
+            </div>
+          ) : featuredProducts.length === 0 ? (
+            <EmptyState
+              icon="🔥"
+              title="Trending Soon"
+              description="Our trending products are being updated. New favorites coming your way!"
+              actionText="Explore All Products"
+              actionLink="/products"
+            />
           ) : (
             <div className="product-carousel-wrapper">
-              <button className="carousel-arrow carousel-arrow-left" onClick={() => scrollProducts('left')}>‹</button>
+              <button
+                className="carousel-arrow carousel-arrow-left"
+                onClick={() => scrollCarousel('left', 'products-scroll')}
+                aria-label="Scroll trending products left"
+              >‹</button>
               <div className="products-scroll" id="products-scroll">
                 {featuredProducts.map((product, index) => (
                   <ProductCard key={product.id} product={product} index={index} />
                 ))}
               </div>
-              <button className="carousel-arrow carousel-arrow-right" onClick={() => scrollProducts('right')}>›</button>
+              <button
+                className="carousel-arrow carousel-arrow-right"
+                onClick={() => scrollCarousel('right', 'products-scroll')}
+                aria-label="Scroll trending products right"
+              >›</button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* CUSTOMER SATISFACTION BAR */}
+      <section className="social-media-bar">
+        <div className="container">
+          <div className="social-media-content">
+            <div className="social-feature">
+              <div className="social-feature-icon">⭐</div>
+              <div className="social-feature-label">4.8/5 Customer Rating</div>
+            </div>
+            <div className="social-feature">
+              <div className="social-feature-icon">📈</div>
+              <div className="social-feature-label">Trending Products</div>
+            </div>
+            <div className="social-feature">
+              <div className="social-feature-icon">😊</div>
+              <div className="social-feature-label">98% Satisfaction Rate</div>
+            </div>
+            <div className="social-feature">
+              <div className="social-feature-icon">🏆</div>
+              <div className="social-feature-label">Award-Winning Service</div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -298,22 +502,56 @@ export default function HomePage() {
           <div className="section-header product-header">
             <div>
               <h2 className="section-title">New Arrivals</h2>
-              <p className="section-subtitle">Fresh additions to our curated collection</p>
             </div>
             <Link href="/products?filter=new" className="section-link">View All</Link>
           </div>
           
           {newLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>Loading products...</div>
+            <div className="skeleton-carousel">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="skeleton-product-card">
+                  <div className="skeleton-image"></div>
+                  <div className="skeleton-content">
+                    <div className="skeleton-text"></div>
+                    <div className="skeleton-text short"></div>
+                    <div className="skeleton-text price"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : newError ? (
+            <div className="error-state">
+              <div className="error-icon">⚠️</div>
+              <p className="error-message">Unable to load new arrivals</p>
+              <button className="error-retry-btn" onClick={() => refetchNew()}>
+                Try Again
+              </button>
+            </div>
+          ) : newProducts.length === 0 ? (
+            <EmptyState
+              icon="✨"
+              title="Fresh Arrivals Coming"
+              description="We're adding new pieces to our collection. Stay tuned for exciting additions!"
+              actionText="See Current Collection"
+              actionLink="/products"
+            />
           ) : (
             <div className="product-carousel-wrapper">
-              <button className="carousel-arrow carousel-arrow-left" onClick={() => scrollProducts('left')}>‹</button>
-              <div className="products-scroll">
+              <button
+                className="carousel-arrow carousel-arrow-left"
+                onClick={() => scrollCarousel('left', 'new-products-scroll')}
+                aria-label="Scroll new arrivals left"
+              >‹</button>
+              <div className="products-scroll" id="new-products-scroll">
                 {newProducts.map((product, index) => (
                   <ProductCard key={product.id} product={product} index={index} />
                 ))}
               </div>
-              <button className="carousel-arrow carousel-arrow-right" onClick={() => scrollProducts('right')}>›</button>
+              <button
+                className="carousel-arrow carousel-arrow-right"
+                onClick={() => scrollCarousel('right', 'new-products-scroll')}
+                aria-label="Scroll new arrivals right"
+              >›</button>
             </div>
           )}
         </div>
@@ -326,19 +564,20 @@ export default function HomePage() {
             <div className="brand-story-text">
               <h2 className="section-title" style={{ textAlign: 'left' }}>Our Story</h2>
               <p className="brand-story-description">
-                At Furnivo, we believe your home should tell your story. That's why we've spent years building relationships 
+                At LiviPoint, we believe your home should tell your story. That's why we've spent years building relationships
                 with the world's finest furniture makers, bringing you pieces that combine timeless design with modern craftsmanship.
               </p>
               <p className="brand-story-description">
-                Every item in our collection is carefully vetted for quality, sustainability, and style. We don't just sell furniture—we 
+                Every item in our collection is carefully vetted for quality, sustainability, and style. We don't just sell furniture—we
                 help you create spaces that inspire, comfort, and endure.
               </p>
               <Link href="/about" className="btn" style={{ marginTop: '20px' }}>Learn More About Us</Link>
             </div>
             <div className="brand-story-image">
-              <img 
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80" 
-                alt="Our showroom" 
+              <img
+                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80"
+                alt="Our showroom"
+                loading="lazy"
               />
             </div>
           </div>

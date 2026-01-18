@@ -12,6 +12,7 @@ import '../styles/product-detail.css';
 import '../styles/footer.css';
 import '../styles/mobile.css';
 import '../styles/category-page.css';
+import '../styles/coming-soon.css';
 import '../styles/responsive.css';
 
 import { QueryProvider } from '@/lib/hooks/QueryProvider';

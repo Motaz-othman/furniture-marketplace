@@ -18,11 +18,25 @@ export const productsApiFormat = [
     relatedProducts: { completeYourCollection: [], crossSell: [], series: [] },
     updatedAt: new Date().toISOString(),
     media: {
-      additionalImages: [
-        { variantProductIds: [generateProductId(1), generateProductId(2), generateProductId(3)], url: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=800" },
-        { variantProductIds: [generateProductId(1), generateProductId(2), generateProductId(3)], url: "https://images.unsplash.com/photo-1550254478-ead40cc54513?w=800" }
+      mainImages: [
+        // Navy Blue variant - blue sofa images
+        { variantProductIds: [generateProductId(1)], url: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800&q=80" },
+        // Emerald Green variant - green sofa images
+        { variantProductIds: [generateProductId(2)], url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80" },
+        // Charcoal Grey variant - grey sofa images
+        { variantProductIds: [generateProductId(3)], url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80" }
       ],
-      mainImages: [{ variantProductIds: [generateProductId(1), generateProductId(2), generateProductId(3)], url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800" }],
+      additionalImages: [
+        // Navy Blue additional images
+        { variantProductIds: [generateProductId(1)], url: "https://images.unsplash.com/photo-1567016432779-094069958ea5?w=800&q=80" },
+        { variantProductIds: [generateProductId(1)], url: "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=800&q=80" },
+        // Emerald Green additional images
+        { variantProductIds: [generateProductId(2)], url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80" },
+        { variantProductIds: [generateProductId(2)], url: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=800&q=80" },
+        // Charcoal Grey additional images
+        { variantProductIds: [generateProductId(3)], url: "https://images.unsplash.com/photo-1550254478-ead40cc54513?w=800&q=80" },
+        { variantProductIds: [generateProductId(3)], url: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=800&q=80" }
+      ],
       videoUrls: []
     },
     variantKey: "color",

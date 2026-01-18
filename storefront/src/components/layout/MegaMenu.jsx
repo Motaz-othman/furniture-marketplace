@@ -6,7 +6,9 @@ import { useSubcategories } from '@/lib/hooks';
 
 export default function MegaMenu({ category }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownTop, setDropdownTop] = useState(0);
   const timeoutRef = useRef(null);
+  const wrapperRef = useRef(null);
 
   const { data: subcategoriesData } = useSubcategories(category.id);
   const subcategories = subcategoriesData?.data || [];
@@ -18,6 +20,16 @@ export default function MegaMenu({ category }) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+
+    // Calculate position of dropdown below the nav bar
+    if (wrapperRef.current) {
+      const nav = wrapperRef.current.closest('.main-nav');
+      if (nav) {
+        const navRect = nav.getBoundingClientRect();
+        setDropdownTop(navRect.bottom);
+      }
+    }
+
     setIsOpen(true);
   };
 
@@ -61,14 +73,15 @@ export default function MegaMenu({ category }) {
   }
 
   return (
-    <div 
+    <div
       className="mega-menu-wrapper"
+      ref={wrapperRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Category Link/Trigger */}
-      <Link 
-        href={`/categories/${category.slug}`} 
+      <Link
+        href={`/categories/${category.slug}`}
         className="mega-menu-trigger"
       >
         {category.name}
@@ -76,7 +89,10 @@ export default function MegaMenu({ category }) {
 
       {/* Dropdown - shown when isOpen is true */}
       {isOpen && (
-        <div className="mega-menu-dropdown">
+        <div
+          className="mega-menu-dropdown"
+          style={{ top: `${dropdownTop}px` }}
+        >
           <div className="mega-menu-container">
             <div className="mega-menu-content">
               {/* Single column of subcategories */}
@@ -85,8 +101,8 @@ export default function MegaMenu({ category }) {
                 <ul className="mega-menu-list">
                   {subcategories.map((subcat) => (
                     <li key={subcat.id}>
-                      <Link 
-                        href={`/categories/${subcat.slug}`} 
+                      <Link
+                        href={`/categories/${category.slug}/${subcat.slug}`}
                         className="mega-menu-link"
                       >
                         {subcat.name}
@@ -94,8 +110,8 @@ export default function MegaMenu({ category }) {
                     </li>
                   ))}
                 </ul>
-                <Link 
-                  href={`/categories/${category.slug}`} 
+                <Link
+                  href={`/categories/${category.slug}`}
                   className="mega-menu-view-all"
                 >
                   View All {category.name} →

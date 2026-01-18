@@ -3,43 +3,76 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import MainLayout from '@/components/layout/MainLayout';
-import FiltersSidebar from '@/components/products/FiltersSidebar';
-import { useProducts } from '@/lib/hooks';
+import FilterModal from '@/components/products/FilterModal';
+import ProductCard from '@/components/products/ProductCard';
+import { useProducts, useCategories } from '@/lib/hooks';
 import { formatPrice } from '@/lib/utils';
 
 export default function ProductsPage() {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     categories: [],
+    subcategories: [],
     priceRange: [0, 5000],
+    availability: null
   });
 
-  // Fetch products
+  // Fetch products and categories
   const { data, isLoading } = useProducts({
     page: currentPage,
     limit: 12,
     sortBy: sortBy,
   });
+  const { data: categoriesData } = useCategories();
 
   const products = data?.data || [];
   const totalPages = data?.pagination?.totalPages || 1;
+  const allCategories = categoriesData?.data || [];
+
+  // Helper function to get all subcategory IDs for a parent category
+  const getSubcategoryIds = (parentCategoryId) => {
+    return allCategories
+      .filter(cat => cat.parentId === parentCategoryId)
+      .map(cat => cat.id);
+  };
 
   // Filter products based on selected filters
   const filteredProducts = products.filter(product => {
-    // Category filter
+    const productCategoryId = product.categoryId;
+
+    // Category filter (parent categories)
     if (filters.categories.length > 0) {
-      const productCategoryId = typeof product.category === 'object' 
-        ? product.category.id 
-        : product.categoryId;
-      if (!filters.categories.includes(productCategoryId)) {
+      // For each selected parent category, check if product belongs to it or any of its subcategories
+      const matchesCategory = filters.categories.some(parentCatId => {
+        const subcategoryIds = getSubcategoryIds(parentCatId);
+        return productCategoryId === parentCatId || subcategoryIds.includes(productCategoryId);
+      });
+
+      if (!matchesCategory) {
+        return false;
+      }
+    }
+
+    // Subcategory filter (specific subcategories)
+    if (filters.subcategories.length > 0) {
+      if (!filters.subcategories.includes(productCategoryId)) {
         return false;
       }
     }
 
     // Price range filter
     if (product.price < filters.priceRange[0] || product.price > filters.priceRange[1]) {
+      return false;
+    }
+
+    // Availability filter
+    if (filters.availability === 'in-stock' && product.stockQuantity === 0) {
+      return false;
+    }
+    if (filters.availability === 'on-sale' && !product.isOnSale) {
       return false;
     }
 
@@ -54,10 +87,18 @@ export default function ProductsPage() {
   const handleClearFilters = () => {
     setFilters({
       categories: [],
+      subcategories: [],
       priceRange: [0, 5000],
+      availability: null
     });
     setCurrentPage(1);
   };
+
+  const activeFiltersCount =
+    (filters.categories?.length || 0) +
+    (filters.subcategories?.length || 0) +
+    (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000 ? 1 : 0) +
+    (filters.availability ? 1 : 0);
 
   return (
     <MainLayout>
@@ -66,23 +107,40 @@ export default function ProductsPage() {
           {/* Page Header */}
           <div className="products-header">
             <div className="products-header-left">
-              <h1 className="products-title">All Products</h1>
-              <p className="products-count">
-                {isLoading ? 'Loading...' : `${filteredProducts.length} products`}
-              </p>
+              <h1 className="products-title">Our Collection</h1>
+              <p className="products-subtitle">Handpicked furniture for every room</p>
             </div>
-            
+
             <div className="products-header-right">
+              {/* Filter Button */}
+              <button
+                className="filter-toggle-btn"
+                onClick={() => setIsFilterModalOpen(true)}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="4" y1="6" x2="20" y2="6"/>
+                  <line x1="4" y1="12" x2="20" y2="12"/>
+                  <line x1="4" y1="18" x2="20" y2="18"/>
+                  <circle cx="7" cy="6" r="2" fill="currentColor"/>
+                  <circle cx="14" cy="12" r="2" fill="currentColor"/>
+                  <circle cx="17" cy="18" r="2" fill="currentColor"/>
+                </svg>
+                Filters
+                {activeFiltersCount > 0 && (
+                  <span className="filter-badge">{activeFiltersCount}</span>
+                )}
+              </button>
+
               {/* View Toggle */}
               <div className="view-toggle">
-                <button 
+                <button
                   className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
                   onClick={() => setViewMode('grid')}
                   aria-label="Grid view"
                 >
                   ▦
                 </button>
-                <button 
+                <button
                   className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
                   onClick={() => setViewMode('list')}
                   aria-label="List view"
@@ -92,7 +150,7 @@ export default function ProductsPage() {
               </div>
 
               {/* Sort Dropdown */}
-              <select 
+              <select
                 className="sort-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -105,18 +163,17 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="products-layout">
-            {/* Filters Sidebar */}
-            <aside className="products-sidebar">
-              <FiltersSidebar 
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onClearFilters={handleClearFilters}
-              />
-            </aside>
+          {/* Filter Modal */}
+          <FilterModal
+            isOpen={isFilterModalOpen}
+            onClose={() => setIsFilterModalOpen(false)}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+          />
 
-            {/* Products Grid/List */}
-            <main className="products-main">
+          {/* Products Grid/List (No sidebar) */}
+          <main className="products-main-full">
               {isLoading ? (
                 <div className="products-loading">
                   <p>Loading products...</p>
@@ -134,62 +191,8 @@ export default function ProductsPage() {
               ) : (
                 <>
                   <div className={`products-grid ${viewMode === 'list' ? 'list-view' : ''}`}>
-                    {filteredProducts.map((product) => (
-                      <Link 
-                        key={product.id} 
-                        href={`/products/${product.slug}`}
-                        className="product-card-wrapper"
-                      >
-                        {/* Product Card */}
-                        <div className="product-card-listing">
-                          {/* Image */}
-                          <div className="product-image-listing">
-                            <img 
-                              src={product.images[0]?.imageUrl} 
-                              alt={product.name}
-                            />
-                            
-                            {/* Badge */}
-                            {(product.isNew || product.isOnSale) && (
-                              <span className={`badge-listing ${product.isOnSale ? 'sale' : ''}`}>
-                                {product.isNew ? 'New' : product.isOnSale ? 'Sale' : ''}
-                              </span>
-                            )}
-
-                            {/* Add to Cart Overlay - Grid View Only */}
-                            {viewMode === 'grid' && (
-                              <div className="add-to-cart-overlay">
-                                <button className="add-to-cart-btn-grid">
-                                  Add to Cart
-                                </button>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Info */}
-                          <div className="product-info-listing">
-                            <h3 className="product-name-listing">{product.name}</h3>
-                            <p className="product-category-listing">
-                              {typeof product.category === 'string' ? product.category : product.category?.name || ''}
-                            </p>
-                            
-                            {/* Price */}
-                            <div className="product-price-listing">
-                              {product.compareAtPrice && (
-                                <span className="price-old">{formatPrice(product.compareAtPrice)}</span>
-                              )}
-                              <span className="price-current">{formatPrice(product.price)}</span>
-                            </div>
-
-                            {/* Quick Add Button (list view only) */}
-                            {viewMode === 'list' && (
-                              <button className="quick-add-btn">
-                                Add to Cart
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </Link>
+                    {filteredProducts.map((product, index) => (
+                      <ProductCard key={product.id} product={product} index={index} />
                     ))}
                   </div>
 
@@ -228,7 +231,6 @@ export default function ProductsPage() {
                 </>
               )}
             </main>
-          </div>
         </div>
       </div>
     </MainLayout>

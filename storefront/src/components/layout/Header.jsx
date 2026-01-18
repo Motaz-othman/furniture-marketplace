@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { User, Heart, ShoppingCart } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { User, Heart, ShoppingCart, ArrowLeft, Menu, X, Search, Flame, Sparkles, Package, Sofa, BedDouble, UtensilsCrossed, Briefcase, TreeDeciduous, Lamp } from 'lucide-react';
 import { useParentCategories } from '@/lib/hooks';
 import { getSubcategories } from '@/lib/fake-data';
 import MegaMenu from './MegaMenu';
@@ -11,19 +12,42 @@ import MobileCategoryAccordion from './MobileCategoryAccordion';
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Check if we're on a subpage (not homepage)
+  const isSubpage = pathname !== '/';
+
+  // Handle back navigation
+  const handleBack = useCallback(() => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  }, [router]);
+
   // Fetch parent categories
   const { data: categoriesData, isLoading } = useParentCategories();
   const categories = categoriesData?.data || [];
 
-  // Category icons mapping
+  // Category icons mapping - using Lucide icons
   const categoryIcons = {
-    'living-room': '🛋️',
-    'bedroom': '🛏️',
-    'dining-room': '🍽️',
-    'office': '💼',
-    'outdoor': '🌳',
-    'lighting': '💡'
+    'living-room': <Sofa size={22} strokeWidth={1.5} />,
+    'bedroom': <BedDouble size={22} strokeWidth={1.5} />,
+    'dining-room': <UtensilsCrossed size={22} strokeWidth={1.5} />,
+    'office': <Briefcase size={22} strokeWidth={1.5} />,
+    'outdoor': <TreeDeciduous size={22} strokeWidth={1.5} />,
+    'lighting': <Lamp size={22} strokeWidth={1.5} />
+  };
+
+  // Handle mobile search
+  const handleMobileSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      setIsMobileMenuOpen(false);
+      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
+    }
   };
 
   // Handle search
@@ -38,19 +62,31 @@ export default function Header() {
     <>
       {/* Main Header */}
       <header className="header-container">
-        {/* Hamburger Menu Icon - Mobile Only */}
-        <button 
+        {/* Left Side - Hamburger Menu (Mobile Only) */}
+        <button
           className="mobile-menu-toggle"
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="Open menu"
         >
-          <span className="hamburger-icon">☰</span>
+          <Menu size={24} strokeWidth={1.5} />
         </button>
 
         {/* Logo - CLICKABLE - Goes to Homepage */}
         <Link href="/" className="logo-link">
           <div className="logo">LiviPoint</div>
+          <span className="logo-badge">Coming Soon</span>
         </Link>
+
+        {/* Back Button - Mobile Only, Right Side, Subpages Only */}
+        {isSubpage && (
+          <button
+            className="header-back-btn"
+            onClick={handleBack}
+            aria-label="Go back"
+          >
+            <ArrowLeft size={18} />
+          </button>
+        )}
         
         {/* Search Box - FRIENDLY PLACEHOLDER + ICON */}
         <form className="search-box" onSubmit={handleSearch}>
@@ -137,18 +173,35 @@ export default function Header() {
             {/* Logo in mobile menu - also clickable */}
             <Link href="/" className="logo-link" onClick={() => setIsMobileMenuOpen(false)}>
               <div className="logo">LiviPoint</div>
+              <span className="logo-badge">Coming Soon</span>
             </Link>
-            <button 
+            <button
               className="mobile-menu-close"
               onClick={() => setIsMobileMenuOpen(false)}
               aria-label="Close menu"
             >
-              ✕
+              <X size={24} strokeWidth={1.5} />
             </button>
           </div>
 
           {/* Menu Content */}
           <div className="mobile-menu-content">
+            {/* Search Section */}
+            <div className="mobile-menu-search">
+              <form onSubmit={handleMobileSearch}>
+                <div className="mobile-search-input-wrapper">
+                  <Search size={18} strokeWidth={1.5} className="mobile-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search furniture..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="mobile-search-input"
+                  />
+                </div>
+              </form>
+            </div>
+
             {/* Categories Section with Accordions */}
             <div className="mobile-menu-section">
               <h3 className="mobile-menu-section-title">Shop by Category</h3>
@@ -158,14 +211,15 @@ export default function Header() {
                 ) : (
                   categories.map((category) => {
                     const subcategories = getSubcategories(category.id);
-                    const icon = categoryIcons[category.slug] || '📦';
-                    
+                    const icon = categoryIcons[category.slug] || <Package size={22} strokeWidth={1.5} />;
+
                     return (
                       <MobileCategoryAccordion
                         key={category.id}
                         category={category}
                         subcategories={subcategories}
                         icon={icon}
+                        onLinkClick={() => setIsMobileMenuOpen(false)}
                       />
                     );
                   })
@@ -179,21 +233,25 @@ export default function Header() {
             {/* Special Links */}
             <div className="mobile-menu-section">
               <nav className="mobile-menu-nav">
-                <Link 
-                  href="/sale" 
+                <Link
+                  href="/sale"
                   className="mobile-menu-link special"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <span className="mobile-menu-icon">🔥</span>
+                  <span className="mobile-menu-icon">
+                    <Flame size={22} strokeWidth={1.5} />
+                  </span>
                   <span>Sale</span>
                   <span className="mobile-menu-badge">New</span>
                 </Link>
-                <Link 
-                  href="/new-arrivals" 
+                <Link
+                  href="/new-arrivals"
                   className="mobile-menu-link"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <span className="mobile-menu-icon">✨</span>
+                  <span className="mobile-menu-icon">
+                    <Sparkles size={22} strokeWidth={1.5} />
+                  </span>
                   <span>New Arrivals</span>
                 </Link>
               </nav>
@@ -206,28 +264,34 @@ export default function Header() {
             <div className="mobile-menu-section">
               <h3 className="mobile-menu-section-title">My Account</h3>
               <nav className="mobile-menu-nav">
-                <Link 
-                  href="/account" 
+                <Link
+                  href="/account"
                   className="mobile-menu-link"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <span className="mobile-menu-icon">👤</span>
+                  <span className="mobile-menu-icon">
+                    <User size={22} strokeWidth={1.5} />
+                  </span>
                   <span>Account</span>
                 </Link>
-                <Link 
-                  href="/wishlist" 
+                <Link
+                  href="/wishlist"
                   className="mobile-menu-link"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <span className="mobile-menu-icon">❤️</span>
+                  <span className="mobile-menu-icon">
+                    <Heart size={22} strokeWidth={1.5} />
+                  </span>
                   <span>Wishlist</span>
                 </Link>
-                <Link 
-                  href="/orders" 
+                <Link
+                  href="/orders"
                   className="mobile-menu-link"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <span className="mobile-menu-icon">📦</span>
+                  <span className="mobile-menu-icon">
+                    <Package size={22} strokeWidth={1.5} />
+                  </span>
                   <span>Orders</span>
                 </Link>
               </nav>

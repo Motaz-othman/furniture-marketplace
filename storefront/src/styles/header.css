@@ -34,32 +34,56 @@
     gap: 40px;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1001;
     visibility: visible !important;
   }
   
+  /* HEADER BACK BUTTON - Mobile Only, Right Side */
+  .header-back-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+  }
+
+  .header-back-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .header-back-btn:active {
+    transform: scale(0.92);
+  }
+
   /* LOGO - CLICKABLE FIX */
   .logo-link {
     text-decoration: none;
     color: var(--text-main);
     cursor: pointer !important;
     transition: color 0.2s;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     position: relative;
     z-index: 10;
     pointer-events: auto !important;
     opacity: 1 !important;
   }
-  
+
   .logo-link:hover {
     color: var(--accent-color);
     opacity: 1 !important;
   }
-  
+
   .logo-link * {
     pointer-events: none;
   }
-  
+
   .logo {
     font-family: var(--font-serif);
     font-size: 28px;
@@ -70,6 +94,19 @@
     pointer-events: none;
     color: var(--text-main);
     opacity: 1 !important;
+  }
+
+  .logo-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--accent-color);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 12px;
+    font-family: var(--font-primary);
   }
   
   /* SEARCH BOX - WITH ICON & FRIENDLY PLACEHOLDER */
@@ -193,13 +230,20 @@
     border-top: 1px solid var(--border-color);
     position: sticky;
     top: 74px;
-    z-index: 99;
+    z-index: 1000;
+    isolation: isolate;
+  }
+
+  .nav-list {
+    position: relative;
+    z-index: 2;
   }
   
   .nav-container {
     max-width: var(--container-width);
     margin: 0 auto;
     padding: 0 40px;
+    position: relative;
   }
   
   .nav-list {
@@ -239,9 +283,9 @@
     color: var(--sale-color); 
   }
   
-  /* MEGA MENU - FIXED POSITION */
+  /* MEGA MENU */
   .mega-menu-wrapper {
-    position: relative;
+    position: static;
     display: inline-block;
   }
   
@@ -278,7 +322,7 @@
   
   .mega-menu-dropdown {
     position: fixed;
-    top: 122px !important;
+    top: auto;
     left: 0;
     right: 0;
     width: 100%;
@@ -287,7 +331,6 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
     z-index: 999;
     animation: slideDown 0.3s ease;
   }
