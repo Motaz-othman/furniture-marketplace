@@ -30,12 +30,38 @@ function FilterPanel({ filters, setFilters, priceRange, onClose, isMobile }) {
     setLocalPriceRange([priceRange.min, priceRange.max]);
   };
 
+  const removeFilter = (filterKey) => {
+    if (filterKey === 'priceRange') {
+      setFilters(prev => ({ ...prev, priceRange: [priceRange.min, priceRange.max] }));
+      setLocalPriceRange([priceRange.min, priceRange.max]);
+    } else {
+      setFilters(prev => ({ ...prev, [filterKey]: false }));
+    }
+  };
+
+  const hasPriceFilter = filters.priceRange[0] > priceRange.min || filters.priceRange[1] < priceRange.max;
+
   const activeFilterCount = [
     filters.inStock,
     filters.onSale,
     filters.isNew,
-    filters.priceRange[0] > priceRange.min || filters.priceRange[1] < priceRange.max
+    hasPriceFilter
   ].filter(Boolean).length;
+
+  // Build active filter tags
+  const activeFilterTags = [];
+  if (hasPriceFilter) {
+    activeFilterTags.push({ key: 'priceRange', label: `${formatPrice(filters.priceRange[0])} - ${formatPrice(filters.priceRange[1])}` });
+  }
+  if (filters.inStock) {
+    activeFilterTags.push({ key: 'inStock', label: 'In Stock' });
+  }
+  if (filters.onSale) {
+    activeFilterTags.push({ key: 'onSale', label: 'On Sale' });
+  }
+  if (filters.isNew) {
+    activeFilterTags.push({ key: 'isNew', label: 'New Arrivals' });
+  }
 
   return (
     <div className={`filters-sidebar ${isMobile ? 'mobile-filters' : ''}`}>
@@ -58,6 +84,24 @@ function FilterPanel({ filters, setFilters, priceRange, onClose, isMobile }) {
           )
         )}
       </div>
+
+      {/* Active Filter Tags */}
+      {activeFilterTags.length > 0 && (
+        <div className="active-filters">
+          {activeFilterTags.map((tag) => (
+            <span key={tag.key} className="filter-tag">
+              {tag.label}
+              <button
+                className="filter-tag-remove"
+                onClick={() => removeFilter(tag.key)}
+                aria-label={`Remove ${tag.label} filter`}
+              >
+                <X size={14} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Price Range */}
       <div className="filter-section">
