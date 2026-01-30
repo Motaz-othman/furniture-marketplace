@@ -276,16 +276,21 @@ export default function ProductDetailPage({ params }) {
             {/* SKU & Stock */}
             <div className="product-meta-top">
               <span className="sku">SKU: {currentSku}</span>
-              <span className="stock-status">
-                {currentInStock ? (
+              <span className={`stock-status ${currentStock === 0 ? 'out-of-stock' : currentStock <= 5 ? 'low-stock' : 'in-stock'}`}>
+                {currentStock === 0 ? (
                   <>
-                    <span className="status-icon">✓</span>
-                    In stock ({currentStock} available)
+                    <span className="status-icon">○</span>
+                    Sold Out
+                  </>
+                ) : currentStock <= 5 ? (
+                  <>
+                    <span className="status-icon">!</span>
+                    Low Stock
                   </>
                 ) : (
                   <>
-                    <span className="status-icon">○</span>
-                    Sold out
+                    <span className="status-icon">✓</span>
+                    In Stock
                   </>
                 )}
               </span>
@@ -385,6 +390,27 @@ export default function ProductDetailPage({ params }) {
               <p>{product.description || product.shortDescription || 'No description available.'}</p>
             </div>
 
+            {/* Dimensions - Above Details */}
+            {product.dimensions && (
+              <div className="product-dimensions">
+                <h4 className="dimensions-title">Dimensions</h4>
+                <div className="dimensions-grid">
+                  <div className="dimension-item">
+                    <span className="dimension-label">Height</span>
+                    <span className="dimension-value">{product.dimensions.height}"</span>
+                  </div>
+                  <div className="dimension-item">
+                    <span className="dimension-label">Width</span>
+                    <span className="dimension-value">{product.dimensions.width}"</span>
+                  </div>
+                  <div className="dimension-item">
+                    <span className="dimension-label">Depth</span>
+                    <span className="dimension-value">{product.dimensions.length}"</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Accordion Section */}
             <div className="product-accordions">
 
@@ -422,50 +448,13 @@ export default function ProductDetailPage({ params }) {
                       <span className="detail-value">{product.provider}</span>
                     </div>
                   )}
-                  {product.stockQuantity !== undefined && (
+                  {product.dimensions?.weight && (
                     <div className="detail-row">
-                      <span className="detail-label">Stock:</span>
-                      <span className="detail-value">{product.stockQuantity} units</span>
+                      <span className="detail-label">Weight:</span>
+                      <span className="detail-value">{product.dimensions.weight} lbs</span>
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dimensions Accordion */}
-          <div className="accordion-item">
-            <button
-              className={`accordion-header ${openAccordion === 'dimensions' ? 'active' : ''}`}
-              onClick={() => setOpenAccordion(openAccordion === 'dimensions' ? '' : 'dimensions')}
-            >
-              <h3>Dimensions</h3>
-              <span className="accordion-icon">+</span>
-            </button>
-            <div className={`accordion-content ${openAccordion === 'dimensions' ? 'open' : ''}`}>
-              <div className="accordion-body">
-                {product.dimensions ? (
-                  <div className="dimensions-table">
-                    <div className="dimension-row">
-                      <span>Height:</span>
-                      <span>{product.dimensions.height} {product.dimensions.unit || 'cm'}</span>
-                    </div>
-                    <div className="dimension-row">
-                      <span>Width:</span>
-                      <span>{product.dimensions.width} {product.dimensions.unit || 'cm'}</span>
-                    </div>
-                    <div className="dimension-row">
-                      <span>Length/Depth:</span>
-                      <span>{product.dimensions.length} {product.dimensions.unit || 'cm'}</span>
-                    </div>
-                    <div className="dimension-row">
-                      <span>Weight:</span>
-                      <span>{product.dimensions.weight} {product.dimensions.weightUnit || 'kg'}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <p>Dimensions not available</p>
-                )}
               </div>
             </div>
           </div>

@@ -244,6 +244,18 @@
   color: #22c55e;
 }
 
+.stock-status.in-stock {
+  color: #22c55e;
+}
+
+.stock-status.low-stock {
+  color: #f59e0b;
+}
+
+.stock-status.out-of-stock {
+  color: #ef4444;
+}
+
 .status-icon {
   font-size: 16px;
 }
@@ -476,6 +488,51 @@
   line-height: 1.8;
   color: var(--text-light);
   margin: 0;
+}
+
+/* Product Dimensions - Above Details */
+.product-dimensions {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dimensions-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-main);
+  margin: 0 0 16px 0;
+}
+
+.dimensions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.dimension-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--bg-warm);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.dimension-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-light);
+}
+
+.dimension-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 /* Accordion Section */
@@ -779,5 +836,23 @@
     padding: 12px 16px;
     font-size: 12px;
     gap: 5px;
+  }
+
+  /* Dimensions grid - stack on very small screens */
+  .dimensions-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .dimension-item {
+    padding: 12px 8px;
+  }
+
+  .dimension-label {
+    font-size: 10px;
+  }
+
+  .dimension-value {
+    font-size: 14px;
   }
 }
