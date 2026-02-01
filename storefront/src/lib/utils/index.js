@@ -7,6 +7,7 @@
 export {
     formatPrice,
     calculateDiscount,
+    calculateDiscount as calculateDiscountPercentage, // Alias for backwards compatibility
     formatDate,
     generateSlug,
     truncateText,
@@ -28,6 +29,5 @@ export {
     mergeProductWithInventory,
     getVariantColor,
     getVariantMainImage,
-    calculateDiscountPercentage,
     isProductInStock
   } from './productTransform.js';

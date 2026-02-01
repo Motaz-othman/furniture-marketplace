@@ -315,37 +315,6 @@ export function getVariantMainImage(product, variantId) {
 }
 
 /**
- * Format price for display
- * @param {number} price - Price value
- * @param {string} currency - Currency code (default: USD)
- * @returns {string} Formatted price
- */
-export function formatPrice(price, currency = 'USD') {
-  if (typeof price !== 'number') {
-    return '$0.00';
-  }
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-  }).format(price);
-}
-
-/**
- * Calculate discount percentage
- * @param {number} originalPrice - Original price
- * @param {number} salePrice - Sale price
- * @returns {number} Discount percentage
- */
-export function calculateDiscountPercentage(originalPrice, salePrice) {
-  if (!originalPrice || !salePrice || originalPrice <= salePrice) {
-    return 0;
-  }
-
-  return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
-}
-
-/**
  * Check if product is in stock
  * @param {Object} product - Product object
  * @returns {boolean} True if in stock

@@ -13,15 +13,18 @@ import {
   getCategoryHierarchy,
 } from '@/lib/api';
 
+// Categories rarely change, use long stale time
+const STALE_TIME = 30 * 60 * 1000; // 30 minutes
+
 /**
  * Fetch all categories
  * @param {Object} options - React Query options
  */
 export function useCategories(options = {}) {
   return useQuery({
-    queryKey: ['categories'],
+    queryKey: ['categories', 'all'],
     queryFn: getCategories,
-    staleTime: 30 * 60 * 1000, // 30 minutes (categories don't change often)
+    staleTime: STALE_TIME,
     ...options,
   });
 }
@@ -33,10 +36,10 @@ export function useCategories(options = {}) {
  */
 export function useCategory(id, options = {}) {
   return useQuery({
-    queryKey: ['category', id],
+    queryKey: ['categories', 'detail', 'id', id],
     queryFn: () => getCategoryById(id),
     enabled: !!id,
-    staleTime: 30 * 60 * 1000,
+    staleTime: STALE_TIME,
     ...options,
   });
 }
@@ -48,10 +51,10 @@ export function useCategory(id, options = {}) {
  */
 export function useCategoryBySlug(slug, options = {}) {
   return useQuery({
-    queryKey: ['category', 'slug', slug],
+    queryKey: ['categories', 'detail', 'slug', slug],
     queryFn: () => getCategoryBySlug(slug),
     enabled: !!slug,
-    staleTime: 30 * 60 * 1000,
+    staleTime: STALE_TIME,
     ...options,
   });
 }
@@ -64,7 +67,7 @@ export function useParentCategories(options = {}) {
   return useQuery({
     queryKey: ['categories', 'parents'],
     queryFn: getParentCategories,
-    staleTime: 30 * 60 * 1000,
+    staleTime: STALE_TIME,
     ...options,
   });
 }
@@ -79,7 +82,7 @@ export function useSubcategories(parentId, options = {}) {
     queryKey: ['categories', 'subcategories', parentId],
     queryFn: () => getSubcategories(parentId),
     enabled: !!parentId,
-    staleTime: 30 * 60 * 1000,
+    staleTime: STALE_TIME,
     ...options,
   });
 }
@@ -91,10 +94,10 @@ export function useSubcategories(parentId, options = {}) {
  */
 export function useCategoryHierarchy(categoryId, options = {}) {
   return useQuery({
-    queryKey: ['category', 'hierarchy', categoryId],
+    queryKey: ['categories', 'hierarchy', categoryId],
     queryFn: () => getCategoryHierarchy(categoryId),
     enabled: !!categoryId,
-    staleTime: 30 * 60 * 1000,
+    staleTime: STALE_TIME,
     ...options,
   });
 }
