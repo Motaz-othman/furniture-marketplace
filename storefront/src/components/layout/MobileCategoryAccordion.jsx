@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown } from '@/components/ui/Icons';
 
 export default function MobileCategoryAccordion({ category, subcategories, icon, onLinkClick }) {
   const [isExpanded, setIsExpanded] = useState(false);

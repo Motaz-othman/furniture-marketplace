@@ -510,6 +510,11 @@ export const productsApiFormat = [
         deletedAt: null,
         description: "Tufted headboard platform bed - Queen",
         dimensions: { height: 120, length: 210, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 65, width: 160 },
+        pieces: [
+          { name: "Headboard", dimensions: { height: 120, width: 160, length: 10, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 25 } },
+          { name: "Platform Frame", dimensions: { height: 35, width: 160, length: 210, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 32 } },
+          { name: "Slat Support System", dimensions: { height: 5, width: 155, length: 200, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 8 } }
+        ],
         introducedAt: new Date("2024-01-12").toISOString(),
         isDirectShipping: false,
         isInCatalog: "included",
@@ -1464,6 +1469,10 @@ export const productsApiFormat = [
       deletedAt: null,
       description: "6-person outdoor dining set",
       dimensions: { height: 75, length: 180, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 65, width: 90 },
+      pieces: [
+        { name: "Dining Table", dimensions: { height: 75, width: 90, length: 180, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 35 } },
+        { name: "Chair (×6)", dimensions: { height: 88, width: 45, length: 52, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 5 } }
+      ],
       introducedAt: new Date("2023-05-01").toISOString(),
       isDirectShipping: false,
       isInCatalog: "included",
@@ -1800,6 +1809,12 @@ export const productsApiFormat = [
       deletedAt: null,
       description: "Twin bunk bed with safety rails",
       dimensions: { height: 160, length: 200, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 60, width: 100 },
+      pieces: [
+        { name: "Top Bunk Frame", dimensions: { height: 25, width: 100, length: 200, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 22 } },
+        { name: "Bottom Bunk Frame", dimensions: { height: 25, width: 100, length: 200, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 22 } },
+        { name: "Support Posts (×4)", dimensions: { height: 160, width: 8, length: 8, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 3 } },
+        { name: "Ladder", dimensions: { height: 120, width: 40, length: 5, unitOfMeasureDistance: "cm", unitOfMeasureWeight: "kg", weight: 4 } }
+      ],
       introducedAt: new Date("2023-04-01").toISOString(),
       isDirectShipping: false,
       isInCatalog: "included",

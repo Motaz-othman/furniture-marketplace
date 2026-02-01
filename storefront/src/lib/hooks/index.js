@@ -23,3 +23,6 @@ export {
     useSubcategories,
     useCategoryHierarchy,
   } from './useCategories.js';
+
+  // Export utility hooks
+  export { useResponsiveColumns } from './useResponsiveColumns.js';

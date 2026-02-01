@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, Heart, ShoppingCart, ArrowLeft, Menu, X, Search, Flame, Sparkles, Package, Sofa, BedDouble, UtensilsCrossed, Briefcase, TreeDeciduous, Lamp } from 'lucide-react';
+import { User, Heart, ShoppingCart, ArrowLeft, Menu, X, Search, Flame, Sparkles, Package, Sofa, BedDouble, UtensilsCrossed, Briefcase, TreeDeciduous, Lamp } from '@/components/ui/Icons';
 import { useParentCategories } from '@/lib/hooks';
 import { getSubcategories } from '@/lib/fake-data';
 import MegaMenu from './MegaMenu';
@@ -41,15 +41,6 @@ export default function Header() {
     'lighting': <Lamp size={22} strokeWidth={1.5} />
   };
 
-  // Handle mobile search
-  const handleMobileSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      setIsMobileMenuOpen(false);
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
-    }
-  };
-
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
@@ -71,41 +62,46 @@ export default function Header() {
           <Menu size={24} strokeWidth={1.5} />
         </button>
 
-        {/* Logo - CLICKABLE - Goes to Homepage */}
+        {/* Logo - CLICKABLE - Goes to Homepage (Hidden on Mobile) */}
         <Link href="/" className="logo-link">
           <div className="logo">LiviPoint</div>
           <span className="logo-badge">Coming Soon</span>
         </Link>
 
-        {/* Back Button - Mobile Only, Right Side, Subpages Only */}
-        {isSubpage && (
-          <button
-            className="header-back-btn"
-            onClick={handleBack}
-            aria-label="Go back"
-          >
-            <ArrowLeft size={18} />
-          </button>
-        )}
-        
-        {/* Search Box - FRIENDLY PLACEHOLDER + ICON */}
+        {/* Mobile Search Box - Visible only on mobile */}
+        <form className="mobile-header-search" onSubmit={handleSearch}>
+          <Search size={18} strokeWidth={1.5} className="mobile-header-search-icon" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </form>
+
+        {/* Mobile Cart Icon - Visible only on mobile */}
+        <Link href="/cart" className="mobile-header-cart" aria-label="Shopping Cart">
+          <ShoppingCart size={22} strokeWidth={1.5} />
+          <span className="mobile-cart-count">0</span>
+        </Link>
+
+        {/* Desktop Search Box - Hidden on mobile */}
         <form className="search-box" onSubmit={handleSearch}>
-          <input 
-            type="text" 
-            placeholder="Find your perfect furniture..." 
+          <input
+            type="text"
+            placeholder="Find your perfect furniture..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <button type="submit" aria-label="Search">
-            {/* Search Icon */}
-            <svg 
-              width="18" 
-              height="18" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
               strokeWidth="2"
-              strokeLinecap="round" 
+              strokeLinecap="round"
               strokeLinejoin="round"
             >
               <circle cx="11" cy="11" r="8"></circle>
@@ -113,8 +109,8 @@ export default function Header() {
             </svg>
           </button>
         </form>
-        
-        {/* Header Actions - Using Icon components */}
+
+        {/* Desktop Header Actions - Hidden on mobile */}
         <div className="header-actions">
           <Link href="/account" className="action-link" aria-label="Account">
             <User size={20} />
@@ -186,22 +182,6 @@ export default function Header() {
 
           {/* Menu Content */}
           <div className="mobile-menu-content">
-            {/* Search Section */}
-            <div className="mobile-menu-search">
-              <form onSubmit={handleMobileSearch}>
-                <div className="mobile-search-input-wrapper">
-                  <Search size={18} strokeWidth={1.5} className="mobile-search-icon" />
-                  <input
-                    type="text"
-                    placeholder="Search furniture..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="mobile-search-input"
-                  />
-                </div>
-              </form>
-            </div>
-
             {/* Categories Section with Accordions */}
             <div className="mobile-menu-section">
               <h3 className="mobile-menu-section-title">Shop by Category</h3>

@@ -3,10 +3,14 @@
 import { use, useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import Image from 'next/image';
+import { SlidersHorizontal, X, ChevronDown } from '@/components/ui/Icons';
 import MainLayout from '@/components/layout/MainLayout';
+import VirtualProductGrid from '@/components/products/VirtualProductGrid';
+import { useResponsiveColumns } from '@/lib/hooks';
 import { getCategoryBySlug, getProductsByCategorySlug, getSubcategories, getProductsByCategory, getCategoryById, sortProducts } from '@/lib/fake-data';
 import { formatPrice } from '@/lib/utils';
+import { ProductsGridSkeleton, SubcategoriesGridSkeleton } from '@/components/products/ProductCardSkeleton';
 
 // Filter Panel Component
 function FilterPanel({ filters, setFilters, priceRange, onClose, isMobile }) {
@@ -233,152 +237,9 @@ function Breadcrumbs({ category, subcategory, onSubcategoryClick }) {
   );
 }
 
-// Helper function to extract color hex from variant
-function getColorFromVariant(variant) {
-  if (!variant.attributes) return null;
-  const colorAttr = variant.attributes.find(attr => attr.attribute === 'color');
-  return colorAttr?.normalizedValues?.[0]?.hexValue || null;
-}
-
-// Product Card Component
-function ProductCard({ product, index }) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-
-  // Get images for the selected variant
-  const getVariantImages = (variantIndex) => {
-    if (!product.variants || !product.variants[variantIndex]) return product.images;
-
-    const variant = product.variants[variantIndex];
-    const variantImages = product.images.filter(img =>
-      img.variantProductIds && img.variantProductIds.includes(variant.id)
-    );
-
-    return variantImages.length > 0 ? variantImages : product.images;
-  };
-
-  const currentImages = getVariantImages(selectedVariantIndex);
-
-  const handleAddToCart = (e) => {
-    e.preventDefault();
-    alert(`Added ${product.name} to cart!`);
-  };
-
-  return (
-    <Link href={`/products/${product.slug}`} className="product-card">
-      <div className="product-image">
-        {(product.isNew || product.isOnSale) && (
-          <span
-            className="badge"
-            style={product.isOnSale ? { background: 'var(--sale-color)', color: '#fff' } : {}}
-          >
-            {product.isNew ? 'New' : 'Sale'}
-          </span>
-        )}
-
-        {/* Action Buttons */}
-        <div className="product-actions">
-          <button
-            className={`action-btn wishlist-btn ${isWishlisted ? 'active' : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              setIsWishlisted(!isWishlisted);
-            }}
-            aria-label="Add to wishlist"
-            title="Add to Wishlist"
-          >
-            <span className="action-icon">{isWishlisted ? '❤' : '♡'}</span>
-          </button>
-
-          <button
-            className="action-btn add-to-cart-btn"
-            onClick={handleAddToCart}
-            aria-label="Add to cart"
-            title="Add to Cart"
-          >
-            <span className="action-icon">🛒</span>
-          </button>
-        </div>
-
-        <div className="product-image-wrapper">
-          <img
-            src={currentImages[currentImageIndex]?.imageUrl || currentImages[0]?.imageUrl}
-            alt={product.name}
-            className="product-img"
-            loading="lazy"
-          />
-        </div>
-
-        {currentImages && currentImages.length > 1 && (
-          <div className="image-dots">
-            {currentImages.map((_, idx) => (
-              <button
-                key={idx}
-                className={`image-dot ${idx === currentImageIndex ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setCurrentImageIndex(idx);
-                }}
-                onMouseEnter={() => setCurrentImageIndex(idx)}
-                aria-label={`View image ${idx + 1}`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="product-info">
-        <h3>{product.name}</h3>
-
-        {product.variants && product.variants.length > 0 && (
-          <div className="color-swatches">
-            {product.variants.slice(0, 3).map((variant, idx) => {
-              const colorHex = getColorFromVariant(variant);
-
-              return colorHex ? (
-                <div
-                  key={variant.id}
-                  className={`color-swatch ${idx === selectedVariantIndex ? 'active' : ''}`}
-                  style={{ background: colorHex }}
-                  title={variant.variantName || variant.name}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setSelectedVariantIndex(idx);
-                    setCurrentImageIndex(0);
-                  }}
-                  onMouseEnter={(e) => {
-                    e.preventDefault();
-                    setSelectedVariantIndex(idx);
-                    setCurrentImageIndex(0);
-                  }}
-                />
-              ) : null;
-            })}
-          </div>
-        )}
-
-        {product.stockQuantity === 0 ? (
-          <p className="stock-indicator out-of-stock">Out of Stock</p>
-        ) : product.stockQuantity <= 5 ? (
-          <p className="stock-indicator low-stock">Low Stock</p>
-        ) : (
-          <p className="stock-indicator in-stock">In Stock</p>
-        )}
-
-        <div className={`product-price ${product.compareAtPrice ? 'sale' : ''}`}>
-          {product.compareAtPrice && (
-            <span className="old-price">{formatPrice(product.compareAtPrice)}</span>
-          )}
-          {formatPrice(product.price)}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 export default function CategoryPage({ params }) {
   const router = useRouter();
+  const columns = useResponsiveColumns();
 
   // Next.js 15: params is a Promise, unwrap it with use()
   const { slug } = use(params);
@@ -399,6 +260,18 @@ export default function CategoryPage({ params }) {
 
   // Local state for selected subcategory (enables instant filtering without page reload)
   const [selectedSubcategory, setSelectedSubcategory] = useState(initialSubcategory);
+
+  // Loading state for skeleton display
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate initial load (for real API, this would be actual data fetching)
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [parentSlug]);
 
   // Get ALL products for the parent category (including subcategories)
   const allProducts = getProductsByCategorySlug(parentSlug);
@@ -526,40 +399,54 @@ export default function CategoryPage({ params }) {
         {subcategories.length > 0 && (
           <div className="subcategories-section">
             <div className="container">
-              <div className="subcategories-grid" ref={subcategoriesRef}>
-                {/* "All" filter card */}
-                <button
-                  type="button"
-                  className={`subcategory-card ${!selectedSubcategory ? 'active' : ''}`}
-                  onClick={() => handleSubcategorySelect(null)}
-                >
-                  <div className="subcategory-image">
-                    <img src={parentCategory.imageUrl} alt={parentCategory.name} loading="lazy" />
-                  </div>
-                  <h3 className="subcategory-name">All {parentCategory.name}</h3>
-                  <span className="subcategory-count">{allProducts.length} items</span>
-                </button>
+              {isLoading ? (
+                <SubcategoriesGridSkeleton count={subcategories.length + 1} />
+              ) : (
+                <div className="subcategories-grid" ref={subcategoriesRef}>
+                  {/* "All" filter card */}
+                  <button
+                    type="button"
+                    className={`subcategory-card ${!selectedSubcategory ? 'active' : ''}`}
+                    onClick={() => handleSubcategorySelect(null)}
+                  >
+                    <div className="subcategory-image">
+                      <Image
+                        src={parentCategory.imageUrl}
+                        alt={parentCategory.name}
+                        fill
+                        sizes="(max-width: 640px) 50vw, 200px"
+                      />
+                    </div>
+                    <h3 className="subcategory-name">All {parentCategory.name}</h3>
+                    <span className="subcategory-count">{allProducts.length} items</span>
+                  </button>
 
-                {/* Subcategory cards */}
-                {subcategories.map((subcat) => {
-                  const productCount = getSubcategoryProductCount(subcat.id);
-                  const isActive = selectedSubcategory?.id === subcat.id;
-                  return (
-                    <button
-                      key={subcat.id}
-                      type="button"
-                      className={`subcategory-card ${isActive ? 'active' : ''}`}
-                      onClick={() => handleSubcategorySelect(subcat)}
-                    >
-                      <div className="subcategory-image">
-                        <img src={subcat.imageUrl} alt={subcat.name} loading="lazy" />
-                      </div>
-                      <h3 className="subcategory-name">{subcat.name}</h3>
-                      <span className="subcategory-count">{productCount} items</span>
-                    </button>
-                  );
-                })}
-              </div>
+                  {/* Subcategory cards */}
+                  {subcategories.map((subcat) => {
+                    const productCount = getSubcategoryProductCount(subcat.id);
+                    const isActive = selectedSubcategory?.id === subcat.id;
+                    return (
+                      <button
+                        key={subcat.id}
+                        type="button"
+                        className={`subcategory-card ${isActive ? 'active' : ''}`}
+                        onClick={() => handleSubcategorySelect(subcat)}
+                      >
+                        <div className="subcategory-image">
+                          <Image
+                            src={subcat.imageUrl}
+                            alt={subcat.name}
+                            fill
+                            sizes="(max-width: 640px) 50vw, 200px"
+                          />
+                        </div>
+                        <h3 className="subcategory-name">{subcat.name}</h3>
+                        <span className="subcategory-count">{productCount} items</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -599,7 +486,9 @@ export default function CategoryPage({ params }) {
 
 
             {/* Products Grid */}
-            {filteredProducts.length === 0 ? (
+            {isLoading ? (
+              <ProductsGridSkeleton count={8} />
+            ) : filteredProducts.length === 0 ? (
               <div className="products-empty">
                 <p>No products found matching your filters.</p>
                 <button
@@ -615,11 +504,12 @@ export default function CategoryPage({ params }) {
                 </button>
               </div>
             ) : (
-              <div className="products-grid">
-                {filteredProducts.map((product, index) => (
-                  <ProductCard key={product.id} product={product} index={index} />
-                ))}
-              </div>
+              <VirtualProductGrid
+                products={filteredProducts}
+                columns={columns}
+                rowHeight={420}
+                gap={24}
+              />
             )}
           </div>
         </div>

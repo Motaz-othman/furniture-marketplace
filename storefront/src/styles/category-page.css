@@ -153,6 +153,7 @@
   }
 
   .subcategory-image {
+    position: relative;
     width: 140px;
     height: 140px;
     overflow: hidden;

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, Search, ShoppingCart, User } from 'lucide-react';
+import { Home, ShoppingBag, Heart, ShoppingCart, User } from '@/components/ui/Icons';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
@@ -35,16 +35,7 @@ export default function MobileBottomNav() {
         <span>Shop</span>
       </Link>
 
-      {/* Search */}
-      <Link
-        href="/products"
-        className={`mobile-nav-item ${isActive('/search') ? 'active' : ''}`}
-      >
-        <Search size={22} strokeWidth={1.5} />
-        <span>Search</span>
-      </Link>
-
-      {/* Cart */}
+      {/* Cart - Center position for prominence */}
       <Link
         href="/cart"
         className={`mobile-nav-item ${isActive('/cart') ? 'active' : ''}`}
@@ -54,6 +45,15 @@ export default function MobileBottomNav() {
         {cartItemsCount > 0 && (
           <span className="mobile-nav-badge">{cartItemsCount}</span>
         )}
+      </Link>
+
+      {/* Wishlist */}
+      <Link
+        href="/wishlist"
+        className={`mobile-nav-item ${isActive('/wishlist') ? 'active' : ''}`}
+      >
+        <Heart size={22} strokeWidth={1.5} />
+        <span>Wishlist</span>
       </Link>
 
       {/* Account */}

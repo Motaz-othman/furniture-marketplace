@@ -11,6 +11,75 @@ function getCategoryByIdLocal(id) {
 }
 
 /**
+ * Convert cm to inches
+ * @param {number} cm - Value in centimeters
+ * @returns {number} Value in inches (rounded to 1 decimal)
+ */
+function cmToInches(cm) {
+  if (!cm) return null;
+  return Math.round((cm / 2.54) * 10) / 10;
+}
+
+/**
+ * Convert kg to lbs
+ * @param {number} kg - Value in kilograms
+ * @returns {number} Value in pounds (rounded to 1 decimal)
+ */
+function kgToLbs(kg) {
+  if (!kg) return null;
+  return Math.round((kg * 2.205) * 10) / 10;
+}
+
+/**
+ * Build measurements array from variant data
+ * Supports both single-piece products and multi-piece furniture sets
+ * All measurements converted to US units (inches, lbs)
+ * @param {Object} variant - Product variant with dimensions
+ * @returns {Array|null} Array of measurement objects or null
+ */
+function buildMeasurements(variant) {
+  // Check if variant has pieces array (multi-piece furniture)
+  if (variant.pieces && Array.isArray(variant.pieces) && variant.pieces.length > 0) {
+    return variant.pieces.map(piece => {
+      const isMetric = piece.dimensions?.unitOfMeasureDistance === 'cm';
+      const isKg = piece.dimensions?.unitOfMeasureWeight === 'kg' || piece.weightUnit === 'kg';
+
+      return {
+        name: piece.name,
+        dimensions: piece.dimensions ? {
+          height: isMetric ? cmToInches(piece.dimensions.height) : piece.dimensions.height,
+          width: isMetric ? cmToInches(piece.dimensions.width) : piece.dimensions.width,
+          depth: isMetric ? cmToInches(piece.dimensions.length || piece.dimensions.depth) : (piece.dimensions.length || piece.dimensions.depth),
+          unit: 'in'
+        } : null,
+        weight: isKg ? kgToLbs(piece.dimensions?.weight || piece.weight) : (piece.dimensions?.weight || piece.weight),
+        weightUnit: 'lbs'
+      };
+    });
+  }
+
+  // Single-piece product - use main dimensions
+  if (variant.dimensions) {
+    const isMetric = variant.dimensions.unitOfMeasureDistance === 'cm';
+    const isKg = variant.dimensions.unitOfMeasureWeight === 'kg';
+
+    return [{
+      name: null, // No name for single-piece products
+      dimensions: {
+        height: isMetric ? cmToInches(variant.dimensions.height) : variant.dimensions.height,
+        width: isMetric ? cmToInches(variant.dimensions.width) : variant.dimensions.width,
+        depth: isMetric ? cmToInches(variant.dimensions.length) : variant.dimensions.length,
+        unit: 'in'
+      },
+      weight: isKg ? kgToLbs(variant.dimensions.weight) : variant.dimensions.weight,
+      weightUnit: 'lbs'
+    }];
+  }
+
+  return null;
+}
+
+/**
  * Transform API product format to frontend format
  * @param {Object} apiProduct - Product in API format
  * @returns {Object} Product in frontend format
@@ -127,7 +196,7 @@ export function transformApiProductToFrontend(apiProduct) {
       return acc;
     }, {}) || {},
 
-    // Add dimensions if available
+    // Add dimensions if available (legacy support)
     dimensions: mainVariant.dimensions ? {
       height: mainVariant.dimensions.height,
       width: mainVariant.dimensions.width,
@@ -136,6 +205,9 @@ export function transformApiProductToFrontend(apiProduct) {
       unit: mainVariant.dimensions.unitOfMeasureDistance,
       weightUnit: mainVariant.dimensions.unitOfMeasureWeight
     } : null,
+
+    // Add measurements - supports multiple pieces for furniture sets
+    measurements: buildMeasurements(mainVariant),
 
     // Variants
     variants: variants,

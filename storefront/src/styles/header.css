@@ -223,6 +223,16 @@
     padding: 0 4px;
     line-height: 1;
   }
+
+  /* Mobile Header Search - Hidden on desktop */
+  .mobile-header-search {
+    display: none;
+  }
+
+  /* Mobile Header Cart - Hidden on desktop */
+  .mobile-header-cart {
+    display: none;
+  }
   
   /* NAVIGATION */
   .main-nav {

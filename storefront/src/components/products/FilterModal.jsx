@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import { useCategories } from '@/lib/hooks';
 import { formatPrice } from '@/lib/utils';
 
-export default function FilterModal({ isOpen, onClose, filters, onFilterChange, onClearFilters }) {
+const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onFilterChange, onClearFilters }) {
   const { data: categoriesData } = useCategories();
   const allCategories = categoriesData?.data || [];
 
-  // Separate parent categories and subcategories
-  const parentCategories = allCategories.filter(cat => cat.parentId === null || !cat.parentId);
-  const subCategories = allCategories.filter(cat => cat.parentId !== null && cat.parentId);
+  // Memoize category filtering
+  const { parentCategories, subCategories } = useMemo(() => ({
+    parentCategories: allCategories.filter(cat => cat.parentId === null || !cat.parentId),
+    subCategories: allCategories.filter(cat => cat.parentId !== null && cat.parentId)
+  }), [allCategories]);
 
   const [priceRange, setPriceRange] = useState(filters.priceRange || [0, 5000]);
   const [expandedSections, setExpandedSections] = useState({
@@ -33,56 +35,59 @@ export default function FilterModal({ isOpen, onClose, filters, onFilterChange, 
   }, [isOpen]);
 
   // Toggle section expansion
-  const toggleSection = (section) => {
+  const toggleSection = useCallback((section) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
-  };
+  }, []);
 
-  const handleCategoryToggle = (categoryId) => {
+  const handleCategoryToggle = useCallback((categoryId) => {
     const currentCategories = filters.categories || [];
     const newCategories = currentCategories.includes(categoryId)
       ? currentCategories.filter(id => id !== categoryId)
       : [...currentCategories, categoryId];
 
     onFilterChange({ ...filters, categories: newCategories });
-  };
+  }, [filters, onFilterChange]);
 
-  const handlePricePreset = (min, max) => {
+  const handlePricePreset = useCallback((min, max) => {
     const newRange = [min, max];
     setPriceRange(newRange);
     onFilterChange({ ...filters, priceRange: newRange });
-  };
+  }, [filters, onFilterChange]);
 
-  const handlePriceChange = (index, value) => {
-    const newRange = [...priceRange];
-    newRange[index] = parseInt(value);
-    setPriceRange(newRange);
-  };
+  const handlePriceChange = useCallback((index, value) => {
+    setPriceRange(prev => {
+      const newRange = [...prev];
+      newRange[index] = parseInt(value);
+      return newRange;
+    });
+  }, []);
 
-  const handlePriceApply = () => {
+  const handlePriceApply = useCallback(() => {
     onFilterChange({ ...filters, priceRange });
-  };
+  }, [filters, priceRange, onFilterChange]);
 
-  const handleAvailabilityChange = (availability) => {
+  const handleAvailabilityChange = useCallback((availability) => {
     onFilterChange({ ...filters, availability });
-  };
+  }, [filters, onFilterChange]);
 
-  const handleSubcategoryToggle = (subcategoryId) => {
+  const handleSubcategoryToggle = useCallback((subcategoryId) => {
     const currentSubcategories = filters.subcategories || [];
     const newSubcategories = currentSubcategories.includes(subcategoryId)
       ? currentSubcategories.filter(id => id !== subcategoryId)
       : [...currentSubcategories, subcategoryId];
 
     onFilterChange({ ...filters, subcategories: newSubcategories });
-  };
+  }, [filters, onFilterChange]);
 
-  const activeFiltersCount =
+  const activeFiltersCount = useMemo(() => (
     (filters.categories?.length || 0) +
     (filters.subcategories?.length || 0) +
     (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000 ? 1 : 0) +
-    (filters.availability ? 1 : 0);
+    (filters.availability ? 1 : 0)
+  ), [filters]);
 
   // Price presets
   const pricePresets = [
@@ -388,4 +393,6 @@ export default function FilterModal({ isOpen, onClose, filters, onFilterChange, 
       </div>
     </>
   );
-}
+});
+
+export default FilterModal;

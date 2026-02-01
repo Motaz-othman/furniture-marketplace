@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import { useProducts } from '@/lib/hooks';
@@ -14,6 +15,78 @@ function getColorFromVariant(variant) {
   if (!variant.attributes) return null;
   const colorAttr = variant.attributes.find(attr => attr.attribute === 'color');
   return colorAttr?.normalizedValues?.[0]?.hexValue || null;
+}
+
+// Generate thumbnail URL for blur-up effect
+function getThumbnailUrl(src) {
+  if (!src) return null;
+  if (src.includes('unsplash.com')) {
+    return src.replace(/w=\d+/, 'w=40').replace(/q=\d+/, 'q=20');
+  }
+  return null;
+}
+
+// Related Product Card with progressive image loading
+function RelatedProductCard({ product }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const cardRef = useRef(null);
+
+  const imageUrl = product.images[0]?.imageUrl;
+  const thumbnailUrl = getThumbnailUrl(imageUrl);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px', threshold: 0.01 }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Handle cached images that are already loaded
+  const handleImageRef = (img) => {
+    if (img && img.complete && img.naturalHeight > 0) {
+      setImageLoaded(true);
+    }
+  };
+
+  return (
+    <Link
+      ref={cardRef}
+      href={`/products/${product.slug}`}
+      className="related-product-card"
+    >
+      <div className="related-image progressive-image-wrapper">
+        <div className={`progressive-image-shimmer ${imageLoaded ? 'loaded' : ''}`} />
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 50vw, 200px"
+            className={`progressive-image-main ${imageLoaded ? 'loaded' : ''}`}
+            onLoad={() => setImageLoaded(true)}
+            placeholder={thumbnailUrl ? 'blur' : 'empty'}
+            blurDataURL={thumbnailUrl || undefined}
+          />
+        )}
+      </div>
+      <div className="related-info">
+        <h3>{product.name}</h3>
+        <p className="related-price">{formatPrice(product.price)}</p>
+      </div>
+    </Link>
+  );
 }
 
 // Helper function to get clean variant label (just the variant value, not full name)
@@ -52,6 +125,7 @@ export default function ProductDetailPage({ params }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [openAccordion, setOpenAccordion] = useState('overview');
+  const [mainImageLoaded, setMainImageLoaded] = useState(false);
 
   // Swipe back navigation for mobile
   const touchStartX = useRef(0);
@@ -127,6 +201,19 @@ export default function ProductDetailPage({ params }) {
   const handleVariantSelect = (variant) => {
     setSelectedVariant(variant);
     setSelectedImage(0); // Reset to first image when variant changes
+    setMainImageLoaded(false); // Reset image loaded state
+  };
+
+  // Reset image loaded state when selected image changes
+  useEffect(() => {
+    setMainImageLoaded(false);
+  }, [selectedImage]);
+
+  // Handle cached images that are already loaded
+  const handleMainImageRef = (img) => {
+    if (img && img.complete && img.naturalHeight > 0) {
+      setMainImageLoaded(true);
+    }
   };
 
   const relatedProducts = allProducts
@@ -226,11 +313,24 @@ export default function ProductDetailPage({ params }) {
 
           {/* Left: Image Gallery */}
           <div className="product-gallery-section">
-            <div className="gallery-main-image">
-              <img
-                src={currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl}
-                alt={product.name}
-              />
+            <div className="gallery-main-image progressive-image-wrapper">
+              {/* Shimmer placeholder */}
+              <div className={`progressive-image-shimmer ${mainImageLoaded ? 'loaded' : ''}`} />
+
+              {/* Main image with Next.js Image optimization */}
+              {(currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl) && (
+                <Image
+                  src={currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className={`progressive-image-main ${mainImageLoaded ? 'loaded' : ''}`}
+                  onLoad={() => setMainImageLoaded(true)}
+                  placeholder={getThumbnailUrl(currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl) ? 'blur' : 'empty'}
+                  blurDataURL={getThumbnailUrl(currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl) || undefined}
+                  priority
+                />
+              )}
 
               {/* Badges */}
               {(product.isNew || product.isOnSale || product.isFeatured) && (
@@ -252,7 +352,12 @@ export default function ProductDetailPage({ params }) {
                     className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
                     onClick={() => setSelectedImage(index)}
                   >
-                    <img src={image.imageUrl} alt={`View ${index + 1}`} />
+                    <Image
+                      src={image.imageUrl}
+                      alt={`View ${index + 1}`}
+                      fill
+                      sizes="80px"
+                    />
                   </button>
                 ))}
               </div>
@@ -390,29 +495,44 @@ export default function ProductDetailPage({ params }) {
               <p>{product.description || product.shortDescription || 'No description available.'}</p>
             </div>
 
-            {/* Dimensions - Above Details */}
-            {product.dimensions && (
-              <div className="product-dimensions">
-                <h4 className="dimensions-title">Dimensions</h4>
-                <div className="dimensions-grid">
-                  <div className="dimension-item">
-                    <span className="dimension-label">Height</span>
-                    <span className="dimension-value">{product.dimensions.height}"</span>
-                  </div>
-                  <div className="dimension-item">
-                    <span className="dimension-label">Width</span>
-                    <span className="dimension-value">{product.dimensions.width}"</span>
-                  </div>
-                  <div className="dimension-item">
-                    <span className="dimension-label">Depth</span>
-                    <span className="dimension-value">{product.dimensions.length}"</span>
+            {/* Accordion Section */}
+            <div className="product-accordions">
+
+          {/* Measurements Accordion */}
+          {product.measurements && product.measurements.length > 0 && (
+            <div className="accordion-item">
+              <button
+                className={`accordion-header ${openAccordion === 'measurements' ? 'active' : ''}`}
+                onClick={() => setOpenAccordion(openAccordion === 'measurements' ? '' : 'measurements')}
+              >
+                <h3>Measurements</h3>
+                <span className="accordion-icon">+</span>
+              </button>
+              <div className={`accordion-content ${openAccordion === 'measurements' ? 'open' : ''}`}>
+                <div className="accordion-body">
+                  <div className="measurements-grid">
+                    {product.measurements.map((piece, index) => (
+                      <div key={index} className="measurement-row">
+                        <span className="measurement-label">
+                          {piece.name || 'Dimensions'}:
+                        </span>
+                        <span className="measurement-value">
+                          {piece.dimensions && (
+                            <>
+                              {piece.dimensions.height}" H × {piece.dimensions.width}" W × {piece.dimensions.depth}" D
+                            </>
+                          )}
+                          {piece.weight && (
+                            <span className="measurement-weight"> | {piece.weight} {piece.weightUnit}</span>
+                          )}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Accordion Section */}
-            <div className="product-accordions">
+            </div>
+          )}
 
           {/* Details Accordion */}
           <div className="accordion-item">
@@ -448,12 +568,6 @@ export default function ProductDetailPage({ params }) {
                       <span className="detail-value">{product.provider}</span>
                     </div>
                   )}
-                  {product.dimensions?.weight && (
-                    <div className="detail-row">
-                      <span className="detail-label">Weight:</span>
-                      <span className="detail-value">{product.dimensions.weight} lbs</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -469,22 +583,7 @@ export default function ProductDetailPage({ params }) {
             <h2>You May Also Like</h2>
             <div className="related-products-grid">
               {relatedProducts.map((relatedProduct) => (
-                <Link
-                  key={relatedProduct.id}
-                  href={`/products/${relatedProduct.slug}`}
-                  className="related-product-card"
-                >
-                  <div className="related-image">
-                    <img
-                      src={relatedProduct.images[0]?.imageUrl}
-                      alt={relatedProduct.name}
-                    />
-                  </div>
-                  <div className="related-info">
-                    <h3>{relatedProduct.name}</h3>
-                    <p className="related-price">{formatPrice(relatedProduct.price)}</p>
-                  </div>
-                </Link>
+                <RelatedProductCard key={relatedProduct.id} product={relatedProduct} />
               ))}
             </div>
           </div>

@@ -45,7 +45,8 @@
     gap: 16px;
   }
 
-  .product-carousel-wrapper .carousel-arrow {
+  .product-carousel-wrapper .carousel-arrow,
+  .category-carousel-wrapper .carousel-arrow {
     background: #fff;
     border: 1px solid var(--border-color);
     width: 44px;
@@ -62,7 +63,8 @@
     color: var(--text-main);
   }
 
-  .product-carousel-wrapper .carousel-arrow:hover {
+  .product-carousel-wrapper .carousel-arrow:hover,
+  .category-carousel-wrapper .carousel-arrow:hover {
     background: var(--accent-color);
     color: #fff;
     border-color: var(--accent-color);
