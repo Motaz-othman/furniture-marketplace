@@ -5,25 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
-import { useProducts } from '@/lib/hooks';
-import { formatPrice } from '@/lib/utils';
+import { useProductBySlug, useProducts } from '@/lib/hooks';
+import { formatPrice, getColorFromVariant, getThumbnailUrl } from '@/lib/utils';
 import { getCategoryById } from '@/lib/fake-data';
-
-// Helper function to extract color hex from variant
-function getColorFromVariant(variant) {
-  if (!variant.attributes) return null;
-  const colorAttr = variant.attributes.find(attr => attr.attribute === 'color');
-  return colorAttr?.normalizedValues?.[0]?.hexValue || null;
-}
-
-// Generate thumbnail URL for blur-up effect
-function getThumbnailUrl(src) {
-  if (!src) return null;
-  if (src.includes('unsplash.com')) {
-    return src.replace(/w=\d+/, 'w=40').replace(/q=\d+/, 'q=20');
-  }
-  return null;
-}
 
 // Related Product Card with progressive image loading
 function RelatedProductCard({ product }) {
@@ -102,9 +86,19 @@ function getVariantLabel(variant, productName) {
 export default function ProductDetailContent({ slug }) {
   const router = useRouter();
 
-  const { data: productsData, isLoading } = useProducts({ limit: 100 });
-  const allProducts = productsData?.data || [];
-  const product = allProducts.find(p => p.slug === slug);
+  // Fetch single product by slug - much more efficient than fetching all products
+  const { data: productData, isLoading, error } = useProductBySlug(slug);
+  const product = productData?.data || null;
+
+  // Fetch products for related products section (only when we have product category)
+  const categoryId = product?.categoryId || product?.category?.id;
+  const { data: relatedData } = useProducts(
+    { categoryId, limit: 5 },
+    { enabled: !!categoryId }
+  );
+  const relatedProducts = (relatedData?.data || [])
+    .filter(p => p.id !== product?.id)
+    .slice(0, 4);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -112,9 +106,32 @@ export default function ProductDetailContent({ slug }) {
   const [openAccordion, setOpenAccordion] = useState('overview');
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
 
+  // Zoom modal state
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const pageRef = useRef(null);
+  const galleryTouchStart = useRef({ x: 0, y: 0 });
+
+  // Zoom gesture refs
+  const lastTapTime = useRef(0);
+  const initialPinchDistance = useRef(0);
+  const initialScale = useRef(1);
+  const lastPanPosition = useRef({ x: 0, y: 0 });
+  const zoomImageRef = useRef(null);
+
+  // Calculate current images based on selected variant - must be before callbacks that use it
+  const currentImages = (() => {
+    if (!product?.images || product.images.length === 0) return [];
+    if (!selectedVariant) return product.images;
+    const variantImages = product.images.filter(img =>
+      img.variantProductIds && img.variantProductIds.includes(selectedVariant.id)
+    );
+    return variantImages.length > 0 ? variantImages : product.images;
+  })();
 
   const handleBack = useCallback(() => {
     if (window.history.length > 1) {
@@ -146,6 +163,116 @@ export default function ProductDetailContent({ slug }) {
     }
   }, [handleBack]);
 
+  // Gallery swipe handlers for image navigation
+  const handleGalleryTouchStart = useCallback((e) => {
+    galleryTouchStart.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    };
+  }, []);
+
+  const handleGalleryTouchEnd = useCallback((e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - galleryTouchStart.current.x;
+    const deltaY = Math.abs(touchEndY - galleryTouchStart.current.y);
+    const swipeThreshold = 50;
+
+    // Only trigger if horizontal swipe is dominant
+    if (Math.abs(deltaX) > swipeThreshold && deltaY < 100) {
+      if (deltaX < 0) {
+        // Swipe left - next image
+        setSelectedImage(prev =>
+          prev < currentImages.length - 1 ? prev + 1 : 0
+        );
+      } else {
+        // Swipe right - previous image
+        setSelectedImage(prev =>
+          prev > 0 ? prev - 1 : currentImages.length - 1
+        );
+      }
+      setMainImageLoaded(false);
+    }
+  }, [currentImages.length]);
+
+  // Open zoom modal on tap (mobile) - double tap to close
+  const handleImageTap = useCallback((e) => {
+    const now = Date.now();
+    const doubleTapDelay = 300;
+
+    if (now - lastTapTime.current < doubleTapDelay) {
+      // Double tap detected - toggle zoom
+      if (isZoomOpen) {
+        setIsZoomOpen(false);
+        setZoomScale(1);
+        setZoomPosition({ x: 0, y: 0 });
+      } else {
+        setIsZoomOpen(true);
+      }
+    }
+    lastTapTime.current = now;
+  }, [isZoomOpen]);
+
+  // Calculate distance between two touch points
+  const getTouchDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  // Handle pinch zoom start
+  const handleZoomTouchStart = useCallback((e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      initialPinchDistance.current = getTouchDistance(e.touches);
+      initialScale.current = zoomScale;
+    } else if (e.touches.length === 1 && zoomScale > 1) {
+      lastPanPosition.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
+    }
+  }, [zoomScale]);
+
+  // Handle pinch zoom move
+  const handleZoomTouchMove = useCallback((e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const currentDistance = getTouchDistance(e.touches);
+      const scale = (currentDistance / initialPinchDistance.current) * initialScale.current;
+      setZoomScale(Math.min(Math.max(scale, 1), 4));
+    } else if (e.touches.length === 1 && zoomScale > 1) {
+      e.preventDefault();
+      const deltaX = e.touches[0].clientX - lastPanPosition.current.x;
+      const deltaY = e.touches[0].clientY - lastPanPosition.current.y;
+
+      setZoomPosition(prev => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+
+      lastPanPosition.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
+    }
+  }, [zoomScale]);
+
+  // Handle zoom touch end - reset if scale is close to 1
+  const handleZoomTouchEnd = useCallback(() => {
+    if (zoomScale < 1.1) {
+      setZoomScale(1);
+      setZoomPosition({ x: 0, y: 0 });
+    }
+  }, [zoomScale]);
+
+  // Close zoom modal
+  const closeZoom = useCallback(() => {
+    setIsZoomOpen(false);
+    setZoomScale(1);
+    setZoomPosition({ x: 0, y: 0 });
+  }, []);
+
   useEffect(() => {
     if (product && !selectedVariant && product.variants && product.variants.length > 0) {
       setSelectedVariant(product.variants[0]);
@@ -158,15 +285,6 @@ export default function ProductDetailContent({ slug }) {
   const currentStock = selectedVariant?.stockQuantity ?? product?.stockQuantity ?? 0;
   const currentInStock = currentStock > 0;
 
-  const currentImages = (() => {
-    if (!product?.images || product.images.length === 0) return [];
-    if (!selectedVariant) return product.images;
-    const variantImages = product.images.filter(img =>
-      img.variantProductIds && img.variantProductIds.includes(selectedVariant.id)
-    );
-    return variantImages.length > 0 ? variantImages : product.images;
-  })();
-
   const handleVariantSelect = (variant) => {
     setSelectedVariant(variant);
     setSelectedImage(0);
@@ -177,17 +295,28 @@ export default function ProductDetailContent({ slug }) {
     setMainImageLoaded(false);
   }, [selectedImage]);
 
-  const relatedProducts = allProducts
-    .filter(p => {
-      const productCategoryId = typeof product?.category === 'object'
-        ? product.category.id
-        : product?.categoryId;
-      const pCategoryId = typeof p.category === 'object'
-        ? p.category.id
-        : p.categoryId;
-      return pCategoryId === productCategoryId && p.id !== product?.id;
-    })
-    .slice(0, 4);
+  // Error state
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="product-error">
+          <h1>Unable to Load Product</h1>
+          <p>We encountered an error while loading this product. Please try again.</p>
+          <div className="error-actions">
+            <button
+              onClick={() => window.location.reload()}
+              className="error-retry-btn"
+            >
+              Try Again
+            </button>
+            <Link href="/products" className="back-to-products-btn">
+              Back to Products
+            </Link>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -268,7 +397,15 @@ export default function ProductDetailContent({ slug }) {
         <div className="product-detail-container">
           {/* Left: Image Gallery */}
           <div className="product-gallery-section">
-            <div className="gallery-main-image progressive-image-wrapper">
+            <div
+              className="gallery-main-image progressive-image-wrapper"
+              onTouchStart={handleGalleryTouchStart}
+              onTouchEnd={(e) => {
+                handleGalleryTouchEnd(e);
+                handleImageTap(e);
+              }}
+              onClick={() => setIsZoomOpen(true)}
+            >
               <div className={`progressive-image-shimmer ${mainImageLoaded ? 'loaded' : ''}`} />
               {(currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl) && (
                 <Image
@@ -290,6 +427,19 @@ export default function ProductDetailContent({ slug }) {
                     <span className="badge badge-sale">{discountPercentage}% OFF SALE</span>
                   )}
                   {product.isFeatured && <span className="badge badge-featured">FEATURED</span>}
+                </div>
+              )}
+              {/* Mobile image dots indicator */}
+              {currentImages.length > 1 && (
+                <div className="gallery-mobile-dots">
+                  {currentImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      className={`gallery-dot ${idx === selectedImage ? 'active' : ''}`}
+                      onClick={() => setSelectedImage(idx)}
+                      aria-label={`View image ${idx + 1}`}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -520,6 +670,92 @@ export default function ProductDetailContent({ slug }) {
           </div>
         )}
       </div>
+
+      {/* Sticky Add to Cart - Mobile only */}
+      <div className="sticky-add-to-cart">
+        <div className="sticky-content">
+          <span className="sticky-price">${currentPrice.toFixed(2)}</span>
+          <button
+            className="sticky-btn"
+            onClick={handleAddToCart}
+            disabled={!currentInStock}
+          >
+            {currentInStock ? 'Add to Cart' : 'Sold Out'}
+          </button>
+        </div>
+      </div>
+
+      {/* Image Zoom Modal */}
+      {isZoomOpen && (
+        <div
+          className="zoom-modal-overlay"
+          onClick={closeZoom}
+        >
+          <button
+            className="zoom-close-btn"
+            onClick={closeZoom}
+            aria-label="Close zoom view"
+          >
+            ✕
+          </button>
+          <div className="zoom-hint">Pinch to zoom • Double-tap to close</div>
+          <div
+            className="zoom-image-container"
+            ref={zoomImageRef}
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleZoomTouchStart}
+            onTouchMove={handleZoomTouchMove}
+            onTouchEnd={handleZoomTouchEnd}
+          >
+            {(currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl) && (
+              <Image
+                src={currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl}
+                alt={product.name}
+                fill
+                sizes="100vw"
+                className="zoom-image"
+                style={{
+                  transform: `scale(${zoomScale}) translate(${zoomPosition.x / zoomScale}px, ${zoomPosition.y / zoomScale}px)`,
+                  transition: zoomScale === 1 ? 'transform 0.2s ease-out' : 'none'
+                }}
+                priority
+              />
+            )}
+          </div>
+          {/* Navigation arrows in zoom modal */}
+          {currentImages.length > 1 && (
+            <div className="zoom-nav-buttons">
+              <button
+                className="zoom-nav-btn prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage(prev => prev > 0 ? prev - 1 : currentImages.length - 1);
+                  setZoomScale(1);
+                  setZoomPosition({ x: 0, y: 0 });
+                }}
+                aria-label="Previous image"
+              >
+                ‹
+              </button>
+              <span className="zoom-image-counter">
+                {selectedImage + 1} / {currentImages.length}
+              </span>
+              <button
+                className="zoom-nav-btn next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage(prev => prev < currentImages.length - 1 ? prev + 1 : 0);
+                  setZoomScale(1);
+                  setZoomPosition({ x: 0, y: 0 });
+                }}
+                aria-label="Next image"
+              >
+                ›
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </MainLayout>
   );
 }

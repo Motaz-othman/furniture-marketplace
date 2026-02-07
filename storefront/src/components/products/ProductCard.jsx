@@ -3,23 +3,7 @@
 import { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { formatPrice } from '@/lib/utils';
-
-function getColorFromVariant(variant) {
-  if (!variant.attributes) return null;
-  const colorAttr = variant.attributes.find(attr => attr.attribute === 'color');
-  return colorAttr?.normalizedValues?.[0]?.hexValue || null;
-}
-
-// Generate thumbnail URL for blur-up effect
-function getThumbnailUrl(src) {
-  if (!src) return null;
-  // For Unsplash URLs, request a tiny version
-  if (src.includes('unsplash.com')) {
-    return src.replace(/w=\d+/, 'w=20').replace(/q=\d+/, 'q=10');
-  }
-  return null;
-}
+import { formatPrice, getColorFromVariant, getThumbnailUrl } from '@/lib/utils';
 
 const ProductCard = memo(function ProductCard({ product, index }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -132,7 +116,7 @@ const ProductCard = memo(function ProductCard({ product, index }) {
                 key={idx}
                 className={`image-dot ${idx === currentImageIndex ? 'active' : ''}`}
                 onClick={(e) => handleImageDotClick(e, idx)}
-                onMouseEnter={() => setCurrentImageIndex(idx)}
+                onPointerEnter={() => setCurrentImageIndex(idx)}
                 aria-label={`View image ${idx + 1}`}
               />
             ))}
@@ -149,13 +133,15 @@ const ProductCard = memo(function ProductCard({ product, index }) {
               const colorHex = getColorFromVariant(variant);
 
               return colorHex ? (
-                <div
+                <button
                   key={variant.id}
+                  type="button"
                   className={`color-swatch ${idx === selectedVariantIndex ? 'active' : ''}`}
                   style={{ background: colorHex }}
                   title={variant.variantName || variant.name}
+                  aria-label={`Select ${variant.variantName || variant.name} color`}
                   onClick={(e) => handleVariantSelect(e, idx)}
-                  onMouseEnter={(e) => handleVariantSelect(e, idx)}
+                  onPointerEnter={(e) => handleVariantSelect(e, idx)}
                 />
               ) : null;
             })}

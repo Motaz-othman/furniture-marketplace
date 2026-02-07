@@ -882,3 +882,343 @@
 .related-product-card:hover .related-image .progressive-image-main.loaded {
   transform: scale(1.08);
 }
+
+/* ============================================
+   MOBILE ENHANCEMENTS
+   ============================================ */
+
+/* Gallery Mobile Dots - Image indicator for swipe */
+.gallery-mobile-dots {
+  display: none;
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  gap: 8px;
+  z-index: 10;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.gallery-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gallery-dot.active {
+  background: #fff;
+  transform: scale(1.25);
+}
+
+.gallery-dot:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Sticky Add to Cart - Mobile only */
+.sticky-add-to-cart {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 12px 16px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  border-top: 1px solid var(--border-color);
+}
+
+.sticky-add-to-cart .sticky-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.sticky-add-to-cart .sticky-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.sticky-add-to-cart .sticky-btn {
+  flex: 1;
+  padding: 14px 24px;
+  background: var(--text-main);
+  color: #fff;
+  border: none;
+  border-radius: 40px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 48px;
+}
+
+.sticky-add-to-cart .sticky-btn:disabled {
+  background: var(--border-color);
+  cursor: not-allowed;
+}
+
+/* Error state styles */
+.product-error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.product-error h1 {
+  font-size: 2rem;
+  color: var(--text-main);
+  margin-bottom: 16px;
+}
+
+.product-error p {
+  color: var(--text-light);
+  margin-bottom: 24px;
+}
+
+.product-error .error-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.product-error .error-retry-btn {
+  padding: 14px 32px;
+  background: var(--text-main);
+  color: #fff;
+  border: none;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.product-error .error-retry-btn:hover {
+  background: #2a2829;
+  transform: translateY(-2px);
+}
+
+/* Mobile responsive enhancements */
+@media (max-width: 768px) {
+  /* Show gallery dots on mobile/tablet */
+  .gallery-mobile-dots {
+    display: flex;
+  }
+
+  /* Hide thumbnail strip on mobile - use swipe instead */
+  .gallery-thumbnails {
+    display: none;
+  }
+
+  /* Show sticky add to cart on mobile */
+  .sticky-add-to-cart {
+    display: block;
+  }
+
+  /* Add padding at bottom for sticky button */
+  .product-detail-page {
+    padding-bottom: 100px;
+  }
+
+  /* Touch-friendly button sizes */
+  .qty-btn {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .variant-color-swatch {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .variant-btn {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+
+  /* Gallery swipe hint */
+  .gallery-main-image {
+    cursor: grab;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  .gallery-main-image:active {
+    cursor: grabbing;
+  }
+}
+
+@media (max-width: 480px) {
+  .sticky-add-to-cart {
+    padding: 10px 12px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .sticky-add-to-cart .sticky-price {
+    font-size: 1.1rem;
+  }
+
+  .sticky-add-to-cart .sticky-btn {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  /* Larger touch targets for gallery dots */
+  .gallery-dot {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    /* Increase touch area */
+    margin: 4px;
+  }
+}
+
+/* ============================================
+   IMAGE ZOOM MODAL
+   ============================================ */
+
+.zoom-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+.zoom-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.zoom-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.zoom-hint {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  pointer-events: none;
+  animation: fadeOutHint 3s ease-in-out forwards;
+}
+
+@keyframes fadeOutHint {
+  0%, 70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.zoom-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.zoom-image {
+  object-fit: contain;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.zoom-nav-buttons {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 1001;
+}
+
+.zoom-nav-btn {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.zoom-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+.zoom-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.zoom-image-counter {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+/* Hide zoom hint on desktop */
+@media (min-width: 769px) {
+  .zoom-hint {
+    display: none;
+  }
+
+  /* Add cursor zoom-in on gallery image for desktop */
+  .gallery-main-image {
+    cursor: zoom-in;
+  }
+}

@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 
 export default function Footer() {
@@ -8,14 +10,29 @@ export default function Footer() {
       <div className="footer-grid">
         {/* Newsletter Column */}
         <div className="footer-col newsletter">
-          <h4>Join the Inner Circle</h4>
+          <h4 id="newsletter-heading">Join the Inner Circle</h4>
           <p style={{ marginBottom: '16px', fontSize: '13px', color: '#ccc' }}>
             Get 10% off your first order and exclusive design tips.
           </p>
-          <div style={{ display: 'flex' }}>
-            <input type="email" placeholder="Enter your email" />
-            <button>SIGN UP</button>
-          </div>
+          <form
+            style={{ display: 'flex' }}
+            onSubmit={(e) => e.preventDefault()}
+            aria-labelledby="newsletter-heading"
+          >
+            <label htmlFor="newsletter-email" className="visually-hidden">
+              Email address
+            </label>
+            <input
+              id="newsletter-email"
+              type="email"
+              placeholder="Enter your email"
+              aria-label="Email address for newsletter"
+              required
+            />
+            <button type="submit" aria-label="Subscribe to newsletter">
+              SIGN UP
+            </button>
+          </form>
         </div>
 
         {/* Shop Column */}

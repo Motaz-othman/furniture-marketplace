@@ -29,5 +29,8 @@ export {
     mergeProductWithInventory,
     getVariantColor,
     getVariantMainImage,
-    isProductInStock
+    isProductInStock,
+    getProductStockStatus,
+    getColorFromVariant,
+    getThumbnailUrl
   } from './productTransform.js';

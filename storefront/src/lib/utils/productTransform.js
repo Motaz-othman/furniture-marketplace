@@ -328,7 +328,7 @@ export function isProductInStock(product) {
  * @param {Object} product - Product object
  * @returns {string} Stock status message
  */
-export function getStockStatus(product) {
+export function getProductStockStatus(product) {
   if (!product.stockQuantity || product.stockQuantity === 0) {
     if (product.nextAvailableDate) {
       return `Available ${new Date(product.nextAvailableDate).toLocaleDateString()}`;
@@ -341,4 +341,30 @@ export function getStockStatus(product) {
   }
 
   return 'In Stock';
+}
+
+/**
+ * Get color hex value from variant attributes
+ * Used for displaying color swatches
+ * @param {Object} variant - Product variant with attributes
+ * @returns {string|null} Hex color value or null
+ */
+export function getColorFromVariant(variant) {
+  if (!variant?.attributes) return null;
+  const colorAttr = variant.attributes.find(attr => attr.attribute === 'color');
+  return colorAttr?.normalizedValues?.[0]?.hexValue || null;
+}
+
+/**
+ * Generate thumbnail URL for blur-up progressive image loading
+ * @param {string} src - Original image URL
+ * @returns {string|null} Thumbnail URL or null
+ */
+export function getThumbnailUrl(src) {
+  if (!src) return null;
+  // For Unsplash URLs, request a tiny version for blur placeholder
+  if (src.includes('unsplash.com')) {
+    return src.replace(/w=\d+/, 'w=20').replace(/q=\d+/, 'q=10');
+  }
+  return null;
 }
