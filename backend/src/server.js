@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
+import { exec } from 'child_process';
 import authRoutes from './modules/auth/auth.routes.js';
 import productsRoutes from './modules/products/products.routes.js';
 import categoriesRoutes from './modules/categories/categories.routes.js';
@@ -136,8 +137,11 @@ const startServer = async () => {
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${PORT} is in use. Retrying in 1s...`);
-      setTimeout(() => server.listen(PORT), 1000);
+      console.warn(`Port ${PORT} in use — killing existing process...`);
+      exec(`lsof -ti:${PORT} | xargs kill -9`, () => {
+        server.close();
+        setTimeout(() => server.listen(PORT), 500);
+      });
     } else {
       throw err;
     }
