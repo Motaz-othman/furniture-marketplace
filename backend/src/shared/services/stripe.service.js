@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
 // Create payment intent with ALL payment methods
 export const createPaymentIntent = async (amount, metadata = {}, options = {}) => {
@@ -120,7 +122,7 @@ export const getAccountDetails = async (accountId) => {
 // Create payment intent with transfer (split payment) - ALL METHODS
 export const createPaymentIntentWithTransfer = async (amount, vendorAccountId, commission, metadata = {}, options = {}) => {
   try {
-    const vendorAmount = Math.round((amount - commission) * 100); // Vendor gets (total - commission)
+    const vendorAmount = Math.round((amount - (commission ?? 0)) * 100); // Vendor gets (total - commission)
     const totalAmount = Math.round(amount * 100);
 
     const paymentIntentData = {

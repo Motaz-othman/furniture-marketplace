@@ -1,0 +1,4558 @@
+[
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+        "path": "living-room/sofas-couches"
+      }
+    ],
+    "collection": "Modern Living 2024",
+    "consumerBrand": "LiviPoint",
+    "description": "Luxurious velvet sofa with deep seating and brass legs. Available in multiple colors.",
+    "name": "Modern Velvet Sofa",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.086Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000001"
+          ],
+          "url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600"
+        },
+        {
+          "variantProductIds": [
+            "CPV000000002"
+          ],
+          "url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600"
+        },
+        {
+          "variantProductIds": [
+            "CPV000000003"
+          ],
+          "url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "color",
+    "variants": [
+      {
+        "attributes": [
+          {
+            "attribute": "color",
+            "normalizedValues": [
+              {
+                "categoryName": "Navy Blue",
+                "commonName": "Navy Blue",
+                "departmentName": "living-room",
+                "hexValue": "#000080",
+                "value": "Blue"
+              }
+            ],
+            "values": [
+              "Navy Blue"
+            ]
+          }
+        ],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+            "path": "living-room/sofas-couches"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-02-22T23:32:55.291Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 101
+        },
+        "customerSku": "SOF-VEL-001-NAV",
+        "deletedAt": null,
+        "description": "Modern Velvet Sofa - Navy Blue",
+        "dimensions": {
+          "height": 85,
+          "length": 220,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 45,
+          "width": 95
+        },
+        "introducedAt": "2026-02-01T18:57:04.456Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Modern Velvet Sofa - Navy Blue",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 95,
+            "length": 230,
+            "width": 105
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 50,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 1200,
+          "listPrice": 3299,
+          "mapPrice": 2498,
+          "msrpPrice": 3299,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 2498
+        },
+        "productId": "CPV000000001",
+        "productType": "sofa",
+        "rank": 10,
+        "sku": "SOF-VEL-001-NAV",
+        "upc": "123456789002",
+        "updatedAt": "2026-02-07T11:39:34.086Z",
+        "options": [
+          {
+            "option": "Color",
+            "value": "Navy Blue"
+          }
+        ]
+      },
+      {
+        "attributes": [
+          {
+            "attribute": "color",
+            "normalizedValues": [
+              {
+                "categoryName": "Emerald Green",
+                "commonName": "Emerald Green",
+                "departmentName": "living-room",
+                "hexValue": "#50C878",
+                "value": "Green"
+              }
+            ],
+            "values": [
+              "Emerald Green"
+            ]
+          }
+        ],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+            "path": "living-room/sofas-couches"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-10-08T16:29:28.148Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 101
+        },
+        "customerSku": "SOF-VEL-001-EME",
+        "deletedAt": null,
+        "description": "Modern Velvet Sofa - Emerald Green",
+        "dimensions": {
+          "height": 85,
+          "length": 220,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 45,
+          "width": 95
+        },
+        "introducedAt": "2025-11-19T14:32:43.668Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Modern Velvet Sofa - Emerald Green",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 95,
+            "length": 230,
+            "width": 105
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 50,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 1200,
+          "listPrice": 3299,
+          "mapPrice": 2498,
+          "msrpPrice": 3299,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 2498
+        },
+        "productId": "CPV000000002",
+        "productType": "sofa",
+        "rank": 15,
+        "sku": "SOF-VEL-001-EME",
+        "upc": "123456789003",
+        "updatedAt": "2026-02-07T11:39:34.086Z",
+        "options": [
+          {
+            "option": "Color",
+            "value": "Emerald Green"
+          }
+        ]
+      },
+      {
+        "attributes": [
+          {
+            "attribute": "color",
+            "normalizedValues": [
+              {
+                "categoryName": "Charcoal Grey",
+                "commonName": "Charcoal Grey",
+                "departmentName": "living-room",
+                "hexValue": "#36454F",
+                "value": "Grey"
+              }
+            ],
+            "values": [
+              "Charcoal Grey"
+            ]
+          }
+        ],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+            "path": "living-room/sofas-couches"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-06-21T17:42:36.454Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 101
+        },
+        "customerSku": "SOF-VEL-001-CHA",
+        "deletedAt": null,
+        "description": "Modern Velvet Sofa - Charcoal Grey",
+        "dimensions": {
+          "height": 85,
+          "length": 220,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 45,
+          "width": 95
+        },
+        "introducedAt": "2026-01-13T17:28:55.678Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Modern Velvet Sofa - Charcoal Grey",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 95,
+            "length": 230,
+            "width": 105
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 50,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 1200,
+          "listPrice": 3299,
+          "mapPrice": 2498,
+          "msrpPrice": 3299,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 2498
+        },
+        "productId": "CPV000000003",
+        "productType": "sofa",
+        "rank": 20,
+        "sku": "SOF-VEL-001-CHA",
+        "upc": "123456789004",
+        "updatedAt": "2026-02-07T11:39:34.086Z",
+        "options": [
+          {
+            "option": "Color",
+            "value": "Charcoal Grey"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+        "path": "living-room/sofas-couches"
+      }
+    ],
+    "collection": "Nordic Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "L-shaped sectional with clean lines and natural oak legs.",
+    "name": "Scandinavian Sectional",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000004"
+          ],
+          "url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [
+          {
+            "attribute": "color",
+            "normalizedValues": [
+              {
+                "categoryName": "Light Grey",
+                "commonName": "Light Grey",
+                "departmentName": "living-room",
+                "hexValue": "#D3D3D3",
+                "value": "Grey"
+              }
+            ],
+            "values": [
+              "Light Grey"
+            ]
+          }
+        ],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+            "path": "living-room/sofas-couches"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-06-19T23:47:02.396Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 101
+        },
+        "customerSku": "SOF-SCA-002",
+        "deletedAt": null,
+        "description": "Scandinavian Sectional - Light Grey",
+        "dimensions": {
+          "height": 80,
+          "length": 280,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 65,
+          "width": 180
+        },
+        "introducedAt": "2025-10-03T09:31:30.925Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Scandinavian Sectional - Light Grey",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 90,
+            "length": 290,
+            "width": 190
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 70,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 1500,
+          "listPrice": 4499,
+          "mapPrice": 3499,
+          "msrpPrice": 4499,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 3499
+        },
+        "productId": "CPV000000004",
+        "productType": "sofa",
+        "rank": 25,
+        "sku": "SOF-SCA-002",
+        "upc": "123456789005",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600",
+        "path": "living-room/chairs-recliners"
+      }
+    ],
+    "collection": "Classic Comfort",
+    "consumerBrand": "LiviPoint",
+    "description": "Full-grain leather recliner with built-in footrest.",
+    "name": "Classic Leather Recliner",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000005"
+          ],
+          "url": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600",
+            "path": "living-room/chairs-recliners"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-10-31T18:09:39.850Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": true,
+          "categoryId": 102
+        },
+        "customerSku": "CHR-REC-003",
+        "deletedAt": null,
+        "description": "Classic Leather Recliner",
+        "dimensions": {
+          "height": 100,
+          "length": 90,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 35,
+          "width": 85
+        },
+        "introducedAt": "2026-01-29T13:51:44.162Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Classic Leather Recliner",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 110,
+            "length": 100,
+            "width": 95
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 40,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 800,
+          "listPrice": 1999,
+          "mapPrice": 1499,
+          "msrpPrice": 1999,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 1499
+        },
+        "productId": "CPV000000005",
+        "productType": "chair",
+        "rank": 30,
+        "sku": "CHR-REC-003",
+        "upc": "123456789006",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600",
+        "path": "living-room/chairs-recliners"
+      }
+    ],
+    "collection": "Mid-Century Modern",
+    "consumerBrand": "LiviPoint",
+    "description": "Iconic mid-century design with walnut wood frame.",
+    "name": "Mid-Century Accent Chair",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000006"
+          ],
+          "url": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "color",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600",
+            "path": "living-room/chairs-recliners"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2026-01-29T22:45:44.199Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 102
+        },
+        "customerSku": "CHR-MID-004",
+        "deletedAt": null,
+        "description": "Mid-Century Accent Chair",
+        "dimensions": {
+          "height": 80,
+          "length": 70,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 12,
+          "width": 72
+        },
+        "introducedAt": "2025-09-09T05:33:27.044Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Mid-Century Accent Chair",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 90,
+            "length": 80,
+            "width": 82
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 17,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 350,
+          "listPrice": 899,
+          "mapPrice": 699,
+          "msrpPrice": 899,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 699
+        },
+        "productId": "CPV000000006",
+        "productType": "chair",
+        "rank": 35,
+        "sku": "CHR-MID-004",
+        "upc": "123456789007",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600",
+        "path": "living-room/coffee-tables"
+      }
+    ],
+    "collection": "Modern Living 2024",
+    "consumerBrand": "LiviPoint",
+    "description": "Tempered glass top with brushed steel frame.",
+    "name": "Minimalist Coffee Table",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000007"
+          ],
+          "url": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600",
+            "path": "living-room/coffee-tables"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-06-18T18:40:09.605Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": true,
+          "categoryId": 103
+        },
+        "customerSku": "TAB-MIN-005",
+        "deletedAt": null,
+        "description": "Minimalist Coffee Table",
+        "dimensions": {
+          "height": 45,
+          "length": 120,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 18,
+          "width": 60
+        },
+        "introducedAt": "2025-10-27T18:09:40.132Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Minimalist Coffee Table",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 55,
+            "length": 130,
+            "width": 70
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 23,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 200,
+          "listPrice": 599,
+          "mapPrice": 449,
+          "msrpPrice": 599,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 449
+        },
+        "productId": "CPV000000007",
+        "productType": "table",
+        "rank": 40,
+        "sku": "TAB-MIN-005",
+        "upc": "123456789008",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600",
+        "path": "living-room/coffee-tables"
+      }
+    ],
+    "collection": "Rustic Heritage",
+    "consumerBrand": "LiviPoint",
+    "description": "Solid oak construction with natural grain finish.",
+    "name": "Rustic Oak Coffee Table",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000008"
+          ],
+          "url": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600",
+            "path": "living-room/coffee-tables"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-04-12T06:59:36.794Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 103
+        },
+        "customerSku": "TAB-RUS-006",
+        "deletedAt": null,
+        "description": "Rustic Oak Coffee Table",
+        "dimensions": {
+          "height": 48,
+          "length": 130,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 25,
+          "width": 70
+        },
+        "introducedAt": "2026-01-04T05:08:31.328Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Rustic Oak Coffee Table",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 58,
+            "length": 140,
+            "width": 80
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 30,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 300,
+          "listPrice": 799,
+          "mapPrice": 599,
+          "msrpPrice": 799,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 599
+        },
+        "productId": "CPV000000008",
+        "productType": "table",
+        "rank": 45,
+        "sku": "TAB-RUS-006",
+        "upc": "123456789009",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600",
+        "path": "living-room/tv-stands-media"
+      }
+    ],
+    "collection": "Modern Living 2024",
+    "consumerBrand": "LiviPoint",
+    "description": "Floating-style TV stand with cable management.",
+    "name": "Modern TV Console",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000009"
+          ],
+          "url": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600",
+            "path": "living-room/tv-stands-media"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-07-07T22:19:56.453Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 104
+        },
+        "customerSku": "TV-MOD-007",
+        "deletedAt": null,
+        "description": "Modern TV Console",
+        "dimensions": {
+          "height": 50,
+          "length": 180,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 30,
+          "width": 45
+        },
+        "introducedAt": "2026-01-14T17:06:22.386Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Modern TV Console",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 60,
+            "length": 190,
+            "width": 55
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 35,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 400,
+          "listPrice": 999,
+          "mapPrice": 799,
+          "msrpPrice": 999,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 799
+        },
+        "productId": "CPV000000009",
+        "productType": "furniture",
+        "rank": 50,
+        "sku": "TV-MOD-007",
+        "upc": "123456789010",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+        "path": "living-room/bookcases-storage"
+      }
+    ],
+    "collection": "Classic Comfort",
+    "consumerBrand": "LiviPoint",
+    "description": "Five-shelf bookcase in solid walnut.",
+    "name": "Tall Bookcase",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000010"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+            "path": "living-room/bookcases-storage"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-07T03:39:21.239Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 105
+        },
+        "customerSku": "BOO-TAL-008",
+        "deletedAt": null,
+        "description": "Tall Bookcase",
+        "dimensions": {
+          "height": 200,
+          "length": 90,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 28,
+          "width": 35
+        },
+        "introducedAt": "2025-10-11T18:04:15.806Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Tall Bookcase",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 210,
+            "length": 100,
+            "width": 45
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 33,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 250,
+          "listPrice": 699,
+          "mapPrice": 549,
+          "msrpPrice": 699,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 549
+        },
+        "productId": "CPV000000010",
+        "productType": "furniture",
+        "rank": 55,
+        "sku": "BOO-TAL-008",
+        "upc": "123456789011",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600",
+        "path": "bedroom/beds-frames"
+      }
+    ],
+    "collection": "Bedroom Essentials",
+    "consumerBrand": "LiviPoint",
+    "description": "Upholstered headboard with sturdy platform base.",
+    "name": "Upholstered Platform Bed",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000011"
+          ],
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600"
+        },
+        {
+          "variantProductIds": [
+            "CPV000000012"
+          ],
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "size",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600",
+            "path": "bedroom/beds-frames"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-06-06T09:01:46.192Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 201
+        },
+        "customerSku": "BED-UPH-009-QUE",
+        "deletedAt": null,
+        "description": "Upholstered Platform Bed - Queen",
+        "dimensions": {
+          "height": 120,
+          "length": 210,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 40,
+          "width": 160
+        },
+        "introducedAt": "2025-12-21T21:55:00.647Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Upholstered Platform Bed - Queen",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 130,
+            "length": 220,
+            "width": 170
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 45,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 600,
+          "listPrice": 1599,
+          "mapPrice": 1199,
+          "msrpPrice": 1599,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 1199
+        },
+        "productId": "CPV000000011",
+        "productType": "bed",
+        "rank": 60,
+        "sku": "BED-UPH-009-QUE",
+        "upc": "123456789012",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": [
+          {
+            "option": "Size",
+            "value": "Queen"
+          }
+        ]
+      },
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600",
+            "path": "bedroom/beds-frames"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-06-27T00:11:29.599Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 201
+        },
+        "customerSku": "BED-UPH-009-KIN",
+        "deletedAt": null,
+        "description": "Upholstered Platform Bed - King",
+        "dimensions": {
+          "height": 120,
+          "length": 210,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 50,
+          "width": 195
+        },
+        "introducedAt": "2025-11-21T18:12:41.370Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Upholstered Platform Bed - King",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 130,
+            "length": 220,
+            "width": 205
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 55,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 750,
+          "listPrice": 1899,
+          "mapPrice": 1399,
+          "msrpPrice": 1899,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 1399
+        },
+        "productId": "CPV000000012",
+        "productType": "bed",
+        "rank": 65,
+        "sku": "BED-UPH-009-KIN",
+        "upc": "123456789013",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": [
+          {
+            "option": "Size",
+            "value": "King"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600",
+        "path": "bedroom/beds-frames"
+      }
+    ],
+    "collection": "Industrial Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Industrial-style metal frame bed.",
+    "name": "Metal Frame Bed",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000013"
+          ],
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600",
+            "path": "bedroom/beds-frames"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-03-05T01:59:56.779Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 201
+        },
+        "customerSku": "BED-MET-010",
+        "deletedAt": null,
+        "description": "Metal Frame Bed",
+        "dimensions": {
+          "height": 110,
+          "length": 210,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 25,
+          "width": 160
+        },
+        "introducedAt": "2025-12-18T21:32:56.255Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Metal Frame Bed",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 120,
+            "length": 220,
+            "width": 170
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 30,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 300,
+          "listPrice": 799,
+          "mapPrice": 599,
+          "msrpPrice": 799,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 599
+        },
+        "productId": "CPV000000013",
+        "productType": "bed",
+        "rank": 70,
+        "sku": "BED-MET-010",
+        "upc": "123456789014",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+        "path": "bedroom/dressers-chests"
+      }
+    ],
+    "collection": "Vintage Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Six-drawer dresser with antique brass hardware.",
+    "name": "Vintage Dresser",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000014"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+            "path": "bedroom/dressers-chests"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-06T17:21:26.576Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": true,
+          "categoryId": 203
+        },
+        "customerSku": "DRE-VIN-011",
+        "deletedAt": null,
+        "description": "Vintage Dresser",
+        "dimensions": {
+          "height": 85,
+          "length": 140,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 35,
+          "width": 50
+        },
+        "introducedAt": "2025-11-22T16:22:30.335Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Vintage Dresser",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 95,
+            "length": 150,
+            "width": 60
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 40,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 450,
+          "listPrice": 1199,
+          "mapPrice": 899,
+          "msrpPrice": 1199,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 899
+        },
+        "productId": "CPV000000014",
+        "productType": "furniture",
+        "rank": 75,
+        "sku": "DRE-VIN-011",
+        "upc": "123456789015",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428773937-78b4b8b39f7d?w=600",
+        "path": "bedroom/nightstands"
+      }
+    ],
+    "collection": "Modern Living 2024",
+    "consumerBrand": "LiviPoint",
+    "description": "Wall-mounted nightstand with drawer.",
+    "name": "Floating Nightstand",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000015"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428773937-78b4b8b39f7d?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428773937-78b4b8b39f7d?w=600",
+            "path": "bedroom/nightstands"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-15T10:36:52.162Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 202
+        },
+        "customerSku": "NIG-FLO-012",
+        "deletedAt": null,
+        "description": "Floating Nightstand",
+        "dimensions": {
+          "height": 20,
+          "length": 45,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 5,
+          "width": 35
+        },
+        "introducedAt": "2026-01-17T22:39:21.048Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Floating Nightstand",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 30,
+            "length": 55,
+            "width": 45
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 10,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 100,
+          "listPrice": 299,
+          "mapPrice": 229,
+          "msrpPrice": 299,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 229
+        },
+        "productId": "CPV000000015",
+        "productType": "furniture",
+        "rank": 80,
+        "sku": "NIG-FLO-012",
+        "upc": "123456789016",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600",
+        "path": "bedroom/wardrobes-armoires"
+      }
+    ],
+    "collection": "Bedroom Essentials",
+    "consumerBrand": "LiviPoint",
+    "description": "Spacious wardrobe with mirrored sliding doors.",
+    "name": "Sliding Door Wardrobe",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000016"
+          ],
+          "url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600",
+            "path": "bedroom/wardrobes-armoires"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-12-09T17:33:04.315Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 204
+        },
+        "customerSku": "WAR-SLI-013",
+        "deletedAt": null,
+        "description": "Sliding Door Wardrobe",
+        "dimensions": {
+          "height": 220,
+          "length": 180,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 80,
+          "width": 65
+        },
+        "introducedAt": "2025-10-05T21:09:27.651Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Sliding Door Wardrobe",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 230,
+            "length": 190,
+            "width": 75
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 85,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 700,
+          "listPrice": 1899,
+          "mapPrice": 1499,
+          "msrpPrice": 1899,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 1499
+        },
+        "productId": "CPV000000016",
+        "productType": "furniture",
+        "rank": 85,
+        "sku": "WAR-SLI-013",
+        "upc": "123456789017",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600",
+        "path": "office/desks"
+      }
+    ],
+    "collection": "Office Pro",
+    "consumerBrand": "LiviPoint",
+    "description": "Corner desk with built-in cable management.",
+    "name": "L-Shaped Desk",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000017"
+          ],
+          "url": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600",
+            "path": "office/desks"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-07-04T17:59:32.160Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 401
+        },
+        "customerSku": "DES-L-014",
+        "deletedAt": null,
+        "description": "L-Shaped Desk",
+        "dimensions": {
+          "height": 75,
+          "length": 160,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 30,
+          "width": 140
+        },
+        "introducedAt": "2025-10-12T13:51:26.756Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "L-Shaped Desk",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 85,
+            "length": 170,
+            "width": 150
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 35,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 350,
+          "listPrice": 899,
+          "mapPrice": 699,
+          "msrpPrice": 899,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 699
+        },
+        "productId": "CPV000000017",
+        "productType": "desk",
+        "rank": 90,
+        "sku": "DES-L-014",
+        "upc": "123456789018",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=600",
+        "path": "dining-room/dining-tables"
+      }
+    ],
+    "collection": "Dining Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Extends from 6 to 8 seating.",
+    "name": "Extendable Dining Table",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000018"
+          ],
+          "url": "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=600",
+            "path": "dining-room/dining-tables"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-08T00:36:54.052Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": true,
+          "categoryId": 301
+        },
+        "customerSku": "DIN-EXT-015",
+        "deletedAt": null,
+        "description": "Extendable Dining Table",
+        "dimensions": {
+          "height": 75,
+          "length": 200,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 60,
+          "width": 95
+        },
+        "introducedAt": "2026-01-15T13:21:27.945Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Extendable Dining Table",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 85,
+            "length": 210,
+            "width": 105
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 65,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 750,
+          "listPrice": 1899,
+          "mapPrice": 1499,
+          "msrpPrice": 1899,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 1499
+        },
+        "productId": "CPV000000018",
+        "productType": "table",
+        "rank": 95,
+        "sku": "DIN-EXT-015",
+        "upc": "123456789019",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": [
+          {
+            "option": "Extended Length",
+            "value": "220cm"
+          },
+          {
+            "option": "Seating",
+            "value": "6-8"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1503602642458-232111445657?w=600",
+        "path": "dining-room/dining-chairs"
+      }
+    ],
+    "collection": "Dining Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Set of 2 dining chairs with velvet upholstery.",
+    "name": "Upholstered Dining Chair",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000019"
+          ],
+          "url": "https://images.unsplash.com/photo-1503602642458-232111445657?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1503602642458-232111445657?w=600",
+            "path": "dining-room/dining-chairs"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-10-04T07:36:10.293Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 302
+        },
+        "customerSku": "DIN-UPH-016",
+        "deletedAt": null,
+        "description": "Upholstered Dining Chair",
+        "dimensions": {
+          "height": 90,
+          "length": 50,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 8,
+          "width": 55
+        },
+        "introducedAt": "2026-02-04T07:06:31.994Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Upholstered Dining Chair",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 100,
+            "length": 60,
+            "width": 65
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 13,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 150,
+          "listPrice": 399,
+          "mapPrice": 299,
+          "msrpPrice": 399,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 299
+        },
+        "productId": "CPV000000019",
+        "productType": "chair",
+        "rank": 100,
+        "sku": "DIN-UPH-016",
+        "upc": "123456789020",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595514518526-0e1fb42b7a63?w=600",
+        "path": "dining-room/buffets-sideboards"
+      }
+    ],
+    "collection": "Rustic Heritage",
+    "consumerBrand": "LiviPoint",
+    "description": "Solid wood buffet with wine storage.",
+    "name": "Rustic Buffet Server",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000020"
+          ],
+          "url": "https://images.unsplash.com/photo-1595514518526-0e1fb42b7a63?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595514518526-0e1fb42b7a63?w=600",
+            "path": "dining-room/buffets-sideboards"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-05-28T15:58:36.979Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 304
+        },
+        "customerSku": "BUF-RUS-017",
+        "deletedAt": null,
+        "description": "Rustic Buffet Server",
+        "dimensions": {
+          "height": 90,
+          "length": 160,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 40,
+          "width": 45
+        },
+        "introducedAt": "2025-12-11T06:55:49.360Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Rustic Buffet Server",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 100,
+            "length": 170,
+            "width": 55
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 45,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 500,
+          "listPrice": 1299,
+          "mapPrice": 999,
+          "msrpPrice": 1299,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 999
+        },
+        "productId": "CPV000000020",
+        "productType": "furniture",
+        "rank": 105,
+        "sku": "BUF-RUS-017",
+        "upc": "123456789021",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600",
+        "path": "lighting/floor-lamps"
+      }
+    ],
+    "collection": "Lighting Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Arched floor lamp with fabric shade.",
+    "name": "Pendant Floor Lamp",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000021"
+          ],
+          "url": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600",
+            "path": "lighting/floor-lamps"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2026-01-11T21:22:17.180Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 601
+        },
+        "customerSku": "PEN-FLO-018",
+        "deletedAt": null,
+        "description": "Pendant Floor Lamp",
+        "dimensions": {
+          "height": 180,
+          "length": 40,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 6,
+          "width": 40
+        },
+        "introducedAt": "2026-01-02T18:13:50.679Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Pendant Floor Lamp",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 190,
+            "length": 50,
+            "width": 50
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 11,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 120,
+          "listPrice": 299,
+          "mapPrice": 249,
+          "msrpPrice": 299,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 249
+        },
+        "productId": "CPV000000021",
+        "productType": "lighting",
+        "rank": 110,
+        "sku": "PEN-FLO-018",
+        "upc": "123456789022",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600",
+        "path": "living-room/coffee-tables"
+      }
+    ],
+    "collection": "Modern Living 2024",
+    "consumerBrand": "LiviPoint",
+    "description": "Tempered glass side table with gold frame.",
+    "name": "Glass Side Table",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000022"
+          ],
+          "url": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=600",
+            "path": "living-room/coffee-tables"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2026-02-06T03:00:02.628Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 103
+        },
+        "customerSku": "TAB-GLA-019",
+        "deletedAt": null,
+        "description": "Glass Side Table",
+        "dimensions": {
+          "height": 55,
+          "length": 45,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 5,
+          "width": 45
+        },
+        "introducedAt": "2025-12-02T12:34:06.083Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Glass Side Table",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 65,
+            "length": 55,
+            "width": 55
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 10,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 80,
+          "listPrice": 199,
+          "mapPrice": 149,
+          "msrpPrice": 199,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 149
+        },
+        "productId": "CPV000000022",
+        "productType": "table",
+        "rank": 115,
+        "sku": "TAB-GLA-019",
+        "upc": "123456789023",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+        "path": "living-room/bookcases-storage"
+      }
+    ],
+    "collection": "Luxe Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Marble top console for entryways.",
+    "name": "Marble Console Table",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000023"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+            "path": "living-room/bookcases-storage"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-10-14T08:41:24.324Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": true,
+          "categoryId": 105
+        },
+        "customerSku": "CON-MAR-020",
+        "deletedAt": null,
+        "description": "Marble Console Table",
+        "dimensions": {
+          "height": 80,
+          "length": 120,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 30,
+          "width": 35
+        },
+        "introducedAt": "2025-08-16T06:53:24.990Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Marble Console Table",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 90,
+            "length": 130,
+            "width": 45
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 35,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 400,
+          "listPrice": 999,
+          "mapPrice": 799,
+          "msrpPrice": 999,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 799
+        },
+        "productId": "CPV000000023",
+        "productType": "table",
+        "rank": 120,
+        "sku": "CON-MAR-020",
+        "upc": "123456789024",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+        "path": "living-room/sofas-couches"
+      }
+    ],
+    "collection": "Accessories",
+    "consumerBrand": "LiviPoint",
+    "description": "Set of 4 artisan throw pillows.",
+    "name": "Decorative Throw Pillow Set",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000024"
+          ],
+          "url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+            "path": "living-room/sofas-couches"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-05-24T15:27:31.442Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 101
+        },
+        "customerSku": "ACC-THR-021",
+        "deletedAt": null,
+        "description": "Decorative Throw Pillow Set",
+        "dimensions": {
+          "height": 45,
+          "length": 45,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 1,
+          "width": 15
+        },
+        "introducedAt": "2025-12-31T16:04:14.741Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Decorative Throw Pillow Set",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 55,
+            "length": 55,
+            "width": 25
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 6,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 40,
+          "listPrice": 89,
+          "mapPrice": 69,
+          "msrpPrice": 89,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 69
+        },
+        "productId": "CPV000000024",
+        "productType": "accessory",
+        "rank": 125,
+        "sku": "ACC-THR-021",
+        "upc": "123456789025",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+        "path": "living-room/bookcases-storage"
+      }
+    ],
+    "collection": "Storage Solutions",
+    "consumerBrand": "LiviPoint",
+    "description": "Modular storage cubes, set of 6.",
+    "name": "Storage Cube Organizer",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000025"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+            "path": "living-room/bookcases-storage"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-10-20T01:01:16.647Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 105
+        },
+        "customerSku": "STO-CUB-022",
+        "deletedAt": null,
+        "description": "Storage Cube Organizer",
+        "dimensions": {
+          "height": 110,
+          "length": 110,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 15,
+          "width": 30
+        },
+        "introducedAt": "2025-08-14T21:59:22.980Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Storage Cube Organizer",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 120,
+            "length": 120,
+            "width": 40
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 20,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 80,
+          "listPrice": 199,
+          "mapPrice": 159,
+          "msrpPrice": 199,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 159
+        },
+        "productId": "CPV000000025",
+        "productType": "furniture",
+        "rank": 130,
+        "sku": "STO-CUB-022",
+        "upc": "123456789026",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595514535116-8f0c1c26d904?w=600",
+        "path": "bedroom/vanities-mirrors"
+      }
+    ],
+    "collection": "Accessories",
+    "consumerBrand": "LiviPoint",
+    "description": "Large round wall mirror with brass frame.",
+    "name": "Wall Mirror",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000026"
+          ],
+          "url": "https://images.unsplash.com/photo-1595514535116-8f0c1c26d904?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595514535116-8f0c1c26d904?w=600",
+            "path": "bedroom/vanities-mirrors"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-10T15:16:56.435Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 205
+        },
+        "customerSku": "MIR-WAL-023",
+        "deletedAt": null,
+        "description": "Wall Mirror",
+        "dimensions": {
+          "height": 80,
+          "length": 80,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 4,
+          "width": 3
+        },
+        "introducedAt": "2025-10-15T18:06:40.751Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Wall Mirror",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 90,
+            "length": 90,
+            "width": 13
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 9,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 60,
+          "listPrice": 149,
+          "mapPrice": 119,
+          "msrpPrice": 149,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 119
+        },
+        "productId": "CPV000000026",
+        "productType": "accessory",
+        "rank": 135,
+        "sku": "MIR-WAL-023",
+        "upc": "123456789027",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+        "path": "living-room/sofas-couches"
+      }
+    ],
+    "collection": "Accessories",
+    "consumerBrand": "LiviPoint",
+    "description": "Soft shag rug in neutral tone, 8x10.",
+    "name": "Shag Area Rug",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000027"
+          ],
+          "url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600",
+            "path": "living-room/sofas-couches"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2026-01-08T08:06:38.792Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 101
+        },
+        "customerSku": "RUG-SHG-024",
+        "deletedAt": null,
+        "description": "Shag Area Rug",
+        "dimensions": {
+          "height": 2,
+          "length": 305,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 10,
+          "width": 244
+        },
+        "introducedAt": "2025-12-26T21:33:07.779Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Shag Area Rug",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 12,
+            "length": 315,
+            "width": 254
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 15,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 100,
+          "listPrice": 249,
+          "mapPrice": 199,
+          "msrpPrice": 249,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 199
+        },
+        "productId": "CPV000000027",
+        "productType": "accessory",
+        "rank": 140,
+        "sku": "RUG-SHG-024",
+        "upc": "123456789028",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=600",
+        "path": "lighting/table-lamps"
+      }
+    ],
+    "collection": "Lighting Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Ceramic table lamp with linen shade.",
+    "name": "Table Lamp",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000028"
+          ],
+          "url": "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=600",
+            "path": "lighting/table-lamps"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-13T15:40:22.820Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 602
+        },
+        "customerSku": "LAM-TAB-025",
+        "deletedAt": null,
+        "description": "Table Lamp",
+        "dimensions": {
+          "height": 50,
+          "length": 30,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 3,
+          "width": 30
+        },
+        "introducedAt": "2025-10-05T09:34:09.492Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Table Lamp",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 60,
+            "length": 40,
+            "width": 40
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 8,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 45,
+          "listPrice": 119,
+          "mapPrice": 89,
+          "msrpPrice": 119,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 89
+        },
+        "productId": "CPV000000028",
+        "productType": "lighting",
+        "rank": 145,
+        "sku": "LAM-TAB-025",
+        "upc": "123456789029",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=600",
+        "path": "outdoor/patio-seating"
+      }
+    ],
+    "collection": "Outdoor Living",
+    "consumerBrand": "LiviPoint",
+    "description": "Weather-resistant sectional for patio.",
+    "name": "Outdoor Sectional Sofa",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000029"
+          ],
+          "url": "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=600",
+            "path": "outdoor/patio-seating"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-12-28T03:14:26.702Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 501
+        },
+        "customerSku": "OUT-SEC-026",
+        "deletedAt": null,
+        "description": "Outdoor Sectional Sofa",
+        "dimensions": {
+          "height": 70,
+          "length": 250,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 55,
+          "width": 200
+        },
+        "introducedAt": "2025-10-14T04:54:52.598Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Outdoor Sectional Sofa",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 80,
+            "length": 260,
+            "width": 210
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 60,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 1200,
+          "listPrice": 2999,
+          "mapPrice": 2499,
+          "msrpPrice": 2999,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 2499
+        },
+        "productId": "CPV000000029",
+        "productType": "sofa",
+        "rank": 150,
+        "sku": "OUT-SEC-026",
+        "upc": "123456789030",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600",
+        "path": "outdoor/outdoor-dining"
+      }
+    ],
+    "collection": "Outdoor Living",
+    "consumerBrand": "LiviPoint",
+    "description": "Two chairs and table for balcony.",
+    "name": "Outdoor Bistro Set",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000030"
+          ],
+          "url": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600",
+            "path": "outdoor/outdoor-dining"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-11-29T07:17:45.878Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 502
+        },
+        "customerSku": "OUT-BIS-027",
+        "deletedAt": null,
+        "description": "Outdoor Bistro Set",
+        "dimensions": {
+          "height": 75,
+          "length": 60,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 12,
+          "width": 60
+        },
+        "introducedAt": "2025-11-30T12:08:18.447Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Outdoor Bistro Set",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 85,
+            "length": 70,
+            "width": 70
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 17,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 200,
+          "listPrice": 499,
+          "mapPrice": 399,
+          "msrpPrice": 499,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 399
+        },
+        "productId": "CPV000000030",
+        "productType": "furniture",
+        "rank": 155,
+        "sku": "OUT-BIS-027",
+        "upc": "123456789031",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600",
+        "path": "outdoor/outdoor-dining"
+      }
+    ],
+    "collection": "Outdoor Living",
+    "consumerBrand": "LiviPoint",
+    "description": "Teak dining table, seats 6.",
+    "name": "Outdoor Dining Table",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000031"
+          ],
+          "url": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600",
+            "path": "outdoor/outdoor-dining"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-02-11T20:55:06.149Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": true,
+          "categoryId": 502
+        },
+        "customerSku": "OUT-DIN-028",
+        "deletedAt": null,
+        "description": "Outdoor Dining Table",
+        "dimensions": {
+          "height": 75,
+          "length": 180,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 35,
+          "width": 90
+        },
+        "introducedAt": "2025-11-04T11:44:19.200Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Outdoor Dining Table",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 85,
+            "length": 190,
+            "width": 100
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 40,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 600,
+          "listPrice": 1499,
+          "mapPrice": 1199,
+          "msrpPrice": 1499,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 1199
+        },
+        "productId": "CPV000000031",
+        "productType": "table",
+        "rank": 160,
+        "sku": "OUT-DIN-028",
+        "upc": "123456789032",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=600",
+        "path": "outdoor/loungers-daybeds"
+      }
+    ],
+    "collection": "Outdoor Living",
+    "consumerBrand": "LiviPoint",
+    "description": "Adjustable chaise with cushion.",
+    "name": "Outdoor Chaise Lounge",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000032"
+          ],
+          "url": "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=600",
+            "path": "outdoor/loungers-daybeds"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-02-10T08:34:40.194Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 503
+        },
+        "customerSku": "OUT-CHA-029",
+        "deletedAt": null,
+        "description": "Outdoor Chaise Lounge",
+        "dimensions": {
+          "height": 35,
+          "length": 200,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 15,
+          "width": 70
+        },
+        "introducedAt": "2025-11-22T22:14:47.449Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Outdoor Chaise Lounge",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 45,
+            "length": 210,
+            "width": 80
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 20,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 300,
+          "listPrice": 699,
+          "mapPrice": 549,
+          "msrpPrice": 699,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 549
+        },
+        "productId": "CPV000000032",
+        "productType": "furniture",
+        "rank": 165,
+        "sku": "OUT-CHA-029",
+        "upc": "123456789033",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=600",
+        "path": "outdoor/umbrellas-shade"
+      }
+    ],
+    "collection": "Outdoor Living",
+    "consumerBrand": "LiviPoint",
+    "description": "9ft market umbrella with tilt.",
+    "name": "Patio Umbrella",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000033"
+          ],
+          "url": "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=600",
+            "path": "outdoor/umbrellas-shade"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-10-23T09:53:37.525Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 504
+        },
+        "customerSku": "OUT-UMB-030",
+        "deletedAt": null,
+        "description": "Patio Umbrella",
+        "dimensions": {
+          "height": 250,
+          "length": 275,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 8,
+          "width": 275
+        },
+        "introducedAt": "2025-09-19T02:55:08.186Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Patio Umbrella",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 260,
+            "length": 285,
+            "width": 285
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 13,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 80,
+          "listPrice": 199,
+          "mapPrice": 149,
+          "msrpPrice": 199,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 149
+        },
+        "productId": "CPV000000033",
+        "productType": "accessory",
+        "rank": 170,
+        "sku": "OUT-UMB-030",
+        "upc": "123456789034",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=600",
+        "path": "outdoor/patio-seating"
+      }
+    ],
+    "collection": "Outdoor Living",
+    "consumerBrand": "LiviPoint",
+    "description": "Solid teak garden bench.",
+    "name": "Garden Bench",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000034"
+          ],
+          "url": "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=600",
+            "path": "outdoor/patio-seating"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-08-06T09:57:30.817Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 501
+        },
+        "customerSku": "OUT-BEN-031",
+        "deletedAt": null,
+        "description": "Garden Bench",
+        "dimensions": {
+          "height": 90,
+          "length": 150,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 20,
+          "width": 60
+        },
+        "introducedAt": "2025-09-22T15:30:11.144Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Garden Bench",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 100,
+            "length": 160,
+            "width": 70
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 25,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 250,
+          "listPrice": 599,
+          "mapPrice": 499,
+          "msrpPrice": 599,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 499
+        },
+        "productId": "CPV000000034",
+        "productType": "furniture",
+        "rank": 175,
+        "sku": "OUT-BEN-031",
+        "upc": "123456789035",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600",
+        "path": "office/office-chairs"
+      }
+    ],
+    "collection": "Office Pro",
+    "consumerBrand": "LiviPoint",
+    "description": "Mesh back chair with lumbar support.",
+    "name": "Ergonomic Office Chair",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000035"
+          ],
+          "url": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "color",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600",
+            "path": "office/office-chairs"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-08T01:28:06.038Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 402
+        },
+        "customerSku": "OFF-ERG-032",
+        "deletedAt": null,
+        "description": "Ergonomic Office Chair",
+        "dimensions": {
+          "height": 115,
+          "length": 65,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 14,
+          "width": 65
+        },
+        "introducedAt": "2026-02-07T06:31:17.888Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Ergonomic Office Chair",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 125,
+            "length": 75,
+            "width": 75
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 19,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 300,
+          "listPrice": 799,
+          "mapPrice": 599,
+          "msrpPrice": 799,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 599
+        },
+        "productId": "CPV000000035",
+        "productType": "chair",
+        "rank": 180,
+        "sku": "OFF-ERG-032",
+        "upc": "123456789036",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600",
+        "path": "office/desks"
+      }
+    ],
+    "collection": "Office Pro",
+    "consumerBrand": "LiviPoint",
+    "description": "Electric height-adjustable desk.",
+    "name": "Standing Desk",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000036"
+          ],
+          "url": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600",
+            "path": "office/desks"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-03-14T15:23:50.339Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 401
+        },
+        "customerSku": "OFF-STA-033",
+        "deletedAt": null,
+        "description": "Standing Desk",
+        "dimensions": {
+          "height": 125,
+          "length": 150,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 35,
+          "width": 75
+        },
+        "introducedAt": "2025-11-12T10:30:01.332Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Standing Desk",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 135,
+            "length": 160,
+            "width": 85
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 40,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 450,
+          "listPrice": 1199,
+          "mapPrice": 899,
+          "msrpPrice": 1199,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 899
+        },
+        "productId": "CPV000000036",
+        "productType": "desk",
+        "rank": 185,
+        "sku": "OFF-STA-033",
+        "upc": "123456789037",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+        "path": "office/filing-cabinets"
+      }
+    ],
+    "collection": "Office Pro",
+    "consumerBrand": "LiviPoint",
+    "description": "Three-drawer metal filing cabinet.",
+    "name": "Filing Cabinet",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000037"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+            "path": "office/filing-cabinets"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-10-19T07:19:26.303Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 403
+        },
+        "customerSku": "OFF-FIL-034",
+        "deletedAt": null,
+        "description": "Filing Cabinet",
+        "dimensions": {
+          "height": 100,
+          "length": 45,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 20,
+          "width": 60
+        },
+        "introducedAt": "2025-08-17T06:17:17.417Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Filing Cabinet",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 110,
+            "length": 55,
+            "width": 70
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 25,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 150,
+          "listPrice": 349,
+          "mapPrice": 279,
+          "msrpPrice": 349,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 279
+        },
+        "productId": "CPV000000037",
+        "productType": "furniture",
+        "rank": 190,
+        "sku": "OFF-FIL-034",
+        "upc": "123456789038",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600",
+        "path": "office/office-bookcases"
+      }
+    ],
+    "collection": "Office Pro",
+    "consumerBrand": "LiviPoint",
+    "description": "Five-shelf office bookcase.",
+    "name": "Office Bookcase",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000038"
+          ],
+          "url": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600",
+            "path": "office/office-bookcases"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-30T20:00:39.832Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 404
+        },
+        "customerSku": "OFF-BOO-035",
+        "deletedAt": null,
+        "description": "Office Bookcase",
+        "dimensions": {
+          "height": 180,
+          "length": 80,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 22,
+          "width": 30
+        },
+        "introducedAt": "2025-08-13T21:45:27.914Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Office Bookcase",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 190,
+            "length": 90,
+            "width": 40
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 27,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 200,
+          "listPrice": 549,
+          "mapPrice": 449,
+          "msrpPrice": 549,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 449
+        },
+        "productId": "CPV000000038",
+        "productType": "furniture",
+        "rank": 195,
+        "sku": "OFF-BOO-035",
+        "upc": "123456789039",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+        "path": "office/office-storage"
+      }
+    ],
+    "collection": "Office Pro",
+    "consumerBrand": "LiviPoint",
+    "description": "Oval conference table, seats 8.",
+    "name": "Conference Table",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000039"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+            "path": "office/office-storage"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-09-04T17:51:38.371Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 405
+        },
+        "customerSku": "OFF-CON-036",
+        "deletedAt": null,
+        "description": "Conference Table",
+        "dimensions": {
+          "height": 75,
+          "length": 240,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 50,
+          "width": 120
+        },
+        "introducedAt": "2026-01-16T23:46:49.880Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Conference Table",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 85,
+            "length": 250,
+            "width": 130
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 55,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 800,
+          "listPrice": 1999,
+          "mapPrice": 1600,
+          "msrpPrice": 1999,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 1600
+        },
+        "productId": "CPV000000039",
+        "productType": "table",
+        "rank": 200,
+        "sku": "OFF-CON-036",
+        "upc": "123456789040",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600",
+        "path": "kids-room/kids-desks"
+      }
+    ],
+    "collection": "Kids Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Adjustable height desk that grows with your child.",
+    "name": "Kids Study Desk",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000040"
+          ],
+          "url": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600",
+            "path": "kids-room/kids-desks"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2026-01-06T21:48:36.085Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 703
+        },
+        "customerSku": "KID-DES-037",
+        "deletedAt": null,
+        "description": "Kids Study Desk",
+        "dimensions": {
+          "height": 75,
+          "length": 100,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 15,
+          "width": 60
+        },
+        "introducedAt": "2025-08-13T21:51:37.525Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Kids Study Desk",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 85,
+            "length": 110,
+            "width": 70
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 20,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 175,
+          "listPrice": 449,
+          "mapPrice": 349,
+          "msrpPrice": 449,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 349
+        },
+        "productId": "CPV000000040",
+        "productType": "desk",
+        "rank": 205,
+        "sku": "KID-DES-037",
+        "upc": "123456789041",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600",
+        "path": "kids-room/kids-seating"
+      }
+    ],
+    "collection": "Kids Collection",
+    "consumerBrand": "LiviPoint",
+    "description": "Comfortable bean bag chair in fun colors.",
+    "name": "Kids Bean Bag Chair",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000041"
+          ],
+          "url": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600",
+            "path": "kids-room/kids-seating"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-12-05T18:31:52.479Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 704
+        },
+        "customerSku": "KID-BEA-038",
+        "deletedAt": null,
+        "description": "Kids Bean Bag Chair",
+        "dimensions": {
+          "height": 70,
+          "length": 80,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 3,
+          "width": 80
+        },
+        "introducedAt": "2025-10-14T17:51:36.238Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Kids Bean Bag Chair",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 80,
+            "length": 90,
+            "width": 90
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 8,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 50,
+          "listPrice": 99,
+          "mapPrice": 99,
+          "msrpPrice": 99,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 99
+        },
+        "productId": "CPV000000041",
+        "productType": "chair",
+        "rank": 210,
+        "sku": "KID-BEA-038",
+        "upc": "123456789042",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595514535116-8f0c1c26d904?w=600",
+        "path": "bathroom/bathroom-vanities"
+      }
+    ],
+    "collection": "Bathroom Essentials",
+    "consumerBrand": "LiviPoint",
+    "description": "Modern double sink vanity with marble countertop.",
+    "name": "Double Sink Vanity",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000042"
+          ],
+          "url": "https://images.unsplash.com/photo-1595514535116-8f0c1c26d904?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595514535116-8f0c1c26d904?w=600",
+            "path": "bathroom/bathroom-vanities"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-04-08T17:46:37.966Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": true,
+          "categoryId": 801
+        },
+        "customerSku": "BAT-VAN-039",
+        "deletedAt": null,
+        "description": "Double Sink Vanity",
+        "dimensions": {
+          "height": 85,
+          "length": 150,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 70,
+          "width": 55
+        },
+        "introducedAt": "2025-12-13T19:30:37.285Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Double Sink Vanity",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 95,
+            "length": 160,
+            "width": 65
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 75,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 950,
+          "listPrice": 2299,
+          "mapPrice": 1899,
+          "msrpPrice": 2299,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 1899
+        },
+        "productId": "CPV000000042",
+        "productType": "furniture",
+        "rank": 215,
+        "sku": "BAT-VAN-039",
+        "upc": "123456789043",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+        "path": "bathroom/medicine-cabinets"
+      }
+    ],
+    "collection": "Bathroom Essentials",
+    "consumerBrand": "LiviPoint",
+    "description": "Wall-mounted medicine cabinet with mirrored door.",
+    "name": "Mirror Medicine Cabinet",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000043"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+            "path": "bathroom/medicine-cabinets"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-08-29T07:44:10.396Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 802
+        },
+        "customerSku": "BAT-MED-040",
+        "deletedAt": null,
+        "description": "Mirror Medicine Cabinet",
+        "dimensions": {
+          "height": 70,
+          "length": 50,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 8,
+          "width": 15
+        },
+        "introducedAt": "2026-01-28T01:44:28.238Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Mirror Medicine Cabinet",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 80,
+            "length": 60,
+            "width": 25
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 13,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 150,
+          "listPrice": 299,
+          "mapPrice": 299,
+          "msrpPrice": 299,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 299
+        },
+        "productId": "CPV000000043",
+        "productType": "furniture",
+        "rank": 220,
+        "sku": "BAT-MED-040",
+        "upc": "123456789044",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+        "path": "bathroom/linen-cabinets"
+      }
+    ],
+    "collection": "Bathroom Storage",
+    "consumerBrand": "LiviPoint",
+    "description": "Tall storage cabinet for towels and linens.",
+    "name": "Tall Linen Cabinet",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000044"
+          ],
+          "url": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600",
+            "path": "bathroom/linen-cabinets"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-12-22T09:48:30.772Z",
+        "custom": {
+          "isNew": false,
+          "isFeatured": false,
+          "categoryId": 803
+        },
+        "customerSku": "BAT-LIN-041",
+        "deletedAt": null,
+        "description": "Tall Linen Cabinet",
+        "dimensions": {
+          "height": 180,
+          "length": 40,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 30,
+          "width": 40
+        },
+        "introducedAt": "2025-12-30T23:05:17.965Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Tall Linen Cabinet",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 190,
+            "length": 50,
+            "width": 50
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 35,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 250,
+          "listPrice": 599,
+          "mapPrice": 499,
+          "msrpPrice": 599,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 499
+        },
+        "productId": "CPV000000044",
+        "productType": "furniture",
+        "rank": 225,
+        "sku": "BAT-LIN-041",
+        "upc": "123456789045",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  },
+  {
+    "brand": "LiviPoint Collection",
+    "categories": [
+      {
+        "imageUrl": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600",
+        "path": "bathroom/bathroom-shelving"
+      }
+    ],
+    "collection": "Bathroom Storage",
+    "consumerBrand": "LiviPoint",
+    "description": "Space-saving storage rack that fits over the toilet.",
+    "name": "Over-Toilet Storage Rack",
+    "provider": "LiviPoint Furniture Co.",
+    "relatedProducts": {
+      "completeYourCollection": [],
+      "crossSell": [],
+      "series": []
+    },
+    "updatedAt": "2026-02-07T11:39:34.087Z",
+    "media": {
+      "mainImages": [
+        {
+          "variantProductIds": [
+            "CPV000000045"
+          ],
+          "url": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600"
+        }
+      ],
+      "additionalImages": [],
+      "videoUrls": []
+    },
+    "variantKey": "style",
+    "variants": [
+      {
+        "attributes": [],
+        "categories": [
+          {
+            "imageUrl": "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=600",
+            "path": "bathroom/bathroom-shelving"
+          }
+        ],
+        "changedState": "created",
+        "consumerBrand": "LiviPoint",
+        "createdAt": "2025-06-26T05:19:51.003Z",
+        "custom": {
+          "isNew": true,
+          "isFeatured": false,
+          "categoryId": 804
+        },
+        "customerSku": "BAT-SHE-042",
+        "deletedAt": null,
+        "description": "Over-Toilet Storage Rack",
+        "dimensions": {
+          "height": 170,
+          "length": 65,
+          "unitOfMeasureDistance": "cm",
+          "unitOfMeasureWeight": "kg",
+          "weight": 8,
+          "width": 25
+        },
+        "introducedAt": "2026-01-29T20:06:12.740Z",
+        "isDirectShipping": false,
+        "isInCatalog": "included",
+        "isPackage": false,
+        "isSoldIndividually": true,
+        "name": "Over-Toilet Storage Rack",
+        "packageProducts": [],
+        "packageProductType": null,
+        "packaging": {
+          "dimensions": {
+            "height": 180,
+            "length": 75,
+            "width": 35
+          },
+          "dimensionsUnitOfMeasure": "cm",
+          "purchaseUnitOfMeasure": 1,
+          "quantityForSale": 1,
+          "quantityPerPackage": 1,
+          "type": "carton",
+          "weight": 13,
+          "weightUnitOfMeasure": "kg"
+        },
+        "price": {
+          "cost": 75,
+          "listPrice": 149,
+          "mapPrice": 149,
+          "msrpPrice": 149,
+          "rates": [],
+          "rentalPrices": [],
+          "retailPrice": 149
+        },
+        "productId": "CPV000000045",
+        "productType": "furniture",
+        "rank": 230,
+        "sku": "BAT-SHE-042",
+        "upc": "123456789046",
+        "updatedAt": "2026-02-07T11:39:34.087Z",
+        "options": []
+      }
+    ]
+  }
+]

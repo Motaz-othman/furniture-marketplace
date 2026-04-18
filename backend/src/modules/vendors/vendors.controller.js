@@ -61,7 +61,7 @@ export const updateVendorProfile = async (req, res) => {
 export const getAllVendors = async (req, res) => {
   try {
     const vendors = await prisma.vendor.findMany({
-      where: { isVerified: true },
+      where: { status: 'VERIFIED' },
       select: {
         id: true,
         businessName: true,
@@ -70,7 +70,6 @@ export const getAllVendors = async (req, res) => {
         rating: true,
         totalReviews: true,
         shippingZones: true,
-        responseTime: true,
         createdAt: true
       },
       orderBy: { rating: 'desc' }

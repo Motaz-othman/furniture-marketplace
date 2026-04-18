@@ -18,6 +18,10 @@ import searchRoutes from './modules/search/search.routes.js';
 import variantsRoutes from './modules/products/variants.routes.js';
 import addressesRoutes from './modules/addresses/addresses.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
+import storefrontListingsRoutes from './modules/storefront/listings.routes.js';
+import syncRoutes from './modules/sync/sync.routes.js';
+import checkoutRoutes from './modules/checkout/guest.routes.js';
+import { initScheduler } from './shared/services/sync.service.js';
 import { registry } from './integrations/index.js';
 import integrationsRoutes from './integrations/router.js';
 
@@ -42,10 +46,39 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), asy
 });
 
 // Security middleware
-app.use(helmet()); // Add security headers
-app.use(cors());
-app.use(express.json({ limit: '10mb' })); // Limit body size to 10MB
-app.use(apiLimiter); // Apply rate limiting to all routes
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'"],
+    },
+  },
+  hsts: { maxAge: 31536000, includeSubDomains: true },
+  frameguard: { action: 'deny' },
+}));
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:3001'];
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    // In development, allow all origins
+    if (process.env.NODE_ENV !== 'production') return callback(null, true);
+    // In production, check against allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(apiLimiter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -71,9 +104,12 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/checkout', checkoutRoutes);
 app.use('/api', variantsRoutes);
 app.use('/api/addresses', addressesRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/storefront', storefrontListingsRoutes);
+app.use('/api/admin/sync', syncRoutes);
 app.use('/api/integrations', integrationsRoutes);
 
 
@@ -89,10 +125,22 @@ app.use(errorHandler);
 const startServer = async () => {
   // Load all integrations
   await registry.loadAll();
-  
-  app.listen(PORT, () => {
+
+  // Start sync scheduler (if enabled via env)
+  initScheduler();
+
+  const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📦 Integrations loaded: ${registry.getCodes().join(', ') || 'none'}`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is in use. Retrying in 1s...`);
+      setTimeout(() => server.listen(PORT), 1000);
+    } else {
+      throw err;
+    }
   });
 };
 

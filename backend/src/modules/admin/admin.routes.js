@@ -17,6 +17,10 @@ import {
   getAllOrders,
   getOrderDetails,
   updateOrderStatus,
+  createShipment,
+  updateShipment,
+  deleteShipment,
+  assignShipmentItems,
   getAllProducts,
   toggleProductActive,
   deleteProduct,
@@ -24,6 +28,17 @@ import {
   getRecentActivity,
 } from './admin.controller.js';
 import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
+import {
+  adminUpdateUserSchema,
+  adminUpdateVendorStatusSchema,
+  adminUpdateVendorRatingSchema,
+  adminUpdateVendorCommissionSchema,
+  adminUpdateOrderStatusSchema,
+  createShipmentSchema,
+  updateShipmentSchema,
+  assignShipmentItemsSchema,
+} from '../../shared/utils/validation.js';
 
 const router = Router();
 
@@ -42,7 +57,7 @@ router.get('/recent-activity', getRecentActivity);
 // ============================================
 router.get('/users', getAllUsers);
 router.get('/users/:id', getUserById);
-router.patch('/users/:id', updateUser);
+router.patch('/users/:id', validate(adminUpdateUserSchema), updateUser);
 router.delete('/users/:id', deleteUser);
 
 // ============================================
@@ -50,9 +65,9 @@ router.delete('/users/:id', deleteUser);
 // ============================================
 router.get('/vendors', getAllVendors);
 router.get('/vendors/:id', getVendorById);
-router.patch('/vendors/:id/status', updateVendorStatus);
-router.patch('/vendors/:id/rating', updateVendorRating);
-router.patch('/vendors/:id/commission', updateVendorCommission);
+router.patch('/vendors/:id/status', validate(adminUpdateVendorStatusSchema), updateVendorStatus);
+router.patch('/vendors/:id/rating', validate(adminUpdateVendorRatingSchema), updateVendorRating);
+router.patch('/vendors/:id/commission', validate(adminUpdateVendorCommissionSchema), updateVendorCommission);
 // Keep old endpoints for backwards compatibility
 router.patch('/vendors/:id/verify', verifyVendor);
 router.patch('/vendors/:id/unverify', unverifyVendor);
@@ -62,7 +77,11 @@ router.patch('/vendors/:id/unverify', unverifyVendor);
 // ============================================
 router.get('/orders', getAllOrders);
 router.get('/orders/:id', getOrderDetails);
-router.patch('/orders/:id/status', updateOrderStatus);
+router.patch('/orders/:id/status', validate(adminUpdateOrderStatusSchema), updateOrderStatus);
+router.post('/orders/:id/shipments', validate(createShipmentSchema), createShipment);
+router.patch('/orders/:id/shipments/:shipmentId', validate(updateShipmentSchema), updateShipment);
+router.delete('/orders/:id/shipments/:shipmentId', deleteShipment);
+router.patch('/orders/:id/shipments/:shipmentId/items', validate(assignShipmentItemsSchema), assignShipmentItems);
 
 // ============================================
 // PRODUCT MANAGEMENT

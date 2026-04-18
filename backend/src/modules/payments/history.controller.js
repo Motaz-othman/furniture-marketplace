@@ -130,7 +130,7 @@ export const getVendorPaymentHistory = async (req, res) => {
     // Add net amount to each order
     const paymentsWithNet = orders.map(order => ({
       ...order,
-      netAmount: order.total - order.commission
+      netAmount: order.total - (order.commission ?? 0)
     }));
 
     res.json({
@@ -205,7 +205,7 @@ export const getPaymentDetails = async (req, res) => {
         tax: order.tax,
         shippingCost: order.shippingCost,
         commission: order.commission,
-        netAmount: order.total - order.commission,
+        netAmount: order.total - (order.commission ?? 0),
         paymentStatus: order.paymentStatus,
         status: order.status,
         stripePaymentIntentId: order.stripePaymentIntentId,

@@ -1,0 +1,812 @@
+[
+  {
+    "availableQuantity": 34,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 45,
+    "locations": [
+      {
+        "currentQuantity": 19,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 39,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "SOF-VEL-001-NAV"
+  },
+  {
+    "availableQuantity": 24,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 19,
+    "locations": [
+      {
+        "currentQuantity": 24,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 11,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "SOF-VEL-001-EME"
+  },
+  {
+    "availableQuantity": 37,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 21,
+    "locations": [
+      {
+        "currentQuantity": 11,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 26,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "SOF-VEL-001-CHA"
+  },
+  {
+    "availableQuantity": 12,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 21,
+    "locations": [
+      {
+        "currentQuantity": 18,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 22,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "SOF-SCA-002"
+  },
+  {
+    "availableQuantity": 23,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 17,
+    "locations": [
+      {
+        "currentQuantity": 19,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 25,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "CHR-REC-003"
+  },
+  {
+    "availableQuantity": 38,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 29,
+    "locations": [
+      {
+        "currentQuantity": 5,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 10,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "CHR-MID-004"
+  },
+  {
+    "availableQuantity": 9,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 41,
+    "locations": [
+      {
+        "currentQuantity": 19,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 28,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "TAB-MIN-005"
+  },
+  {
+    "availableQuantity": 36,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 48,
+    "locations": [
+      {
+        "currentQuantity": 10,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 24,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "TAB-RUS-006"
+  },
+  {
+    "availableQuantity": 33,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 46,
+    "locations": [
+      {
+        "currentQuantity": 24,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 16,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "TV-MOD-007"
+  },
+  {
+    "availableQuantity": 22,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 47,
+    "locations": [
+      {
+        "currentQuantity": 14,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 15,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BOO-TAL-008"
+  },
+  {
+    "availableQuantity": 39,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 42,
+    "locations": [
+      {
+        "currentQuantity": 20,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 27,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BED-UPH-009-QUE"
+  },
+  {
+    "availableQuantity": 6,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 16,
+    "locations": [
+      {
+        "currentQuantity": 8,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 12,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BED-UPH-009-KIN"
+  },
+  {
+    "availableQuantity": 15,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 35,
+    "locations": [
+      {
+        "currentQuantity": 24,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 37,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BED-MET-010"
+  },
+  {
+    "availableQuantity": 14,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 12,
+    "locations": [
+      {
+        "currentQuantity": 16,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 17,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "DRE-VIN-011"
+  },
+  {
+    "availableQuantity": 8,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 25,
+    "locations": [
+      {
+        "currentQuantity": 18,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 16,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "NIG-FLO-012"
+  },
+  {
+    "availableQuantity": 12,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 49,
+    "locations": [
+      {
+        "currentQuantity": 13,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 35,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "WAR-SLI-013"
+  },
+  {
+    "availableQuantity": 25,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 37,
+    "locations": [
+      {
+        "currentQuantity": 5,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 30,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "DES-L-014"
+  },
+  {
+    "availableQuantity": 17,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 21,
+    "locations": [
+      {
+        "currentQuantity": 7,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 23,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "DIN-EXT-015"
+  },
+  {
+    "availableQuantity": 5,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 48,
+    "locations": [
+      {
+        "currentQuantity": 16,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 35,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "DIN-UPH-016"
+  },
+  {
+    "availableQuantity": 32,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 33,
+    "locations": [
+      {
+        "currentQuantity": 6,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 10,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BUF-RUS-017"
+  },
+  {
+    "availableQuantity": 34,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 40,
+    "locations": [
+      {
+        "currentQuantity": 12,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 14,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "PEN-FLO-018"
+  },
+  {
+    "availableQuantity": 17,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 33,
+    "locations": [
+      {
+        "currentQuantity": 8,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 38,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "TAB-GLA-019"
+  },
+  {
+    "availableQuantity": 7,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 49,
+    "locations": [
+      {
+        "currentQuantity": 9,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 39,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "CON-MAR-020"
+  },
+  {
+    "availableQuantity": 13,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 49,
+    "locations": [
+      {
+        "currentQuantity": 5,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 36,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "ACC-THR-021"
+  },
+  {
+    "availableQuantity": 6,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 43,
+    "locations": [
+      {
+        "currentQuantity": 18,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 35,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "STO-CUB-022"
+  },
+  {
+    "availableQuantity": 20,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 17,
+    "locations": [
+      {
+        "currentQuantity": 24,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 32,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "MIR-WAL-023"
+  },
+  {
+    "availableQuantity": 17,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 35,
+    "locations": [
+      {
+        "currentQuantity": 10,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 15,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "RUG-SHG-024"
+  },
+  {
+    "availableQuantity": 8,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 48,
+    "locations": [
+      {
+        "currentQuantity": 13,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 13,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "LAM-TAB-025"
+  },
+  {
+    "availableQuantity": 32,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 24,
+    "locations": [
+      {
+        "currentQuantity": 15,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 13,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OUT-SEC-026"
+  },
+  {
+    "availableQuantity": 14,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 19,
+    "locations": [
+      {
+        "currentQuantity": 13,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 32,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OUT-BIS-027"
+  },
+  {
+    "availableQuantity": 31,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 21,
+    "locations": [
+      {
+        "currentQuantity": 13,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 38,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OUT-DIN-028"
+  },
+  {
+    "availableQuantity": 35,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 12,
+    "locations": [
+      {
+        "currentQuantity": 7,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 14,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OUT-CHA-029"
+  },
+  {
+    "availableQuantity": 10,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 43,
+    "locations": [
+      {
+        "currentQuantity": 14,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 39,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OUT-UMB-030"
+  },
+  {
+    "availableQuantity": 35,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 15,
+    "locations": [
+      {
+        "currentQuantity": 13,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 26,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OUT-BEN-031"
+  },
+  {
+    "availableQuantity": 35,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 18,
+    "locations": [
+      {
+        "currentQuantity": 11,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 37,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OFF-ERG-032"
+  },
+  {
+    "availableQuantity": 32,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 25,
+    "locations": [
+      {
+        "currentQuantity": 13,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 13,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OFF-STA-033"
+  },
+  {
+    "availableQuantity": 22,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 35,
+    "locations": [
+      {
+        "currentQuantity": 24,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 39,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OFF-FIL-034"
+  },
+  {
+    "availableQuantity": 13,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 34,
+    "locations": [
+      {
+        "currentQuantity": 14,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 21,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OFF-BOO-035"
+  },
+  {
+    "availableQuantity": 19,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 17,
+    "locations": [
+      {
+        "currentQuantity": 12,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 10,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "OFF-CON-036"
+  },
+  {
+    "availableQuantity": 31,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 49,
+    "locations": [
+      {
+        "currentQuantity": 20,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 34,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "KID-DES-037"
+  },
+  {
+    "availableQuantity": 30,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 13,
+    "locations": [
+      {
+        "currentQuantity": 23,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 27,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "KID-BEA-038"
+  },
+  {
+    "availableQuantity": 11,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 31,
+    "locations": [
+      {
+        "currentQuantity": 8,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 32,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BAT-VAN-039"
+  },
+  {
+    "availableQuantity": 11,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 48,
+    "locations": [
+      {
+        "currentQuantity": 21,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 14,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BAT-MED-040"
+  },
+  {
+    "availableQuantity": 29,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 32,
+    "locations": [
+      {
+        "currentQuantity": 21,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 21,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BAT-LIN-041"
+  },
+  {
+    "availableQuantity": 26,
+    "brand": "LiviPoint Collection",
+    "inStock": true,
+    "nextAvailableDate": "2026-03-09T11:39:34.087Z",
+    "nextAvailableQuantity": 12,
+    "locations": [
+      {
+        "currentQuantity": 12,
+        "futureAvailabilityDate": "2026-03-09T11:39:34.087Z",
+        "futureQuantity": 30,
+        "locationName": "Main Warehouse",
+        "locationType": "local"
+      }
+    ],
+    "provider": "LiviPoint Furniture Co.",
+    "sku": "BAT-SHE-042"
+  }
+]

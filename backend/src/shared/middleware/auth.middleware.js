@@ -35,6 +35,27 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
+// Optional auth — sets req.user if token is valid, continues regardless
+export const optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = verifyToken(token);
+      if (decoded) {
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.userId },
+          include: { vendor: true, customer: true },
+        });
+        if (user) req.user = user;
+      }
+    }
+  } catch {
+    // Ignore auth errors — continue as guest
+  }
+  next();
+};
+
 // Check if user is vendor
 export const vendorOnly = (req, res, next) => {
   if (req.user.role !== 'VENDOR') {

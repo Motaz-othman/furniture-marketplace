@@ -26,8 +26,8 @@ export const getPlatformStats = async (req, res) => {
 
     // Vendor stats
     const [verifiedVendors, pendingVendors] = await Promise.all([
-      prisma.vendor.count({ where: { isVerified: true } }),
-      prisma.vendor.count({ where: { isVerified: false } }),
+      prisma.vendor.count({ where: { status: 'VERIFIED' } }),
+      prisma.vendor.count({ where: { status: 'PENDING' } }),
     ]);
 
     // Product stats
@@ -192,13 +192,14 @@ export const getAllUsers = async (req, res) => {
           phone: true,
           role: true,
           isBlocked: true,
+          lastLoginAt: true,
           createdAt: true,
           updatedAt: true,
           vendor: {
             select: {
               id: true,
               businessName: true,
-              isVerified: true,
+              status: true,
             }
           },
           customer: {
@@ -551,13 +552,8 @@ export const getAllVendors = async (req, res) => {
         prisma.vendor.count({ where: { status: 'VERIFIED' } }),
       ]);
     } catch (e) {
-      // status field may not exist yet, use isVerified
-      const [verified, notVerified] = await Promise.all([
-        prisma.vendor.count({ where: { isVerified: true } }),
-        prisma.vendor.count({ where: { isVerified: false } }),
-      ]);
-      verifiedCount = verified;
-      pendingCount = notVerified;
+      verifiedCount = 0;
+      pendingCount = 0;
     }
 
     res.json({
@@ -716,11 +712,7 @@ export const updateVendorStatus = async (req, res) => {
 
     const vendor = await prisma.vendor.update({
       where: { id },
-      data: { 
-        status,
-        // Also update isVerified for backwards compatibility
-        isVerified: status === 'VERIFIED'
-      },
+      data: { status },
     });
 
     // Create notification for vendor
@@ -800,10 +792,7 @@ export const verifyVendor = async (req, res) => {
 
     const vendor = await prisma.vendor.update({
       where: { id },
-      data: { 
-        status: 'VERIFIED',
-        isVerified: true 
-      },
+      data: { status: 'VERIFIED' },
     });
 
     await prisma.notification.create({
@@ -828,10 +817,7 @@ export const unverifyVendor = async (req, res) => {
 
     const vendor = await prisma.vendor.update({
       where: { id },
-      data: { 
-        status: 'PENDING',
-        isVerified: false 
-      },
+      data: { status: 'PENDING' },
     });
 
     res.json({ message: 'Vendor unverified', vendor });
@@ -882,16 +868,14 @@ export const getAllOrders = async (req, res) => {
               }
             }
           },
-          vendor: {
-            select: { businessName: true }
-          },
           items: {
             include: {
               product: {
-                select: { name: true, images: true }
+                select: { name: true, mainImage: true }
               }
             }
-          }
+          },
+          _count: { select: { shipments: true } },
         },
         orderBy: { [sortBy]: order },
         skip: (parseInt(page) - 1) * parseInt(limit),
@@ -923,21 +907,32 @@ export const getOrderDetails = async (req, res) => {
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
+        address: true,
         customer: {
           include: {
             user: {
               select: { firstName: true, lastName: true, email: true, phone: true }
             },
-            addresses: true,
           }
         },
-        vendor: true,
         items: {
           include: {
             product: true,
             variant: true,
+            shipment: { select: { id: true } },
           }
-        }
+        },
+        shipments: {
+          include: {
+            items: {
+              include: {
+                product: { select: { name: true, mainImage: true } },
+                variant: { select: { name: true, attributes: true, sku: true } },
+              }
+            }
+          },
+          orderBy: { createdAt: 'asc' },
+        },
       }
     });
 
@@ -975,6 +970,153 @@ export const updateOrderStatus = async (req, res) => {
   } catch (error) {
     console.error('Update order status error:', error);
     res.status(500).json({ error: 'Failed to update order status' });
+  }
+};
+
+// ============================================
+// SHIPMENT MANAGEMENT
+// ============================================
+
+// Create a shipment for an order
+export const createShipment = async (req, res) => {
+  try {
+    const { id: orderId } = req.params;
+    const { provider, type, notes, itemIds } = req.body;
+
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    const shipment = await prisma.shipment.create({
+      data: {
+        orderId,
+        provider: provider || null,
+        type: type || null,
+        notes: notes || null,
+        ...(itemIds?.length && {
+          items: { connect: itemIds.map(id => ({ id })) },
+        }),
+      },
+      include: {
+        items: {
+          include: {
+            product: { select: { name: true, mainImage: true } },
+            variant: { select: { name: true, sku: true } },
+          }
+        }
+      },
+    });
+
+    res.status(201).json({ shipment });
+  } catch (error) {
+    console.error('Create shipment error:', error);
+    res.status(500).json({ error: 'Failed to create shipment' });
+  }
+};
+
+// Update a shipment
+export const updateShipment = async (req, res) => {
+  try {
+    const { id: orderId, shipmentId } = req.params;
+    const { provider, type, status, estimatedCost, actualCost, trackingNumber, trackingUrl, notes } = req.body;
+
+    const existing = await prisma.shipment.findUnique({ where: { id: shipmentId } });
+    if (!existing || existing.orderId !== orderId) {
+      return res.status(404).json({ error: 'Shipment not found' });
+    }
+
+    const shipment = await prisma.shipment.update({
+      where: { id: shipmentId },
+      data: {
+        ...(provider !== undefined && { provider }),
+        ...(type !== undefined && { type }),
+        ...(status !== undefined && { status }),
+        ...(estimatedCost !== undefined && { estimatedCost }),
+        ...(actualCost !== undefined && { actualCost }),
+        ...(trackingNumber !== undefined && { trackingNumber }),
+        ...(trackingUrl !== undefined && { trackingUrl }),
+        ...(notes !== undefined && { notes }),
+      },
+      include: {
+        items: {
+          include: {
+            product: { select: { name: true, mainImage: true } },
+            variant: { select: { name: true, sku: true } },
+          }
+        }
+      },
+    });
+
+    res.json({ shipment });
+  } catch (error) {
+    console.error('Update shipment error:', error);
+    res.status(500).json({ error: 'Failed to update shipment' });
+  }
+};
+
+// Delete a shipment (unlinks items back to unassigned)
+export const deleteShipment = async (req, res) => {
+  try {
+    const { id: orderId, shipmentId } = req.params;
+
+    const existing = await prisma.shipment.findUnique({ where: { id: shipmentId } });
+    if (!existing || existing.orderId !== orderId) {
+      return res.status(404).json({ error: 'Shipment not found' });
+    }
+
+    // Unlink all items first, then delete
+    await prisma.orderItem.updateMany({
+      where: { shipmentId },
+      data: { shipmentId: null },
+    });
+
+    await prisma.shipment.delete({ where: { id: shipmentId } });
+
+    res.json({ message: 'Shipment deleted' });
+  } catch (error) {
+    console.error('Delete shipment error:', error);
+    res.status(500).json({ error: 'Failed to delete shipment' });
+  }
+};
+
+// Assign items to a shipment
+export const assignShipmentItems = async (req, res) => {
+  try {
+    const { id: orderId, shipmentId } = req.params;
+    const { itemIds } = req.body;
+
+    const existing = await prisma.shipment.findUnique({ where: { id: shipmentId } });
+    if (!existing || existing.orderId !== orderId) {
+      return res.status(404).json({ error: 'Shipment not found' });
+    }
+
+    // Unlink items currently in this shipment that aren't in the new list
+    await prisma.orderItem.updateMany({
+      where: { shipmentId, id: { notIn: itemIds } },
+      data: { shipmentId: null },
+    });
+
+    // Assign new items (also removes them from any other shipment)
+    await prisma.orderItem.updateMany({
+      where: { orderId, id: { in: itemIds } },
+      data: { shipmentId },
+    });
+
+    const shipment = await prisma.shipment.findUnique({
+      where: { id: shipmentId },
+      include: {
+        items: {
+          include: {
+            product: { select: { name: true, mainImage: true } },
+            variant: { select: { name: true, sku: true } },
+          }
+        }
+      },
+    });
+
+    res.json({ shipment });
+  } catch (error) {
+    console.error('Assign shipment items error:', error);
+    res.status(500).json({ error: 'Failed to assign items' });
   }
 };
 
@@ -1034,7 +1176,7 @@ export const getAllProducts = async (req, res) => {
         where,
         include: {
           vendor: {
-            select: { id: true, businessName: true, isVerified: true }
+            select: { id: true, businessName: true, status: true }
           },
           category: {
             select: { id: true, name: true }
@@ -1193,7 +1335,7 @@ export const getRecentActivity = async (req, res) => {
       }),
       prisma.vendor.findMany({
         take: 5,
-        where: { isVerified: false },
+        where: { status: 'PENDING' },
         orderBy: { createdAt: 'desc' },
         include: {
           user: { select: { email: true, firstName: true, lastName: true } }

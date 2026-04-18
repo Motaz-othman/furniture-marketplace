@@ -10,7 +10,7 @@ import { sendPasswordResetEmail } from '../../shared/services/email.service.js';
 // Register new user
 export const register = async (req, res) => {
   try {
-    const { email, password, firstName, lastName, role, businessName } = req.body;
+    const { email, password, firstName, lastName, role, businessName, claimGuestOrders } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -59,9 +59,32 @@ export const register = async (req, res) => {
       }
     });
 
+    // Link guest orders to new customer account (by email match)
+    let claimedOrders = 0;
+    if (userRole === 'CUSTOMER' && claimGuestOrders && user.customer) {
+      const guestOrders = await prisma.order.findMany({
+        where: { guestEmail: email, customerId: null },
+        select: { id: true, addressId: true },
+      });
+      if (guestOrders.length > 0) {
+        const orderIds = guestOrders.map(o => o.id);
+        const addressIds = [...new Set(guestOrders.map(o => o.addressId))];
+
+        await prisma.order.updateMany({
+          where: { id: { in: orderIds } },
+          data: { customerId: user.customer.id },
+        });
+        await prisma.address.updateMany({
+          where: { id: { in: addressIds }, customerId: null },
+          data: { customerId: user.customer.id },
+        });
+        claimedOrders = guestOrders.length;
+      }
+    }
+
     // Generate token
-    const token = generateToken({ 
-      userId: user.id, 
+    const token = generateToken({
+      userId: user.id,
       email: user.email,
       role: user.role
     });
@@ -72,7 +95,8 @@ export const register = async (req, res) => {
     res.status(201).json({
       message: 'User registered successfully',
       user: userWithoutPassword,
-      token
+      token,
+      ...(claimedOrders > 0 && { claimedOrders }),
     });
 
   } catch (error) {
@@ -106,9 +130,15 @@ export const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    // Update last login time
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() }
+    });
+
     // Generate token
-    const token = generateToken({ 
-      userId: user.id, 
+    const token = generateToken({
+      userId: user.id,
       email: user.email,
       role: user.role
     });
@@ -132,7 +162,7 @@ export const login = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { firstName, lastName, email } = req.body;
+    const { firstName, lastName, email, phone } = req.body;
 
     // Check if email already exists (if changing email)
     if (email && email !== req.user.email) {
@@ -146,7 +176,7 @@ export const updateProfile = async (req, res) => {
 
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { firstName, lastName, email }
+      data: { firstName, lastName, email, phone }
     });
 
     res.json({
@@ -156,6 +186,7 @@ export const updateProfile = async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        phone: user.phone,
         role: user.role
       }
     });
@@ -333,9 +364,9 @@ export const getMe = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: {
-        id: true, email: true, firstName: true, lastName: true, 
+        id: true, email: true, firstName: true, lastName: true, phone: true,
         role: true, createdAt: true, updatedAt: true,
-        vendor: { select: { id: true, businessName: true, isVerified: true } },
+        vendor: { select: { id: true, businessName: true, status: true } },
         customer: { select: { id: true } }
       }
     });

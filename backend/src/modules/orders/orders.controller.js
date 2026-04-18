@@ -14,7 +14,7 @@ const generateOrderNumber = () => {
 const generateTrackingNumber = (vendorId, orderId) => {
   const timestamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const vendorPrefix = vendorId.substring(0, 4).toUpperCase();
+  const vendorPrefix = (vendorId ?? 'UNKN').substring(0, 4).toUpperCase();
   const orderSuffix = orderId.substring(0, 4).toUpperCase();
   return `TRK-${vendorPrefix}-${timestamp}${random}-${orderSuffix}`;
 };
@@ -69,30 +69,34 @@ export const createOrder = async (req, res) => {
           continue;
         }
 
+        const variantLabel = Array.isArray(item.variant.attributes)
+          ? item.variant.attributes.map(a => (a.values?.[0] || a.normalizedValues?.[0] || '')).filter(Boolean).join(' / ')
+          : (item.variant.name || '');
+
         if (!item.variant.isActive) {
-          invalidItems.push({ 
-            reason: 'Product variant is no longer available', 
+          invalidItems.push({
+            reason: 'Product variant is no longer available',
             name: item.product.name,
-            variant: `${item.variant.color || ''} ${item.variant.size || ''}`.trim()
+            variant: variantLabel
           });
           continue;
         }
 
         if (item.variant.stockQuantity < item.quantity) {
-          invalidItems.push({ 
+          invalidItems.push({
             reason: 'Insufficient stock',
             name: item.product.name,
-            variant: `${item.variant.color || ''} ${item.variant.size || ''}`.trim(),
+            variant: variantLabel,
             available: item.variant.stockQuantity,
             requested: item.quantity
           });
         }
       } else {
-        if (item.product.stockQuantity < item.quantity) {
-          invalidItems.push({ 
+        if (item.product.totalStock < item.quantity) {
+          invalidItems.push({
             reason: 'Insufficient stock',
             name: item.product.name,
-            available: item.product.stockQuantity,
+            available: item.product.totalStock,
             requested: item.quantity
           });
         }
@@ -193,7 +197,7 @@ export const createOrder = async (req, res) => {
             await tx.product.update({
               where: { id: item.productId },
               data: {
-                stockQuantity: {
+                totalStock: {
                   decrement: item.quantity
                 }
               }
@@ -440,7 +444,7 @@ export const getOrderById = async (req, res) => {
     }
 
     // Check access
-    const isCustomer = order.customer.userId === userId;
+    const isCustomer = order.customer?.userId === userId;
     const isVendor = order.vendor.userId === userId;
     const isAdmin = req.user.role === 'ADMIN';
 
@@ -512,17 +516,19 @@ export const updateOrderStatus = async (req, res) => {
       }
     });
 
-    // Notify customer
-    try {
-      const customer = await prisma.customer.findUnique({
-        where: { id: updatedOrder.customerId },
-        select: { userId: true }
-      });
-      if (customer) {
-        await notifyOrderStatusChanged(customer.userId, updatedOrder, status);
+    // Notify customer (skip for guest orders — no userId)
+    if (updatedOrder.customerId) {
+      try {
+        const customer = await prisma.customer.findUnique({
+          where: { id: updatedOrder.customerId },
+          select: { userId: true }
+        });
+        if (customer) {
+          await notifyOrderStatusChanged(customer.userId, updatedOrder, status);
+        }
+      } catch (notifError) {
+        console.error('Notification error:', notifError);
       }
-    } catch (notifError) {
-      console.error('Notification error:', notifError);
     }
 
     res.json({
@@ -587,7 +593,7 @@ export const cancelOrder = async (req, res) => {
           await tx.product.update({
             where: { id: item.productId },
             data: {
-              stockQuantity: {
+              totalStock: {
                 increment: item.quantity
               }
             }
@@ -598,18 +604,19 @@ export const cancelOrder = async (req, res) => {
       return cancelledOrder;
     });
 
-    // Notify customer
-    try {
-      const customer = await prisma.customer.findUnique({
-        where: { id: customerId },
-        select: { userId: true }
-      });
-      
-      if (customer) {
-        await notifyOrderCancelled(customer.userId, updatedOrder);
+    // Notify customer (skip for guest orders — no userId)
+    if (customerId) {
+      try {
+        const customer = await prisma.customer.findUnique({
+          where: { id: customerId },
+          select: { userId: true }
+        });
+        if (customer) {
+          await notifyOrderCancelled(customer.userId, updatedOrder);
+        }
+      } catch (notifError) {
+        console.error('Notification error:', notifError);
       }
-    } catch (notifError) {
-      console.error('Notification error:', notifError);
     }
 
     res.json({

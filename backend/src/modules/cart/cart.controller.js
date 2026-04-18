@@ -1,5 +1,11 @@
 import prisma from '../../shared/config/db.js';
 
+// Helper: extract numeric price from variant (Json) or product
+function getItemPrice(variant, product) {
+  if (variant) return variant.price?.retailPrice || 0;
+  return product.minPrice || 0;
+}
+
 // Get customer's cart
 export const getCart = async (req, res) => {
   try {
@@ -15,13 +21,13 @@ export const getCart = async (req, res) => {
             }
           }
         },
-        variant: true // ← ADDED
+        variant: true
       }
     });
 
-    // Calculate total using variant price if available
+    // Calculate total using variant retailPrice or product minPrice
     const total = cartItems.reduce((sum, item) => {
-      const price = item.variant ? item.variant.price : item.product.price;
+      const price = getItemPrice(item.variant, item.product);
       return sum + (price * item.quantity);
     }, 0);
 
@@ -41,7 +47,7 @@ export const getCart = async (req, res) => {
 export const addToCart = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
-    const { productId, variantId, quantity } = req.body; // ← ADDED variantId
+    const { productId, variantId, quantity } = req.body;
 
     // Get product
     const product = await prisma.product.findUnique({
@@ -56,10 +62,9 @@ export const addToCart = async (req, res) => {
       return res.status(400).json({ error: 'Product is not available' });
     }
 
-    // ✅ VARIANT VALIDATION & STOCK CHECK
+    // Variant validation & stock check
     let availableStock;
-    let itemPrice;
-    
+
     if (variantId) {
       const variant = await prisma.productVariant.findUnique({
         where: { id: variantId }
@@ -78,16 +83,14 @@ export const addToCart = async (req, res) => {
       }
 
       availableStock = variant.stockQuantity;
-      itemPrice = variant.price;
     } else {
-      availableStock = product.stockQuantity;
-      itemPrice = product.price;
+      availableStock = product.totalStock;
     }
 
     // Check stock availability
     if (availableStock < quantity) {
-      return res.status(400).json({ 
-        error: `Insufficient stock. Available: ${availableStock}` 
+      return res.status(400).json({
+        error: `Insufficient stock. Available: ${availableStock}`
       });
     }
 
@@ -104,10 +107,10 @@ export const addToCart = async (req, res) => {
 
     if (existingItem) {
       const newQuantity = existingItem.quantity + quantity;
-      
+
       if (availableStock < newQuantity) {
-        return res.status(400).json({ 
-          error: `Insufficient stock. Available: ${availableStock}, In cart: ${existingItem.quantity}` 
+        return res.status(400).json({
+          error: `Insufficient stock. Available: ${availableStock}, In cart: ${existingItem.quantity}`
         });
       }
 
@@ -155,9 +158,9 @@ export const updateCartItem = async (req, res) => {
     // Find cart item
     const cartItem = await prisma.cartItem.findUnique({
       where: { id },
-      include: { 
+      include: {
         product: true,
-        variant: true // ← ADDED
+        variant: true
       }
     });
 
@@ -170,14 +173,14 @@ export const updateCartItem = async (req, res) => {
       return res.status(403).json({ error: 'Not your cart item' });
     }
 
-    // ✅ CHECK STOCK FROM VARIANT OR PRODUCT
-    const availableStock = cartItem.variant 
-      ? cartItem.variant.stockQuantity 
-      : cartItem.product.stockQuantity;
+    // Check stock from variant or product
+    const availableStock = cartItem.variant
+      ? cartItem.variant.stockQuantity
+      : cartItem.product.totalStock;
 
     if (availableStock < quantity) {
-      return res.status(400).json({ 
-        error: `Not enough stock available. Available: ${availableStock}` 
+      return res.status(400).json({
+        error: `Not enough stock available. Available: ${availableStock}`
       });
     }
 
@@ -185,7 +188,7 @@ export const updateCartItem = async (req, res) => {
     const updatedItem = await prisma.cartItem.update({
       where: { id },
       data: { quantity },
-      include: { 
+      include: {
         product: true,
         variant: true
       }

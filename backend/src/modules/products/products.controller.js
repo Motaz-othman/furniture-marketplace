@@ -1,138 +1,187 @@
 import prisma from '../../shared/config/db.js';
+import { transformProductForStorefront } from '../../shared/utils/storefront.transforms.js';
 import { indexProduct, removeProductFromIndex } from '../../shared/services/meilisearch.service.js';
 
+// ─── Shared includes for storefront queries ─────────────────────────
 
-// Get all products with filtering
+const storefrontProductInclude = {
+  vendor: { select: { businessName: true } },
+  category: { select: { id: true, name: true, slug: true, parentId: true } },
+  variants: true,
+  storefront: {
+    include: {
+      category: { select: { id: true, name: true, slug: true, parentId: true } },
+    },
+  },
+};
+
+// ─── Public: Get all storefront products ─────────────────────────────
+
 export const getAllProducts = async (req, res) => {
   try {
-    const { 
-      categoryId, 
-      vendorId, 
-      minPrice, 
-      maxPrice, 
-      sortBy = 'createdAt', 
-      order = 'desc',
+    const {
+      categoryId,
+      featured,
+      new: isNew,
+      sale,
+      search,
+      sortBy,
       page = 1,
-      limit = 20
+      limit = 20,
     } = req.query;
 
-    // Build where clause
-    const where = {
-      isActive: true
-    };
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
 
-    if (categoryId) {
-      where.categoryId = categoryId;
-    }
-
-    if (vendorId) {
-      where.vendorId = vendorId;
-    }
-
-    if (minPrice || maxPrice) {
-      where.price = {};
-      if (minPrice) where.price.gte = parseFloat(minPrice);
-      if (maxPrice) where.price.lte = parseFloat(maxPrice);
-    }
-
-    // Build orderBy
-    const validSortFields = ['price', 'createdAt', 'name', 'rating'];
-    const validOrders = ['asc', 'desc'];
-    
-    const orderByField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
-    const orderDirection = validOrders.includes(order) ? order : 'desc';
-
-    // Pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const take = parseInt(limit);
-
-    // Get products with pagination
-    const [products, totalCount] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        include: {
-          vendor: {
-            select: { businessName: true }
+    // Fetch all published products via StorefrontListing
+    const listings = await prisma.storefrontListing.findMany({
+      where: { isPublished: true },
+      include: {
+        product: {
+          include: {
+            vendor: { select: { businessName: true } },
+            category: { select: { id: true, name: true, slug: true, parentId: true } },
+            variants: true,
           },
-          category: {
-            select: { name: true, slug: true }
-          },
-          variants: true  // ← ADD THIS LINE
         },
-        orderBy: { [orderByField]: orderDirection },
-        skip,
-        take
-      }),
-      prisma.product.count({ where })
-    ]);
-
-    res.json({
-      products,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalCount,
-        totalPages: Math.ceil(totalCount / parseInt(limit))
-      }
+        category: { select: { id: true, name: true, slug: true, parentId: true } },
+      },
     });
 
+    // Transform all listings to frontend shape
+    let products = listings.map(listing =>
+      transformProductForStorefront(listing.product, listing)
+    );
+
+    // Apply filters
+    if (categoryId) {
+      products = products.filter(p => p.categoryId === categoryId);
+    }
+    if (featured === 'true') {
+      products = products.filter(p => p.isFeatured);
+    }
+    if (isNew === 'true') {
+      products = products.filter(p => p.isNew);
+    }
+    if (sale === 'true') {
+      products = products.filter(p => p.isOnSale);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      products = products.filter(
+        p =>
+          p.name.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
+      );
+    }
+
+    // Sort
+    if (sortBy === 'price-asc') {
+      products.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-desc') {
+      products.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name') {
+      products.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === 'newest') {
+      products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    // Paginate
+    const total = products.length;
+    const paginatedProducts = products.slice(
+      (pageNum - 1) * limitNum,
+      pageNum * limitNum
+    );
+
+    res.json({
+      data: paginatedProducts,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
   } catch (error) {
     console.error('Get products error:', error);
     res.status(500).json({ error: 'Failed to get products' });
   }
 };
 
-// Get single product
+// ─── Public: Get product by ID ───────────────────────────────────────
+
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
 
     const product = await prisma.product.findUnique({
       where: { id },
-      include: {
-        vendor: {
-          select: { businessName: true, description: true }
-        },
-        category: {
-          select: { name: true, slug: true }
-        },
-        variants: true  // ← ADD THIS LINE
-      }
+      include: storefrontProductInclude,
     });
 
-    if (!product) {
+    if (!product || !product.storefront?.isPublished) {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    res.json(product);
-
+    res.json({ data: transformProductForStorefront(product) });
   } catch (error) {
     console.error('Get product error:', error);
     res.status(500).json({ error: 'Failed to get product' });
   }
 };
-// Create product (vendor only - we'll add protection later)
+
+// ─── Public: Get product by slug ─────────────────────────────────────
+
+export const getProductBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const product = await prisma.product.findUnique({
+      where: { slug },
+      include: storefrontProductInclude,
+    });
+
+    if (!product || !product.storefront?.isPublished) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    res.json({ data: transformProductForStorefront(product) });
+  } catch (error) {
+    console.error('Get product by slug error:', error);
+    res.status(500).json({ error: 'Failed to get product' });
+  }
+};
+
+// ─── Public: Search products ─────────────────────────────────────────
+
+export const searchProducts = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ error: 'Search query (q) is required' });
+    }
+
+    req.query.search = q;
+    return getAllProducts(req, res);
+  } catch (error) {
+    console.error('Search products error:', error);
+    res.status(500).json({ error: 'Failed to search products' });
+  }
+};
+
+// ─── Vendor: Create product ──────────────────────────────────────────
+
 export const createProduct = async (req, res) => {
   try {
-    const { 
-      vendorId, 
-      categoryId, 
-      name, 
-      description, 
-      price, 
-      compareAtPrice, 
-      sku, 
-      stockQuantity, 
-      images,
-      dimensions,
-      materials,
-      colors,
-      roomType,
-      style,
-      assemblyRequired,
+    const {
+      vendorId,
+      categoryId,
+      name,
+      slug,
+      description,
       brand,
-      warranty,
-      careInstructions
+      collection,
     } = req.body;
 
     const product = await prisma.product.create({
@@ -140,108 +189,66 @@ export const createProduct = async (req, res) => {
         vendorId,
         categoryId,
         name,
-        description,
-        price,
-        compareAtPrice,
-        sku,
-        stockQuantity: stockQuantity || 0,
-        images: images || [],
-        dimensions: dimensions || null,
-        materials: materials || [],
-        colors: colors || [],
-        roomType: roomType || null,
-        style: style || null,
-        assemblyRequired: assemblyRequired || false,
-        brand: brand || null,
-        warranty: warranty || null,
-        careInstructions: careInstructions || null
+        slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        description: description || '',
+        brand,
+        collection,
+        source: 'MANUAL',
       },
       include: {
-        vendor: {
-          select: { businessName: true }
-        },
-        category: {
-          select: { name: true }
-        }
-      }
+        vendor: { select: { businessName: true } },
+        category: { select: { name: true } },
+      },
     });
 
-    // Sync to Meilisearch
     try {
       await indexProduct(product);
     } catch (searchError) {
       console.error('Failed to index product in search:', searchError);
     }
 
-    res.status(201).json({
-      message: 'Product created successfully',
-      product: product
-    });
-
+    res.status(201).json({ message: 'Product created successfully', product });
   } catch (error) {
     console.error('Create product error:', error);
     res.status(500).json({ error: 'Failed to create product' });
   }
 };
 
+// ─── Vendor: Update product ──────────────────────────────────────────
+
 export const updateProduct = async (req, res) => {
   try {
-    console.log('🔧 UPDATE PRODUCT CALLED');
-    console.log('🔧 Product ID:', req.params.id);
-    console.log('🔧 Update data:', req.body);
-    console.log('🔧 User:', req.user?.id, req.user?.role);
-    
     const { id } = req.params;
     const updateData = req.body;
 
-    // Update the product
     const product = await prisma.product.update({
       where: { id },
       data: updateData,
       include: {
         category: true,
-        vendor: {
-          select: {
-            id: true,
-            businessName: true,
-          },
-        },
+        vendor: { select: { id: true, businessName: true } },
       },
     });
 
-    console.log('✅ PRODUCT UPDATED SUCCESSFULLY');
-
-    res.json({
-      message: 'Product updated successfully',
-      product,
-    });
+    res.json({ message: 'Product updated successfully', product });
   } catch (error) {
-    console.error('❌ UPDATE PRODUCT ERROR:', error);
-
+    console.error('Update product error:', error);
     if (error.code === 'P2025') {
       return res.status(404).json({ error: 'Product not found' });
     }
-
     res.status(500).json({ error: 'Failed to update product' });
   }
 };
 
-// Delete product
+// ─── Vendor: Delete product ──────────────────────────────────────────
+
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // First, delete all OrderItems that reference this product
-    await prisma.orderItem.deleteMany({
-      where: { productId: id }
-    });
+    await prisma.orderItem.deleteMany({ where: { productId: id } });
+    await prisma.product.delete({ where: { id } });
 
-    // Then delete the product
-    await prisma.product.delete({
-      where: { id }
-    });
-
-    // Remove from Meilisearch
     try {
       await removeProductFromIndex(id);
     } catch (searchError) {
@@ -249,24 +256,21 @@ export const deleteProduct = async (req, res) => {
     }
 
     res.json({ message: 'Product deleted successfully' });
-
   } catch (error) {
     console.error('Delete product error:', error);
-    
     if (error.code === 'P2025') {
       return res.status(404).json({ error: 'Product not found' });
     }
-    
     res.status(500).json({ error: 'Failed to delete product' });
   }
 };
 
-// Toggle product active status (vendor only)
+// ─── Vendor: Toggle product active status ────────────────────────────
+
 export const toggleProductStatus = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Get current product
     const currentProduct = await prisma.product.findUnique({
       where: { id },
       select: { isActive: true },
@@ -276,15 +280,12 @@ export const toggleProductStatus = async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Toggle status
     const updatedProduct = await prisma.product.update({
       where: { id },
       data: { isActive: !currentProduct.isActive },
       include: {
         category: true,
-        _count: {
-          select: { variants: true }
-        }
+        _count: { select: { variants: true } },
       },
     });
 
@@ -297,7 +298,9 @@ export const toggleProductStatus = async (req, res) => {
     res.status(500).json({ error: 'Failed to toggle product status' });
   }
 };
-// Get vendor's own products (vendor only)
+
+// ─── Vendor: Get own products ────────────────────────────────────────
+
 export const getVendorProducts = async (req, res) => {
   try {
     const vendorId = req.user.vendorId;
@@ -319,9 +322,7 @@ export const getVendorProducts = async (req, res) => {
       where,
       include: {
         category: true,
-        _count: {
-          select: { variants: true }  // ← Add this to count variants
-        }
+        _count: { select: { variants: true } },
       },
       skip: (page - 1) * limit,
       take: parseInt(limit),

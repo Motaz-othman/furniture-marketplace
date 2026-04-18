@@ -1,13 +1,21 @@
 import { z } from 'zod';
 
+const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(100)
+  .regex(/[a-z]/, 'Password must contain a lowercase letter')
+  .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+  .regex(/[0-9]/, 'Password must contain a number');
+
 // Auth validation schemas
 export const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: passwordSchema,
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(1, 'Last name is required').max(50),
   role: z.enum(['CUSTOMER', 'VENDOR', 'ADMIN']).optional(),
-  businessName: z.string().max(100).optional()
+  businessName: z.string().max(100).optional(),
+  claimGuestOrders: z.boolean().optional(),
 });
 
 export const loginSchema = z.object({
@@ -136,12 +144,13 @@ export const updateVendorProfileSchema = z.object({
 export const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional(),
   lastName: z.string().min(1).max(50).optional(),
-  email: z.string().email().optional()
+  email: z.string().email().optional(),
+  phone: z.string().max(20).optional().nullable()
 });
 
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(6),
-  newPassword: z.string().min(6).max(100)
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: passwordSchema,
 });
 
 // Review validation schemas
@@ -161,6 +170,27 @@ export const addToWishlistSchema = z.object({
   productId: z.string().uuid()
 });
 
+// Guest checkout validation schema
+export const guestCheckoutSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  firstName: z.string().min(1, 'First name is required').max(50),
+  lastName: z.string().min(1, 'Last name is required').max(50),
+  phone: z.string().max(20).optional(),
+  address: z.object({
+    street: z.string().min(1, 'Street is required').max(200),
+    city: z.string().min(1, 'City is required').max(100),
+    state: z.string().min(2, 'State is required').max(50),
+    zipCode: z.string().min(4, 'Zip code is required').max(10),
+    country: z.string().length(2, 'Country code must be 2 letters').optional(),
+  }),
+  items: z.array(z.object({
+    productId: z.string().uuid('Invalid product ID'),
+    variantId: z.string().uuid('Invalid variant ID').optional(),
+    quantity: z.number().int().positive('Quantity must be at least 1').max(100),
+  })).min(1, 'At least one item is required'),
+  notes: z.string().max(500).optional(),
+});
+
 // Password reset validation schemas
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address')
@@ -168,5 +198,51 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Token is required'),
-  newPassword: z.string().min(6, 'Password must be at least 6 characters').max(100)
+  newPassword: passwordSchema,
+});
+
+// Admin validation schemas
+export const adminUpdateUserSchema = z.object({
+  firstName: z.string().min(1).max(50).optional(),
+  lastName: z.string().min(1).max(50).optional(),
+  isBlocked: z.boolean().optional(),
+});
+
+export const adminUpdateVendorStatusSchema = z.object({
+  status: z.enum(['PENDING', 'APPROVED', 'VERIFIED']),
+});
+
+export const adminUpdateVendorRatingSchema = z.object({
+  adminRating: z.number().min(0).max(5),
+});
+
+export const adminUpdateVendorCommissionSchema = z.object({
+  commissionRate: z.number().min(0).max(1),
+});
+
+export const adminUpdateOrderStatusSchema = z.object({
+  status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']),
+  note: z.string().max(500).optional(),
+});
+
+export const createShipmentSchema = z.object({
+  provider: z.enum(['DELIVERIGHT', 'GIGIGA', 'FEDEX', 'UPS', 'OTHER']).optional(),
+  type: z.enum(['LTL', 'SMALL_PARCEL']).optional(),
+  notes: z.string().max(500).optional(),
+  itemIds: z.array(z.string()).optional(),
+});
+
+export const updateShipmentSchema = z.object({
+  provider: z.enum(['DELIVERIGHT', 'GIGIGA', 'FEDEX', 'UPS', 'OTHER']).nullable().optional(),
+  type: z.enum(['LTL', 'SMALL_PARCEL']).nullable().optional(),
+  status: z.enum(['PENDING', 'QUOTED', 'ARRANGED', 'IN_TRANSIT', 'DELIVERED', 'FAILED']).optional(),
+  estimatedCost: z.number().min(0).nullable().optional(),
+  actualCost: z.number().min(0).nullable().optional(),
+  trackingNumber: z.string().max(200).nullable().optional(),
+  trackingUrl: z.string().url().nullable().optional(),
+  notes: z.string().max(500).nullable().optional(),
+});
+
+export const assignShipmentItemsSchema = z.object({
+  itemIds: z.array(z.string()),
 });

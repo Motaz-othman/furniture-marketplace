@@ -23,7 +23,7 @@ export const processRefund = async (req, res) => {
     }
 
     // Authorization check
-    const isVendor = userRole === 'VENDOR' && order.vendor.userId === req.user.id;
+    const isVendor = userRole === 'VENDOR' && order.vendor?.userId === req.user.id;
     const isAdmin = userRole === 'ADMIN';
 
     if (!isVendor && !isAdmin) {
