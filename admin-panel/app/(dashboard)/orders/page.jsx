@@ -1,0 +1,236 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { getOrders } from '@/lib/services/orders';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Search, X, Package } from 'lucide-react';
+
+const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+
+const STATUS_VARIANT = {
+  PENDING:    'outline',
+  CONFIRMED:  'secondary',
+  PROCESSING: 'secondary',
+  SHIPPED:    'default',
+  DELIVERED:  'default',
+  CANCELLED:  'destructive',
+  REFUNDED:   'destructive',
+};
+
+const STATUS_COLOR = {
+  PENDING:    'text-yellow-600 border-yellow-300',
+  CONFIRMED:  'text-blue-600 border-blue-300',
+  PROCESSING: 'text-purple-600 border-purple-300',
+  SHIPPED:    'text-cyan-600 border-cyan-300',
+  DELIVERED:  'text-green-600 border-green-300',
+  CANCELLED:  '',
+  REFUNDED:   '',
+};
+
+function StatusBadge({ status }) {
+  const color = STATUS_COLOR[status] || '';
+  const variant = STATUS_VARIANT[status] || 'outline';
+  return (
+    <Badge variant={variant} className={`text-xs ${color}`}>
+      {status}
+    </Badge>
+  );
+}
+
+function formatDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+  });
+}
+
+function formatCurrency(val) {
+  return val != null ? `$${Number(val).toFixed(2)}` : '—';
+}
+
+export default function OrdersPage() {
+  const router = useRouter();
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('');
+  const [page, setPage] = useState(1);
+
+  const params = { page, limit: 20 };
+  if (search) params.search = search;
+  if (status) params.status = status;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-orders', search, status, page],
+    queryFn: () => getOrders(params),
+    staleTime: 30_000,
+  });
+
+  const orders = data?.orders || [];
+  const pagination = data?.pagination || {};
+  const hasFilters = search || status;
+
+  function clearFilters() {
+    setSearch('');
+    setStatus('');
+    setPage(1);
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Orders</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {pagination.totalCount ?? '—'} total orders
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search order # or tracking #..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="pl-9"
+          />
+        </div>
+        <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((s) => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X className="h-4 w-4 mr-1" /> Clear
+          </Button>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order #</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Tracking #</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : orders.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  No orders found
+                </TableCell>
+              </TableRow>
+            ) : (
+              orders.map((order) => (
+                <TableRow
+                  key={order.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => router.push(`/orders/${order.id}`)}
+                >
+                  <TableCell className="font-mono text-sm font-medium">
+                    {order.orderNumber}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {order.customer?.user
+                      ? `${order.customer.user.firstName} ${order.customer.user.lastName}`
+                      : '—'}
+                    {order.customer?.user?.email && (
+                      <div className="text-xs text-muted-foreground">{order.customer.user.email}</div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    <div className="flex items-center gap-1.5">
+                      {order.items?.[0]?.product?.mainImage ? (
+                        <img
+                          src={order.items[0].product.mainImage}
+                          alt=""
+                          className="w-8 h-8 rounded object-cover border"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                          <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                      )}
+                      <span>
+                        {order.items?.[0]?.product?.name
+                          ? order.items.length > 1
+                            ? `${order.items[0].product.name} +${order.items.length - 1} more`
+                            : order.items[0].product.name
+                          : '—'}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm font-medium">
+                    {formatCurrency(order.total)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={order.status} />
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {formatDate(order.createdAt)}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {order.trackingNumber || '—'}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {page} of {pagination.totalPages} ({pagination.totalCount} orders)
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </Button>
+            <Button variant="outline" size="sm" disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)}>
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,559 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { getListings, updateListing, deleteListing, getCategories, getRawProductFilters } from '@/lib/services/storefront';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Pencil, Trash2, Package, Search, X } from 'lucide-react';
+import { toast } from 'sonner';
+
+function InlineEdit({ value, onSave, type = 'number', placeholder, prefix }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const inputRef = useRef(null);
+
+  function startEdit() {
+    setDraft(value != null ? String(value) : '');
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
+  function commit() {
+    setEditing(false);
+    const parsed = type === 'number'
+      ? (draft.trim() === '' ? null : Number(draft))
+      : draft.trim() || null;
+    if (parsed !== value) onSave(parsed);
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') commit();
+    if (e.key === 'Escape') setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <Input
+        ref={inputRef}
+        type={type}
+        step={type === 'number' ? '0.01' : undefined}
+        className="h-7 w-24 text-sm"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={handleKeyDown}
+      />
+    );
+  }
+
+  return (
+    <button
+      onClick={startEdit}
+      className="block text-sm hover:bg-muted px-1.5 py-0.5 rounded cursor-pointer text-left min-w-15"
+      title="Click to edit"
+    >
+      {value != null ? `${prefix || ''}${type === 'number' && prefix === '$' ? Number(value).toFixed(2) : value}` : (
+        <span className="text-muted-foreground italic">{placeholder || 'Set'}</span>
+      )}
+    </button>
+  );
+}
+
+export default function ListingsPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({ status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' });
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
+  const hasActiveFilters = Object.values(filters).some(Boolean);
+
+  function setFilter(key, value) {
+    setFilters(f => ({ ...f, [key]: value }));
+    setPage(1);
+  }
+
+  function clearFilters() {
+    setFilters({ status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' });
+    setSearch('');
+    setPage(1);
+  }
+
+  const queryParams = { page, limit: 20 };
+  if (search) queryParams.search = search;
+  if (activeFilters.status === 'published') queryParams.isPublished = 'true';
+  if (activeFilters.status === 'drafts') queryParams.isPublished = 'false';
+  if (activeFilters.brand) queryParams.brand = activeFilters.brand;
+  if (activeFilters.categoryId) queryParams.categoryId = activeFilters.categoryId;
+  if (activeFilters.isTrending) queryParams.isTrending = activeFilters.isTrending;
+  if (activeFilters.isNewArrival) queryParams.isNewArrival = activeFilters.isNewArrival;
+  if (activeFilters.minPrice) queryParams.minPrice = activeFilters.minPrice;
+  if (activeFilters.maxPrice) queryParams.maxPrice = activeFilters.maxPrice;
+
+  const { data: listingsRes, isLoading } = useQuery({
+    queryKey: ['listings', search, page, activeFilters],
+    queryFn: () => getListings(queryParams),
+  });
+
+  const { data: categoriesRes } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+  });
+
+  const { data: filtersRes } = useQuery({
+    queryKey: ['raw-product-filters'],
+    queryFn: getRawProductFilters,
+  });
+
+  const categories = categoriesRes?.data || [];
+  const brands = filtersRes?.data?.brands || [];
+
+  const listings = listingsRes?.data || [];
+  const pagination = listingsRes?.pagination;
+
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, field, value }) => updateListing(id, { [field]: value }),
+    onMutate: async ({ id, field, value }) => {
+      await queryClient.cancelQueries({ queryKey: ['listings', search, page, activeFilters] });
+      const previous = queryClient.getQueryData(['listings', search, page, activeFilters]);
+      queryClient.setQueryData(['listings', search, page, activeFilters], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((l) => (l.id === id ? { ...l, [field]: value } : l)),
+        };
+      });
+      return { previous };
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['listings', search, page, activeFilters], context.previous);
+      }
+      toast.error(err.response?.data?.error || 'Update failed');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['listings'] }),
+  });
+
+  const fieldMutation = useMutation({
+    mutationFn: ({ id, data }) => updateListing(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listings'] });
+      toast.success('Updated');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Update failed'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteListing(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listings'] });
+      queryClient.invalidateQueries({ queryKey: ['raw-products'] });
+      setDeleteTarget(null);
+      toast.success('Listing removed from storefront');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Delete failed'),
+  });
+
+  function handleToggle(listing, field) {
+    toggleMutation.mutate({ id: listing.id, field, value: !listing[field] });
+  }
+
+  function formatPrice(val) {
+    return val != null ? `$${Number(val).toFixed(2)}` : '—';
+  }
+
+  function displayName(listing) {
+    return listing.displayName || listing.product?.name || 'Unnamed';
+  }
+
+  function saveVariantPrice(listing, variantId, price) {
+    const current = listing.variantPrices || {};
+    const updated = { ...current };
+    if (price == null) {
+      delete updated[variantId];
+    } else {
+      updated[variantId] = price;
+    }
+    fieldMutation.mutate({ id: listing.id, data: { variantPrices: updated } });
+  }
+
+  function saveVariantStock(listing, variantId, qty) {
+    const current = listing.variantStocks || {};
+    const updated = { ...current };
+    if (qty == null) {
+      delete updated[variantId];
+    } else {
+      updated[variantId] = parseInt(qty);
+    }
+    fieldMutation.mutate({ id: listing.id, data: { variantStocks: updated } });
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Storefront Listings</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Manage your published products and drafts
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, SKU, brand..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={filters.status} onValueChange={(v) => setFilter('status', v)}>
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="drafts">Drafts</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.brand} onValueChange={(v) => setFilter('brand', v)}>
+            <SelectTrigger className="w-[160px] h-8 text-xs">
+              <SelectValue placeholder="Brand" />
+            </SelectTrigger>
+            <SelectContent>
+              {brands.map((b) => (
+                <SelectItem key={b} value={b}>{b}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.categoryId} onValueChange={(v) => setFilter('categoryId', v)}>
+            <SelectTrigger className="w-[160px] h-8 text-xs">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.isTrending} onValueChange={(v) => setFilter('isTrending', v)}>
+            <SelectTrigger className="w-[130px] h-8 text-xs">
+              <SelectValue placeholder="Trending" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Trending</SelectItem>
+              <SelectItem value="false">Not Trending</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.isNewArrival} onValueChange={(v) => setFilter('isNewArrival', v)}>
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="New Arrival" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">New Arrival</SelectItem>
+              <SelectItem value="false">Not New Arrival</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              placeholder="Min $"
+              value={filters.minPrice}
+              onChange={(e) => setFilter('minPrice', e.target.value)}
+              className="w-[90px] h-8 text-xs"
+            />
+            <span className="text-xs text-muted-foreground">&ndash;</span>
+            <Input
+              type="number"
+              placeholder="Max $"
+              value={filters.maxPrice}
+              onChange={(e) => setFilter('maxPrice', e.target.value)}
+              className="w-[90px] h-8 text-xs"
+            />
+          </div>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={clearFilters}>
+              <X className="h-3 w-3 mr-1" /> Clear
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-16">Image</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Brand</TableHead>
+              <TableHead>SKU</TableHead>
+              <TableHead>Original Price</TableHead>
+              <TableHead>Discounted</TableHead>
+              <TableHead>Cost</TableHead>
+              <TableHead>Available Stock</TableHead>
+              <TableHead>My Stock</TableHead>
+              <TableHead className="text-center w-16 px-1">Published</TableHead>
+              <TableHead className="text-center w-16 px-1">Trending</TableHead>
+              <TableHead className="text-center w-20 px-1">New Arrival</TableHead>
+              <TableHead className="w-24">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : listings.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
+                  No listings found. Add products from the Wondersign Products page.
+                </TableCell>
+              </TableRow>
+            ) : (
+              listings.map((listing) => (
+                <TableRow key={listing.id}>
+                  <TableCell>
+                    {listing.product?.mainImage ? (
+                      <img
+                        src={listing.product.mainImage}
+                        alt={displayName(listing)}
+                        className="w-10 h-10 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div
+                      className="font-medium text-primary hover:underline cursor-pointer"
+                      onClick={() => router.push(`/listings/${listing.id}`)}
+                    >
+                      {displayName(listing)}
+                    </div>
+                    {listing.displayName && (
+                      <div className="text-xs text-muted-foreground">
+                        Raw: {listing.product?.name}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {listing.product?.brand || '—'}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {listing.product?.variants?.length > 0 ? (
+                      <div className="space-y-1">
+                        {listing.product.variants.map((v) => (
+                          <div key={v.id} className="text-xs text-muted-foreground whitespace-nowrap h-7 flex items-center">
+                            {v.sku || '—'}
+                          </div>
+                        ))}
+                      </div>
+                    ) : '—'}
+                  </TableCell>
+                  {/* Original Price (editable selling price) */}
+                  <TableCell>
+                    {listing.product?.variants?.length > 0 ? (
+                      <div className="space-y-1">
+                        {listing.product.variants.map((v) => (
+                          <InlineEdit
+                            key={v.id}
+                            value={listing.variantPrices?.[v.id] ?? null}
+                            placeholder={formatPrice(v.price?.retailPrice)}
+                            prefix="$"
+                            onSave={(val) => saveVariantPrice(listing, v.id, val)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <InlineEdit
+                        value={listing.displayPrice}
+                        placeholder={formatPrice(listing.product?.minPrice)}
+                        prefix="$"
+                        onSave={(val) => fieldMutation.mutate({ id: listing.id, data: { displayPrice: val } })}
+                      />
+                    )}
+                  </TableCell>
+                  {/* Discounted Price (editable sale price) */}
+                  <TableCell>
+                    <InlineEdit
+                      value={listing.discountedPrice}
+                      placeholder="—"
+                      prefix="$"
+                      onSave={(val) => fieldMutation.mutate({ id: listing.id, data: { discountedPrice: val } })}
+                    />
+                  </TableCell>
+                  {/* Cost (read-only supplier cost) */}
+                  <TableCell>
+                    {listing.product?.variants?.length > 0 ? (
+                      <div className="space-y-0.5">
+                        {listing.product.variants.map((v) => (
+                          <div key={v.id} className="text-xs text-muted-foreground whitespace-nowrap h-7 flex items-center">
+                            {formatPrice(v.price?.cost)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        {formatPrice(listing.product?.variants?.[0]?.price?.cost)}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {listing.product?.variants?.length > 0 ? (
+                      <div className="space-y-1">
+                        {listing.product.variants.map((v) => (
+                          <div key={v.id} className="text-xs text-muted-foreground h-7 flex items-center">
+                            {v.stockQuantity ?? 0}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm">{listing.product?.totalStock ?? '—'}</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {listing.product?.variants?.length > 0 ? (
+                      <div className="space-y-1">
+                        {listing.product.variants.map((v) => (
+                          <InlineEdit
+                            key={v.id}
+                            value={listing.variantStocks?.[v.id] ?? null}
+                            placeholder={String(v.stockQuantity ?? 0)}
+                            onSave={(val) => saveVariantStock(listing, v.id, val)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <InlineEdit
+                        value={listing.displayStock}
+                        placeholder={String(listing.product?.totalStock ?? 0)}
+                        onSave={(val) => fieldMutation.mutate({ id: listing.id, data: { displayStock: val != null ? parseInt(val) : null } })}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Switch size="sm" checked={listing.isPublished} onCheckedChange={() => handleToggle(listing, 'isPublished')} />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Switch size="sm" checked={listing.isTrending} onCheckedChange={() => handleToggle(listing, 'isTrending')} />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Switch size="sm" checked={listing.isNewArrival} onCheckedChange={() => handleToggle(listing, 'isNewArrival')} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => router.push(`/listings/${listing.id}`)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="text-destructive"
+                        onClick={() => setDeleteTarget(listing)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {(pagination.page - 1) * pagination.limit + 1}-
+            {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove from Storefront</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to remove <strong>{deleteTarget && displayName(deleteTarget)}</strong> from your storefront? The raw Wondersign product will still be available to re-add later.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteMutation.mutate(deleteTarget.id)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Removing...' : 'Remove'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
