@@ -4,8 +4,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { User, Heart, ShoppingCart, ArrowLeft, Menu, X, Search, Flame, Sparkles, Package, Sofa, BedDouble, UtensilsCrossed, Briefcase, TreeDeciduous, Lamp } from '@/components/ui/Icons';
-import { useParentCategories } from '@/lib/hooks';
-import { getSubcategories } from '@/lib/fake-data';
+import { useParentCategories, useAuth, useCart } from '@/lib/hooks';
 import MegaMenu from './MegaMenu';
 import MobileCategoryAccordion from './MobileCategoryAccordion';
 
@@ -14,6 +13,10 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const pathname = usePathname();
+
+  // Auth state
+  const { user, isAuthenticated } = useAuth();
+  const { itemCount } = useCart();
 
   // Check if we're on a subpage (not homepage)
   const isSubpage = pathname !== '/';
@@ -45,7 +48,7 @@ export default function Header() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
+      router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -82,7 +85,7 @@ export default function Header() {
         {/* Mobile Cart Icon - Visible only on mobile */}
         <Link href="/cart" className="mobile-header-cart" aria-label="Shopping Cart">
           <ShoppingCart size={22} strokeWidth={1.5} />
-          <span className="mobile-cart-count">0</span>
+          {itemCount > 0 && <span className="mobile-cart-count">{itemCount}</span>}
         </Link>
 
         {/* Desktop Search Box - Hidden on mobile */}
@@ -112,15 +115,23 @@ export default function Header() {
 
         {/* Desktop Header Actions - Hidden on mobile */}
         <div className="header-actions">
-          <Link href="/account" className="action-link" aria-label="Account">
-            <User size={20} />
-          </Link>
+          {isAuthenticated ? (
+            <Link href="/account" className="action-link" aria-label="Account">
+              <span className="user-avatar-initial">
+                {user?.firstName?.[0]?.toUpperCase() || 'U'}
+              </span>
+            </Link>
+          ) : (
+            <Link href="/auth/login" className="action-link" aria-label="Sign In">
+              <User size={20} />
+            </Link>
+          )}
           <Link href="/wishlist" className="action-link" aria-label="Wishlist">
             <Heart size={20} />
           </Link>
           <Link href="/cart" className="action-link cart-link" aria-label="Shopping Cart">
             <ShoppingCart size={20} />
-            <span className="cart-count">0</span>
+            {itemCount > 0 && <span className="cart-count">{itemCount}</span>}
           </Link>
         </div>
       </header>
@@ -134,7 +145,7 @@ export default function Header() {
             ) : (
               <>
                 {categories.map((category) => {
-                  const subcategories = getSubcategories(category.id);
+                  const subcategories = category.children || [];
                   return (
                     <li key={category.id}>
                       <MegaMenu 
@@ -190,7 +201,7 @@ export default function Header() {
                   <div className="mobile-loading">Loading categories...</div>
                 ) : (
                   categories.map((category) => {
-                    const subcategories = getSubcategories(category.id);
+                    const subcategories = category.children || [];
                     const icon = categoryIcons[category.slug] || <Package size={22} strokeWidth={1.5} />;
 
                     return (
@@ -244,36 +255,51 @@ export default function Header() {
             <div className="mobile-menu-section">
               <h3 className="mobile-menu-section-title">My Account</h3>
               <nav className="mobile-menu-nav">
-                <Link
-                  href="/account"
-                  className="mobile-menu-link"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <span className="mobile-menu-icon">
-                    <User size={22} strokeWidth={1.5} />
-                  </span>
-                  <span>Account</span>
-                </Link>
-                <Link
-                  href="/wishlist"
-                  className="mobile-menu-link"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <span className="mobile-menu-icon">
-                    <Heart size={22} strokeWidth={1.5} />
-                  </span>
-                  <span>Wishlist</span>
-                </Link>
-                <Link
-                  href="/orders"
-                  className="mobile-menu-link"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <span className="mobile-menu-icon">
-                    <Package size={22} strokeWidth={1.5} />
-                  </span>
-                  <span>Orders</span>
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      href="/account"
+                      className="mobile-menu-link"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <span className="mobile-menu-icon">
+                        <User size={22} strokeWidth={1.5} />
+                      </span>
+                      <span>Account</span>
+                    </Link>
+                    <Link
+                      href="/wishlist"
+                      className="mobile-menu-link"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <span className="mobile-menu-icon">
+                        <Heart size={22} strokeWidth={1.5} />
+                      </span>
+                      <span>Wishlist</span>
+                    </Link>
+                    <Link
+                      href="/orders"
+                      className="mobile-menu-link"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <span className="mobile-menu-icon">
+                        <Package size={22} strokeWidth={1.5} />
+                      </span>
+                      <span>Orders</span>
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    href="/auth/login"
+                    className="mobile-menu-link"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <span className="mobile-menu-icon">
+                      <User size={22} strokeWidth={1.5} />
+                    </span>
+                    <span>Sign In</span>
+                  </Link>
+                )}
               </nav>
             </div>
           </div>

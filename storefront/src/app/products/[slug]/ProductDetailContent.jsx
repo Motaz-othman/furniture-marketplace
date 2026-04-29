@@ -5,9 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
-import { useProductBySlug, useProducts } from '@/lib/hooks';
+import { useProductBySlug, useProducts, useCart, useCategory } from '@/lib/hooks';
 import { formatPrice, getColorFromVariant, getThumbnailUrl } from '@/lib/utils';
-import { getCategoryById } from '@/lib/fake-data';
+import toast from 'react-hot-toast';
 
 // Related Product Card with progressive image loading
 function RelatedProductCard({ product }) {
@@ -85,6 +85,7 @@ function getVariantLabel(variant, productName) {
 
 export default function ProductDetailContent({ slug }) {
   const router = useRouter();
+  const { addItem } = useCart();
 
   // Fetch single product by slug - much more efficient than fetching all products
   const { data: productData, isLoading, error } = useProductBySlug(slug);
@@ -99,6 +100,10 @@ export default function ProductDetailContent({ slug }) {
   const relatedProducts = (relatedData?.data || [])
     .filter(p => p.id !== product?.id)
     .slice(0, 4);
+
+  // Fetch parent category for breadcrumb URL
+  const parentCategoryId = product?.category?.parentId;
+  const { data: parentCatData } = useCategory(parentCategoryId, { enabled: !!parentCategoryId });
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -279,8 +284,9 @@ export default function ProductDetailContent({ slug }) {
     }
   }, [product, selectedVariant]);
 
-  const currentPrice = selectedVariant?.price || product?.price || 0;
-  const currentCompareAtPrice = selectedVariant?.compareAtPrice || product?.compareAtPrice || null;
+  // Use product-level pricing (includes admin's Original Price / Discounted Price overrides)
+  const currentPrice = product?.price || 0;
+  const currentCompareAtPrice = product?.compareAtPrice || null;
   const currentSku = selectedVariant?.sku || product?.sku || '';
   const currentStock = selectedVariant?.stockQuantity ?? product?.stockQuantity ?? 0;
   const currentInStock = currentStock > 0;
@@ -345,7 +351,7 @@ export default function ProductDetailContent({ slug }) {
 
   const subcategory = typeof product.category === 'object' ? product.category : null;
   const categoryName = subcategory?.name || (typeof product.category === 'string' ? product.category : '');
-  const parentCategory = subcategory?.parentId ? getCategoryById(subcategory.parentId) : null;
+  const parentCategory = parentCatData?.data || null;
   const categoryUrl = parentCategory
     ? `/categories/${parentCategory.slug}/${subcategory.slug}`
     : `/categories/${subcategory?.slug || 'all'}`;
@@ -355,8 +361,15 @@ export default function ProductDetailContent({ slug }) {
   };
 
   const handleAddToCart = () => {
+    addItem({
+      productId: product.id,
+      variantId: selectedVariant?.id || null,
+      quantity,
+      product,
+      variant: selectedVariant,
+    });
     const variantInfo = selectedVariant ? ` (${selectedVariant.name || selectedVariant.variantName})` : '';
-    alert(`Added ${quantity} x ${product.name}${variantInfo} to cart!`);
+    toast.success(`Added ${quantity} x ${product.name}${variantInfo} to cart`);
   };
 
   const discountPercentage = currentCompareAtPrice

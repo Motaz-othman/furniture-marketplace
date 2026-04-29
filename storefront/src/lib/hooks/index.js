@@ -26,3 +26,9 @@ export {
 
   // Export utility hooks
   export { useResponsiveColumns } from './useResponsiveColumns.js';
+
+  // Export auth hooks
+  export { useAuth } from './useAuth.js';
+
+  // Export cart hooks
+  export { useCart } from './useCart.js';

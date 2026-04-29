@@ -1,11 +1,22 @@
-import { getProductBySlug, getCategoryById } from '@/lib/fake-data';
+import { getProductBySlug } from '@/lib/api/products';
+import { getCategoryById } from '@/lib/api/categories';
 import ProductDetailContent from './ProductDetailContent';
 import '../../../styles/product-detail.css';
+
+// Fetch product data for server-side use (metadata + JSON-LD)
+async function fetchProduct(slug) {
+  try {
+    const response = await getProductBySlug(slug);
+    return response?.data || null;
+  } catch {
+    return null;
+  }
+}
 
 // Generate dynamic metadata for SEO
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await fetchProduct(slug);
 
   if (!product) {
     return {
@@ -97,9 +108,8 @@ function ProductJsonLd({ product }) {
 }
 
 // Breadcrumb JSON-LD
-function BreadcrumbJsonLd({ product }) {
+function BreadcrumbJsonLd({ product, parentCategory }) {
   const category = typeof product.category === 'object' ? product.category : null;
-  const parentCategory = category?.parentId ? getCategoryById(category.parentId) : null;
 
   const items = [
     { name: 'Home', url: 'https://livipoint.com' },
@@ -147,7 +157,18 @@ function BreadcrumbJsonLd({ product }) {
 
 export default async function ProductDetailPage({ params }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await fetchProduct(slug);
+
+  // Fetch parent category for breadcrumbs
+  let parentCategory = null;
+  if (product?.category?.parentId) {
+    try {
+      const parentCatResponse = await getCategoryById(product.category.parentId);
+      parentCategory = parentCatResponse?.data || null;
+    } catch {
+      // Parent category lookup is non-critical
+    }
+  }
 
   return (
     <>
@@ -155,7 +176,7 @@ export default async function ProductDetailPage({ params }) {
       {product && (
         <>
           <ProductJsonLd product={product} />
-          <BreadcrumbJsonLd product={product} />
+          <BreadcrumbJsonLd product={product} parentCategory={parentCategory} />
         </>
       )}
 

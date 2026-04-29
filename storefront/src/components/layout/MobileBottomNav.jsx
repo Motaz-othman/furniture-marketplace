@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, ShoppingBag, Heart, ShoppingCart, User } from '@/components/ui/Icons';
+import { useAuth, useCart } from '@/lib/hooks';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const cartItemsCount = 0; // Will connect to cart store later
+  const { isAuthenticated } = useAuth();
+  const { itemCount: cartItemsCount } = useCart();
 
   const isActive = (path) => {
     if (path === '/') {
@@ -58,11 +60,11 @@ export default function MobileBottomNav() {
 
       {/* Account */}
       <Link
-        href="/account"
-        className={`mobile-nav-item ${isActive('/account') ? 'active' : ''}`}
+        href={isAuthenticated ? '/account' : '/auth/login'}
+        className={`mobile-nav-item ${isActive('/account') || isActive('/auth') ? 'active' : ''}`}
       >
         <User size={22} strokeWidth={1.5} />
-        <span>Account</span>
+        <span>{isAuthenticated ? 'Account' : 'Sign In'}</span>
       </Link>
     </nav>
   );

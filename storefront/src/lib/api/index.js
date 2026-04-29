@@ -26,3 +26,40 @@ export {
   getSubcategories,
   getCategoryHierarchy,
 } from './categories';
+
+// Export auth API
+export {
+  loginUser,
+  registerUser,
+  getMe,
+  updateProfile,
+  changePassword,
+  forgotPassword,
+  resetPassword,
+  deleteAccount,
+  getAuthError,
+} from './auth';
+
+// Export addresses API
+export {
+  getAddresses,
+  createAddress,
+  updateAddress,
+  deleteAddress,
+} from './addresses';
+
+// Export orders API
+export {
+  getCustomerOrders,
+  getOrderById,
+  cancelOrder,
+} from './orders';
+
+// Export cart API
+export {
+  getCart,
+  addToCart,
+  updateCartItem,
+  removeCartItem,
+  clearCart,
+} from './cart';

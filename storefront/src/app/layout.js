@@ -13,10 +13,17 @@ import '../styles/footer.css';
 import '../styles/mobile.css';
 import '../styles/category-page.css';
 import '../styles/coming-soon.css';
+import '../styles/auth.css';
+import '../styles/account.css';
 import '../styles/responsive.css';
+import '../styles/cart.css';
+import '../styles/checkout.css';
 
 import { QueryProvider } from '@/lib/hooks/QueryProvider';
+import { AuthProvider } from '@/context/AuthContext';
+import { CartProvider } from '@/context/CartContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { Toaster } from 'react-hot-toast';
 
 // Load Inter font (Lulu & Georgia body style)
 const inter = Inter({
@@ -84,9 +91,20 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
       <body className={inter.className}>
         <QueryProvider>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
+          <AuthProvider>
+            <CartProvider>
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  duration: 3000,
+                  style: { fontSize: '14px' },
+                }}
+              />
+            </CartProvider>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

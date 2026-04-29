@@ -1,16 +1,38 @@
 'use client';
 
-import { use, useState, useEffect, useRef, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { use, useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { SlidersHorizontal, X, ChevronDown } from '@/components/ui/Icons';
+import { SlidersHorizontal, X } from '@/components/ui/Icons';
 import MainLayout from '@/components/layout/MainLayout';
 import VirtualProductGrid from '@/components/products/VirtualProductGrid';
-import { useResponsiveColumns } from '@/lib/hooks';
-import { getCategoryBySlug, getProductsByCategorySlug, getSubcategories, getProductsByCategory, getCategoryById, sortProducts } from '@/lib/fake-data';
+import { useResponsiveColumns, useCategoryBySlug, useProducts } from '@/lib/hooks';
 import { formatPrice } from '@/lib/utils';
 import { ProductsGridSkeleton, SubcategoriesGridSkeleton } from '@/components/products/ProductCardSkeleton';
+
+// Inline sort utility (replaces imported sortProducts from fake-data)
+function sortProducts(products, sortBy) {
+  const sorted = [...products];
+  switch (sortBy) {
+    case 'price-asc':
+      sorted.sort((a, b) => a.price - b.price);
+      break;
+    case 'price-desc':
+      sorted.sort((a, b) => b.price - a.price);
+      break;
+    case 'name-asc':
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case 'name-desc':
+      sorted.sort((a, b) => b.name.localeCompare(a.name));
+      break;
+    case 'newest':
+    default:
+      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      break;
+  }
+  return sorted;
+}
 
 // Filter Panel Component
 function FilterPanel({ filters, setFilters, priceRange, onClose, isMobile }) {
@@ -238,7 +260,6 @@ function Breadcrumbs({ category, subcategory, onSubcategoryClick }) {
 }
 
 export default function CategoryPage({ params }) {
-  const router = useRouter();
   const columns = useResponsiveColumns();
 
   // Next.js 15: params is a Promise, unwrap it with use()
@@ -249,32 +270,55 @@ export default function CategoryPage({ params }) {
   const parentSlug = slugArray[0];
   const initialSubcategorySlug = slugArray[1] || null;
 
-  // Get parent category
-  const parentCategory = getCategoryBySlug(parentSlug);
+  // Fetch parent category from API (includes children array)
+  const { data: categoryData, isLoading: isCategoryLoading } = useCategoryBySlug(parentSlug);
+  const parentCategory = categoryData?.data || null;
 
-  // Get subcategories for the parent category
-  const subcategories = parentCategory?.parentId === null ? getSubcategories(parentCategory.id) : [];
+  // Subcategories come from the parent category's children
+  const subcategories = parentCategory?.children || [];
 
-  // Get initial subcategory from URL
-  const initialSubcategory = initialSubcategorySlug ? getCategoryBySlug(initialSubcategorySlug) : null;
+  // Find initial subcategory from children array
+  const initialSubcategory = initialSubcategorySlug
+    ? subcategories.find(c => c.slug === initialSubcategorySlug) || null
+    : null;
 
   // Local state for selected subcategory (enables instant filtering without page reload)
-  const [selectedSubcategory, setSelectedSubcategory] = useState(initialSubcategory);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
 
-  // Loading state for skeleton display
-  const [isLoading, setIsLoading] = useState(true);
+  // Sync initial subcategory once category data loads
+  const hasSetInitial = useRef(false);
+  if (initialSubcategory && !hasSetInitial.current) {
+    hasSetInitial.current = true;
+    // Will be picked up on next render
+  }
+  const activeSubcategory = hasSetInitial.current && selectedSubcategory === null && initialSubcategory
+    ? initialSubcategory
+    : selectedSubcategory;
 
-  // Simulate initial load (for real API, this would be actual data fetching)
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [parentSlug]);
+  // Build the set of all category IDs to filter products by (parent + all children)
+  const categoryIds = useMemo(() => {
+    if (!parentCategory) return new Set();
+    const ids = new Set([parentCategory.id]);
+    for (const child of subcategories) {
+      ids.add(child.id);
+    }
+    return ids;
+  }, [parentCategory, subcategories]);
 
-  // Get ALL products for the parent category (including subcategories)
-  const allProducts = getProductsByCategorySlug(parentSlug);
+  // Fetch all products (high limit) — we filter client-side by category IDs
+  // because the backend only supports exact categoryId match
+  const { data: productsData, isLoading: isProductsLoading } = useProducts(
+    { limit: 200 },
+    { enabled: categoryIds.size > 0 }
+  );
+
+  // Filter products to only those belonging to this category tree
+  const allProducts = useMemo(() => {
+    const products = productsData?.data || [];
+    return products.filter(p => categoryIds.has(p.categoryId));
+  }, [productsData, categoryIds]);
+
+  const isLoading = isCategoryLoading || isProductsLoading;
 
   // Calculate price range from all products
   const priceRange = useMemo(() => {
@@ -288,7 +332,7 @@ export default function CategoryPage({ params }) {
 
   // Filter and Sort state
   const [filters, setFilters] = useState({
-    priceRange: [priceRange.min, priceRange.max],
+    priceRange: [0, 10000],
     inStock: false,
     onSale: false,
     isNew: false
@@ -298,14 +342,16 @@ export default function CategoryPage({ params }) {
 
   // Filter products based on selected subcategory and filters
   const filteredProducts = useMemo(() => {
-    let result = selectedSubcategory
-      ? allProducts.filter(product => product.categoryId === selectedSubcategory.id)
+    let result = activeSubcategory
+      ? allProducts.filter(product => product.categoryId === activeSubcategory.id)
       : allProducts;
 
-    // Apply price filter
-    result = result.filter(product =>
-      product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
-    );
+    // Apply price filter (only if user has changed from defaults)
+    if (filters.priceRange[0] > priceRange.min || filters.priceRange[1] < priceRange.max) {
+      result = result.filter(product =>
+        product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1]
+      );
+    }
 
     // Apply stock filter
     if (filters.inStock) {
@@ -324,7 +370,7 @@ export default function CategoryPage({ params }) {
 
     // Apply sorting
     return sortProducts(result, sortBy);
-  }, [allProducts, selectedSubcategory, filters, sortBy]);
+  }, [allProducts, activeSubcategory, filters, sortBy, priceRange]);
 
   // Count active filters
   const activeFilterCount = [
@@ -342,6 +388,7 @@ export default function CategoryPage({ params }) {
   // Handle subcategory selection (filter-based, no page reload)
   const handleSubcategorySelect = (subcat) => {
     setSelectedSubcategory(subcat);
+    hasSetInitial.current = false;
 
     // Update URL without page reload for bookmarkability
     const newUrl = subcat
@@ -353,13 +400,31 @@ export default function CategoryPage({ params }) {
   // Ref for subcategories container
   const subcategoriesRef = useRef(null);
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="category-page">
+          <div className="container">
+            <SubcategoriesGridSkeleton count={5} />
+          </div>
+          <div className="category-products">
+            <div className="container">
+              <ProductsGridSkeleton count={8} />
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   // If category not found, show 404
   if (!parentCategory) {
     return (
       <MainLayout>
         <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
           <h1>Category Not Found</h1>
-          <p>The category you're looking for doesn't exist.</p>
+          <p>The category you&apos;re looking for doesn&apos;t exist.</p>
           <Link href="/" style={{ color: 'var(--accent-color)', textDecoration: 'underline' }}>
             Go back home
           </Link>
@@ -374,7 +439,7 @@ export default function CategoryPage({ params }) {
       <MainLayout>
         <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
           <h1>Subcategory Not Found</h1>
-          <p>The subcategory you're looking for doesn't exist.</p>
+          <p>The subcategory you&apos;re looking for doesn&apos;t exist.</p>
           <Link href={`/categories/${parentSlug}`} style={{ color: 'var(--accent-color)', textDecoration: 'underline' }}>
             View all {parentCategory.name}
           </Link>
@@ -390,25 +455,23 @@ export default function CategoryPage({ params }) {
         <div className="container">
           <Breadcrumbs
             category={parentCategory}
-            subcategory={selectedSubcategory}
+            subcategory={activeSubcategory}
             onSubcategoryClick={handleSubcategorySelect}
           />
         </div>
 
-        {/* Subcategories (if parent category and not viewing a specific subcategory) */}
+        {/* Subcategories (if parent category has children) */}
         {subcategories.length > 0 && (
           <div className="subcategories-section">
             <div className="container">
-              {isLoading ? (
-                <SubcategoriesGridSkeleton count={subcategories.length + 1} />
-              ) : (
-                <div className="subcategories-grid" ref={subcategoriesRef}>
-                  {/* "All" filter card */}
-                  <button
-                    type="button"
-                    className={`subcategory-card ${!selectedSubcategory ? 'active' : ''}`}
-                    onClick={() => handleSubcategorySelect(null)}
-                  >
+              <div className="subcategories-grid" ref={subcategoriesRef}>
+                {/* "All" filter card */}
+                <button
+                  type="button"
+                  className={`subcategory-card ${!activeSubcategory ? 'active' : ''}`}
+                  onClick={() => handleSubcategorySelect(null)}
+                >
+                  {parentCategory.imageUrl && (
                     <div className="subcategory-image">
                       <Image
                         src={parentCategory.imageUrl}
@@ -417,21 +480,23 @@ export default function CategoryPage({ params }) {
                         sizes="(max-width: 640px) 50vw, 200px"
                       />
                     </div>
-                    <h3 className="subcategory-name">All {parentCategory.name}</h3>
-                    <span className="subcategory-count">{allProducts.length} items</span>
-                  </button>
+                  )}
+                  <h3 className="subcategory-name">All {parentCategory.name}</h3>
+                  <span className="subcategory-count">{allProducts.length} items</span>
+                </button>
 
-                  {/* Subcategory cards */}
-                  {subcategories.map((subcat) => {
-                    const productCount = getSubcategoryProductCount(subcat.id);
-                    const isActive = selectedSubcategory?.id === subcat.id;
-                    return (
-                      <button
-                        key={subcat.id}
-                        type="button"
-                        className={`subcategory-card ${isActive ? 'active' : ''}`}
-                        onClick={() => handleSubcategorySelect(subcat)}
-                      >
+                {/* Subcategory cards */}
+                {subcategories.map((subcat) => {
+                  const productCount = getSubcategoryProductCount(subcat.id);
+                  const isActive = activeSubcategory?.id === subcat.id;
+                  return (
+                    <button
+                      key={subcat.id}
+                      type="button"
+                      className={`subcategory-card ${isActive ? 'active' : ''}`}
+                      onClick={() => handleSubcategorySelect(subcat)}
+                    >
+                      {subcat.imageUrl && (
                         <div className="subcategory-image">
                           <Image
                             src={subcat.imageUrl}
@@ -440,13 +505,13 @@ export default function CategoryPage({ params }) {
                             sizes="(max-width: 640px) 50vw, 200px"
                           />
                         </div>
-                        <h3 className="subcategory-name">{subcat.name}</h3>
-                        <span className="subcategory-count">{productCount} items</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                      )}
+                      <h3 className="subcategory-name">{subcat.name}</h3>
+                      <span className="subcategory-count">{productCount} items</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -486,9 +551,7 @@ export default function CategoryPage({ params }) {
 
 
             {/* Products Grid */}
-            {isLoading ? (
-              <ProductsGridSkeleton count={8} />
-            ) : filteredProducts.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <div className="products-empty">
                 <p>No products found matching your filters.</p>
                 <button

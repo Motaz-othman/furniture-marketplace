@@ -1,0 +1,9 @@
+import { post, get } from './client';
+
+export async function guestCheckout(data) {
+  return post('/checkout/guest', data);
+}
+
+export async function trackOrder(orderNumber, email) {
+  return get(`/checkout/track/${orderNumber}`, { params: { email } });
+}

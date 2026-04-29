@@ -7,7 +7,11 @@ import axios from 'axios';
 
 // Check if we should use fake data
 const USE_FAKE_DATA = process.env.NEXT_PUBLIC_USE_FAKE_DATA === 'true';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || (
+  process.env.NODE_ENV === 'production'
+    ? (() => { throw new Error('NEXT_PUBLIC_API_URL must be set in production'); })()
+    : 'http://localhost:3000/api'
+);
 
 /**
  * Create axios instance with default configuration
@@ -47,23 +51,26 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle 401 Unauthorized - redirect to login
+    // Handle 401 Unauthorized - clear credentials and notify AuthContext
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/auth/login';
+        window.dispatchEvent(new Event('auth:logout'));
       }
     }
-    
+
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
-      console.error('Access forbidden:', error.response?.data?.message);
+      console.error('Access forbidden:', error.response?.data?.error);
     }
-    
-    // Handle 500 Server Error
+
+    // Handle 500 Server Error (skip auth/me — handled by AuthContext)
     if (error.response?.status === 500) {
-      console.error('Server error:', error.response?.data?.message);
+      const url = error.config?.url || '';
+      if (!url.includes('/auth/me')) {
+        console.error('Server error:', error.response?.data?.error);
+      }
     }
     
     return Promise.reject(error);

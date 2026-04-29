@@ -1,0 +1,950 @@
+/* ============================================
+   ACCOUNT PAGE STYLES
+   ============================================ */
+
+/* Page Container */
+.account-page-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.account-page-header {
+  margin-bottom: 32px;
+}
+
+.account-page-header h1 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 4px 0;
+}
+
+.account-greeting {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  margin: 0;
+}
+
+/* Layout: Sidebar + Content */
+.account-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* Sidebar Navigation */
+.account-sidebar {
+  position: sticky;
+  top: 120px;
+}
+
+.account-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-light);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.account-nav-item:hover {
+  background: var(--bg-secondary);
+  color: var(--text-main);
+}
+
+.account-nav-item.active {
+  background: var(--bg-secondary);
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.account-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+/* Mobile Tab Bar (hidden on desktop) */
+.account-mobile-tabs {
+  display: none;
+}
+
+/* Content Area */
+.account-main {
+  min-width: 0;
+}
+
+/* Section Cards */
+.account-section {
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.account-section h2 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-light);
+  margin: 0 0 20px 0;
+}
+
+/* Profile Display */
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.profile-label {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.profile-value {
+  font-size: 15px;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+/* Account Form */
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.account-form .auth-field input {
+  font-size: 14px;
+  padding: 10px 14px;
+}
+
+.account-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.account-save-btn {
+  padding: 10px 24px;
+  background: var(--text-main);
+  color: #fff;
+  border: none;
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: var(--font-sans);
+}
+
+.account-save-btn:hover:not(:disabled) {
+  background: #2a2829;
+  transform: translateY(-1px);
+}
+
+.account-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.account-cancel-btn {
+  padding: 10px 24px;
+  background: transparent;
+  color: var(--text-light);
+  border: 1px solid var(--border-color);
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.account-cancel-btn:hover {
+  border-color: var(--text-main);
+  color: var(--text-main);
+}
+
+.profile-edit-btn {
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  border-radius: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+
+.profile-edit-btn:hover {
+  background: var(--accent-color);
+  color: #fff;
+}
+
+/* Logout Button */
+.auth-logout-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: var(--text-main);
+  border: 2px solid var(--border-color);
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: var(--font-sans);
+}
+
+.auth-logout-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* ============================================
+   ADDRESSES TAB
+   ============================================ */
+
+.addresses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.addresses-header h2 {
+  margin-bottom: 0 !important;
+}
+
+.add-address-btn {
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  border-radius: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.add-address-btn:hover {
+  background: var(--accent-color);
+  color: #fff;
+}
+
+.address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.address-card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px 20px;
+  position: relative;
+}
+
+.address-card.default {
+  border-color: var(--accent-color);
+}
+
+.address-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.address-card-labels {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.address-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.address-label-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.address-label-chip {
+  padding: 6px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.address-label-chip:hover {
+  border-color: var(--text-main);
+  color: var(--text-main);
+}
+
+.address-label-chip.selected {
+  background: var(--text-main);
+  border-color: var(--text-main);
+  color: #fff;
+}
+
+.address-default-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent-color);
+  background: rgba(170, 124, 109, 0.1);
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.address-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.address-card-actions button {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+  font-family: var(--font-sans);
+}
+
+.address-card-actions button:hover {
+  color: var(--text-main);
+}
+
+.address-card-actions button.delete-btn:hover {
+  color: #ef4444;
+}
+
+.address-text {
+  font-size: 14px;
+  color: var(--text-main);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.address-text span {
+  display: block;
+}
+
+/* Address Form */
+.address-form {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: var(--bg-secondary);
+}
+
+.address-form-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 16px 0;
+}
+
+.address-default-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.address-default-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-color);
+}
+
+/* ============================================
+   ORDERS TAB
+   ============================================ */
+
+.orders-filter-pills {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.orders-filter-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.orders-filter-pill {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  color: var(--text-light);
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.orders-filter-pill:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.orders-filter-pill.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #fff;
+  font-weight: 600;
+}
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.order-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.order-date {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* Order Status Badges */
+.order-status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-confirmed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-processing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-shipped {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.status-delivered {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-refunded {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Order Items */
+.order-items {
+  padding: 16px 20px;
+}
+
+.order-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.order-item-row + .order-item-row {
+  border-top: 1px solid #f3f4f6;
+}
+
+.order-item-name {
+  color: var(--text-main);
+  flex: 1;
+}
+
+.order-item-qty {
+  color: var(--text-light);
+  margin: 0 16px;
+  white-space: nowrap;
+}
+
+.order-item-price {
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.order-more-items {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--accent-color);
+  cursor: pointer;
+  padding: 8px 0 0;
+  font-family: var(--font-sans);
+}
+
+.order-more-items:hover {
+  text-decoration: underline;
+}
+
+/* Order Address */
+.order-address {
+  display: flex;
+  gap: 6px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border-color);
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.order-address-label {
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+/* Order Footer */
+.order-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.order-total {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.order-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-tracking {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.order-cancel-btn {
+  background: none;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.order-cancel-btn:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Orders Pagination */
+.orders-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.orders-pagination button {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: #fff;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-main);
+}
+
+.orders-pagination button:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.orders-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   SETTINGS TAB - DANGER ZONE
+   ============================================ */
+
+.danger-zone {
+  border-color: #fecaca;
+}
+
+.danger-zone h2 {
+  color: #dc2626;
+}
+
+.danger-zone-text {
+  font-size: 14px;
+  color: var(--text-light);
+  margin: 0 0 16px 0;
+}
+
+.danger-btn {
+  padding: 10px 24px;
+  background: transparent;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.danger-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: #fff;
+}
+
+.danger-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delete-confirm {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #fecaca;
+}
+
+.delete-confirm p {
+  font-size: 14px;
+  color: var(--text-main);
+  margin: 0 0 8px 0;
+}
+
+.delete-confirm input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  margin-bottom: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.delete-confirm input:focus {
+  border-color: #dc2626;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+
+.account-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-light);
+}
+
+.account-empty-state svg {
+  opacity: 0.3;
+  margin-bottom: 16px;
+}
+
+.account-empty-state p {
+  font-size: 15px;
+  margin: 0 0 20px 0;
+}
+
+/* ============================================
+   CONFIRM DIALOG
+   ============================================ */
+
+.confirm-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.confirm-dialog {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.confirm-dialog h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 8px 0;
+}
+
+.confirm-dialog p {
+  font-size: 14px;
+  color: var(--text-light);
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.account-loading {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .account-page-container {
+    padding: 24px 20px 80px;
+  }
+
+  .account-page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .account-layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  /* Hide sidebar, show mobile tabs */
+  .account-sidebar {
+    display: none;
+  }
+
+  .account-mobile-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .account-mobile-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .account-mobile-tab:hover {
+    border-color: var(--accent-color);
+  }
+
+  .account-mobile-tab.active {
+    border-color: var(--accent-color);
+    background: rgba(170, 124, 109, 0.06);
+    color: var(--accent-color);
+    font-weight: 600;
+  }
+
+  .account-mobile-tab svg {
+    flex-shrink: 0;
+  }
+
+  /* Addresses */
+  .addresses-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  /* Orders */
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .order-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .order-footer-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-section {
+    padding: 20px 16px;
+  }
+
+  .account-actions {
+    flex-direction: column;
+  }
+
+  .confirm-dialog {
+    padding: 24px 20px;
+  }
+
+  .confirm-dialog-actions {
+    flex-direction: column;
+  }
+
+  .order-item-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}

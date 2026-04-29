@@ -4,8 +4,11 @@ import { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatPrice, getColorFromVariant, getThumbnailUrl } from '@/lib/utils';
+import { useCart } from '@/lib/hooks';
+import toast from 'react-hot-toast';
 
 const ProductCard = memo(function ProductCard({ product, index }) {
+  const { addItem } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
@@ -33,8 +36,16 @@ const ProductCard = memo(function ProductCard({ product, index }) {
 
   const handleAddToCart = useCallback((e) => {
     e.preventDefault();
-    alert(`Added ${product.name} to cart!`);
-  }, [product.name]);
+    const variant = product.variants?.[selectedVariantIndex] || null;
+    addItem({
+      productId: product.id,
+      variantId: variant?.id || null,
+      quantity: 1,
+      product,
+      variant,
+    });
+    toast.success(`Added ${product.name} to cart`);
+  }, [product, selectedVariantIndex, addItem]);
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true);
@@ -59,13 +70,15 @@ const ProductCard = memo(function ProductCard({ product, index }) {
   return (
     <Link href={`/products/${product.slug}`} className="product-card">
       <div className="product-image">
-        {(product.isNew || product.isOnSale) && (
-          <span
-            className="badge"
-            style={product.isOnSale ? { background: 'var(--sale-color)', color: '#fff' } : {}}
-          >
-            {product.isNew ? 'New' : 'Sale'}
-          </span>
+        {(product.isOnSale || product.isNew) && (
+          <div className="badges">
+            {product.isOnSale && (
+              <span className="badge badge-sale">Sale</span>
+            )}
+            {product.isNew && !product.isOnSale && (
+              <span className="badge badge-new">New</span>
+            )}
+          </div>
         )}
 
         {/* Action Buttons */}

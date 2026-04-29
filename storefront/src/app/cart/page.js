@@ -1,5 +1,4 @@
-import MainLayout from '@/components/layout/MainLayout';
-import ComingSoon from '@/components/ui/ComingSoon';
+import CartPageContent from './CartPageContent';
 
 export const metadata = {
   title: 'Shopping Cart - LiviPoint',
@@ -7,12 +6,5 @@ export const metadata = {
 };
 
 export default function CartPage() {
-  return (
-    <MainLayout>
-      <ComingSoon
-        title="Shopping Cart"
-        icon="🛒"
-      />
-    </MainLayout>
-  );
+  return <CartPageContent />;
 }
