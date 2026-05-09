@@ -144,31 +144,34 @@
     position: relative;
   }
   
-  .product-img { 
+  .product-img {
     width: 100%;
-    height: 100%; 
-    object-fit: cover; 
+    height: 100%;
+    object-fit: cover;
     transition: transform 0.5s ease;
+  }
+
+  .product-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    color: #ccc;
   }
   
   .product-card:hover .product-img { 
     transform: scale(1.08); 
   }
   
-  /* Product Card Action Buttons */
-  .product-actions {
+  /* Wishlist button — top right corner */
+  .action-btn {
     position: absolute;
     top: 14px;
     right: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 5;
-  }
-
-  .action-btn {
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
     background: rgba(255,255,255,0.96);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(0,0,0,0.06);
@@ -178,9 +181,11 @@
     justify-content: center;
     cursor: pointer;
     opacity: 0;
-    transform: translateX(10px);
-    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+    transform: translateX(6px);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 5;
+    color: #d14444;
   }
 
   .product-card:hover .action-btn {
@@ -188,18 +193,9 @@
     transform: translateX(0);
   }
 
-  .product-card:hover .action-btn:nth-child(1) {
-    transition-delay: 0.05s;
-  }
-
-  .product-card:hover .action-btn:nth-child(2) {
-    transition-delay: 0.1s;
-  }
-
   .action-btn:hover {
-    transform: translateX(0) scale(1.12);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
-    border-color: rgba(0,0,0,0.1);
+    transform: scale(1.12);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.16);
   }
 
   .action-btn.active {
@@ -207,45 +203,13 @@
     transform: translateX(0);
     background: #d14444;
     border-color: #d14444;
+    color: #fff;
   }
 
   .action-btn.active:hover {
     background: #b93838;
-    border-color: #b93838;
   }
 
-  .action-icon {
-    font-size: 19px;
-    line-height: 1;
-    transition: all 0.25s ease;
-  }
-
-  /* Wishlist Button Specific */
-  .wishlist-btn .action-icon {
-    color: #d14444;
-  }
-
-  .wishlist-btn.active .action-icon {
-    color: #fff;
-  }
-
-  /* Add to Cart Button */
-  .add-to-cart-btn .action-icon {
-    color: var(--text-main);
-  }
-
-  .add-to-cart-btn:hover .action-icon {
-    color: var(--accent-color);
-  }
-
-  /* Legacy support for old class names */
-  .wishlist-btn {
-    composes: action-btn;
-  }
-
-  .heart-icon {
-    composes: action-icon;
-  }
   
   /* Image Dots Navigation */
   .image-dots {
@@ -291,12 +255,16 @@
     text-align: left;
   }
   
-  .product-info h3 { 
-    font-size: 15px; 
-    font-weight: 600; 
+  .product-info h3 {
+    font-size: 15px;
+    font-weight: 600;
     margin-bottom: 8px;
     line-height: 1.3;
     color: var(--text-main);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   
   /* Color Swatches */
@@ -342,65 +310,34 @@
   .color-swatch:hover {
     transform: scale(1.1);
   }
-  
-  /* Stock Indicator - Enhanced Visual Styling */
-  .stock-indicator {
+
+  .swatch-more {
     font-size: 11px;
-    margin-bottom: 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
     font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: var(--text-light);
+    align-self: center;
+    white-space: nowrap;
+    padding-left: 2px;
   }
 
-  .stock-indicator::before {
+  .color-swatch.out-of-stock {
+    opacity: 0.45;
+    position: relative;
+    cursor: not-allowed;
+  }
+
+  .color-swatch.out-of-stock::after {
     content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 130%;
+    height: 1.5px;
+    background: rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%) rotate(-45deg);
+    border-radius: 1px;
   }
-
-  .in-stock {
-    color: #2d7a3e;
-    background: rgba(74, 156, 93, 0.12);
-  }
-
-  .in-stock::before {
-    background: #4a9c5d;
-  }
-
-  .low-stock {
-    color: #b45309;
-    background: rgba(245, 158, 11, 0.15);
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-
-  .low-stock::before {
-    background: #f59e0b;
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
-    }
-    50% {
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-    }
-  }
-
-  .out-of-stock {
-    color: #6b7280;
-    background: rgba(107, 114, 128, 0.1);
-  }
-
-  .out-of-stock::before {
-    background: #9ca3af;
-  }
+  
   
   /* Product Price */
   .product-price {
@@ -1122,27 +1059,8 @@
       height: 20px;
     }
 
-    /* Stock Indicator */
-    .stock-indicator {
-      font-size: 11px;
-      padding: 4px 8px;
-    }
 
-    /* Action Buttons */
-    .product-actions {
-      top: 10px;
-      right: 10px;
-      gap: 6px;
-    }
 
-    .action-btn {
-      width: 36px;
-      height: 36px;
-    }
-
-    .action-icon {
-      font-size: 16px;
-    }
 
     /* Image Dots */
     .image-dots {
@@ -1222,9 +1140,6 @@
       height: 32px;
     }
 
-    .action-icon {
-      font-size: 14px;
-    }
   }
 
   /* Extra small mobile (320px - 360px) */
@@ -1267,9 +1182,6 @@
       height: 28px;
     }
 
-    .action-icon {
-      font-size: 12px;
-    }
   }
 
   /* Landscape Mobile */
@@ -1285,15 +1197,14 @@
 
   /* Touch-friendly sizes for mobile (44px minimum recommended) */
   @media (max-width: 768px) {
-    /* Always show action buttons on mobile (no hover) */
+    /* Always show buttons on mobile (no hover) */
     .action-btn {
       opacity: 1;
       transform: translateX(0);
-      width: 44px;
-      height: 44px;
-      min-width: 44px;
-      min-height: 44px;
+      width: 40px;
+      height: 40px;
     }
+
 
     /* Touch-friendly color swatches */
     .color-swatch {

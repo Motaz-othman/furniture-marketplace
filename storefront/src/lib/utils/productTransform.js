@@ -142,7 +142,9 @@ export function transformApiProductToFrontend(apiProduct) {
   });
 
   // Calculate if on sale
-  const isOnSale = mainVariant.price?.retailPrice < mainVariant.price?.listPrice;
+  const retailPrice = mainVariant.price?.retailPrice;
+  const listPrice = mainVariant.price?.listPrice;
+  const isOnSale = retailPrice != null && listPrice != null && retailPrice < listPrice;
 
   // Get category info
   const apiCategory = apiProduct.categories?.[0];

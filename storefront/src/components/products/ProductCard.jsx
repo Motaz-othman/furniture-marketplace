@@ -4,11 +4,9 @@ import { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatPrice, getColorFromVariant, getThumbnailUrl } from '@/lib/utils';
-import { useCart } from '@/lib/hooks';
-import toast from 'react-hot-toast';
+import { Heart } from 'lucide-react';
 
 const ProductCard = memo(function ProductCard({ product, index }) {
-  const { addItem } = useCart();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
@@ -26,26 +24,25 @@ const ProductCard = memo(function ProductCard({ product, index }) {
     return variantImages.length > 0 ? variantImages : product.images;
   }, [product.variants, product.images, selectedVariantIndex]);
 
-  const currentImageUrl = currentImages[currentImageIndex]?.imageUrl || currentImages[0]?.imageUrl;
+  const currentImageUrl = currentImages?.[currentImageIndex]?.imageUrl || currentImages?.[0]?.imageUrl || null;
   const thumbnailUrl = useMemo(() => getThumbnailUrl(currentImageUrl), [currentImageUrl]);
+
+  // Price range memoized
+  const priceDisplay = useMemo(() => {
+    const prices = product.variants
+      ?.map(v => v.price)
+      .filter(p => p != null && p > 0) || [];
+    const min = prices.length ? Math.min(...prices) : product.price;
+    const max = prices.length ? Math.max(...prices) : product.price;
+    return min !== max
+      ? `${formatPrice(min)} – ${formatPrice(max)}`
+      : formatPrice(product.price);
+  }, [product.variants, product.price]);
 
   // Reset image loaded state when image changes
   useEffect(() => {
     setImageLoaded(false);
   }, [currentImageUrl]);
-
-  const handleAddToCart = useCallback((e) => {
-    e.preventDefault();
-    const variant = product.variants?.[selectedVariantIndex] || null;
-    addItem({
-      productId: product.id,
-      variantId: variant?.id || null,
-      quantity: 1,
-      product,
-      variant,
-    });
-    toast.success(`Added ${product.name} to cart`);
-  }, [product, selectedVariantIndex, addItem]);
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true);
@@ -72,42 +69,37 @@ const ProductCard = memo(function ProductCard({ product, index }) {
       <div className="product-image">
         {(product.isOnSale || product.isNew) && (
           <div className="badges">
-            {product.isOnSale && (
+            {product.isOnSale && product.compareAtPrice > product.price && (
+              <span className="badge badge-sale">
+                -{Math.round((1 - product.price / product.compareAtPrice) * 100)}%
+              </span>
+            )}
+            {product.isOnSale && !product.compareAtPrice && (
               <span className="badge badge-sale">Sale</span>
             )}
-            {product.isNew && !product.isOnSale && (
+            {product.isNew && (
               <span className="badge badge-new">New</span>
             )}
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="product-actions">
-          <button
-            className={`action-btn wishlist-btn ${isWishlisted ? 'active' : ''}`}
-            onClick={handleWishlistToggle}
-            aria-label="Add to wishlist"
-            title="Add to Wishlist"
-          >
-            <span className="action-icon">{isWishlisted ? '❤' : '♡'}</span>
-          </button>
+        {/* Wishlist button — top right */}
+        <button
+          className={`action-btn wishlist-btn ${isWishlisted ? 'active' : ''}`}
+          onClick={handleWishlistToggle}
+          aria-label="Add to wishlist"
+          title="Add to Wishlist"
+        >
+          <Heart size={18} strokeWidth={1.8} fill={isWishlisted ? 'currentColor' : 'none'} />
+        </button>
 
-          <button
-            className="action-btn add-to-cart-btn"
-            onClick={handleAddToCart}
-            aria-label="Add to cart"
-            title="Add to Cart"
-          >
-            <span className="action-icon">🛒</span>
-          </button>
-        </div>
 
         <div className="product-image-wrapper progressive-image-wrapper">
           {/* Shimmer placeholder - shown until image loads */}
           <div className={`progressive-image-shimmer ${imageLoaded ? 'loaded' : ''}`} />
 
           {/* Main image using Next.js Image for optimization */}
-          {currentImageUrl && (
+          {currentImageUrl ? (
             <Image
               src={currentImageUrl}
               alt={product.name}
@@ -119,6 +111,12 @@ const ProductCard = memo(function ProductCard({ product, index }) {
               blurDataURL={thumbnailUrl || undefined}
               priority={index < 4}
             />
+          ) : (
+            <div className="product-img-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </div>
           )}
         </div>
 
@@ -129,7 +127,6 @@ const ProductCard = memo(function ProductCard({ product, index }) {
                 key={idx}
                 className={`image-dot ${idx === currentImageIndex ? 'active' : ''}`}
                 onClick={(e) => handleImageDotClick(e, idx)}
-                onPointerEnter={() => setCurrentImageIndex(idx)}
                 aria-label={`View image ${idx + 1}`}
               />
             ))}
@@ -144,36 +141,31 @@ const ProductCard = memo(function ProductCard({ product, index }) {
           <div className="color-swatches">
             {product.variants.slice(0, 3).map((variant, idx) => {
               const colorHex = getColorFromVariant(variant);
+              const isOutOfStock = variant.stockQuantity === 0;
 
               return colorHex ? (
                 <button
                   key={variant.id}
                   type="button"
-                  className={`color-swatch ${idx === selectedVariantIndex ? 'active' : ''}`}
+                  className={`color-swatch ${idx === selectedVariantIndex ? 'active' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`}
                   style={{ background: colorHex }}
-                  title={variant.variantName || variant.name}
-                  aria-label={`Select ${variant.variantName || variant.name} color`}
+                  title={`${variant.variantName || variant.name}${isOutOfStock ? ' — Out of Stock' : ''}`}
+                  aria-label={`Select ${variant.variantName || variant.name}${isOutOfStock ? ', out of stock' : ''}`}
                   onClick={(e) => handleVariantSelect(e, idx)}
-                  onPointerEnter={(e) => handleVariantSelect(e, idx)}
                 />
               ) : null;
             })}
+            {product.variants.length > 3 && (
+              <span className="swatch-more">+{product.variants.length - 3}</span>
+            )}
           </div>
-        )}
-
-        {product.stockQuantity === 0 ? (
-          <p className="stock-indicator out-of-stock">Out of Stock</p>
-        ) : product.stockQuantity <= 5 ? (
-          <p className="stock-indicator low-stock">Low Stock</p>
-        ) : (
-          <p className="stock-indicator in-stock">In Stock</p>
         )}
 
         <div className={`product-price ${product.compareAtPrice ? 'sale' : ''}`}>
           {product.compareAtPrice && (
             <span className="old-price">{formatPrice(product.compareAtPrice)}</span>
           )}
-          {formatPrice(product.price)}
+          {priceDisplay}
         </div>
       </div>
     </Link>
