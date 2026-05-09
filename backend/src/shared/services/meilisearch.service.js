@@ -19,7 +19,6 @@ export const initializeProductsIndex = async () => {
       'name',
       'description',
       'categoryName',
-      'vendorName',
       'materials',
       'colors',
       'style',
@@ -30,7 +29,6 @@ export const initializeProductsIndex = async () => {
     // Configure filterable attributes
     await index.updateFilterableAttributes([
       'categoryId',
-      'vendorId',
       'price',
       'isActive',
       'materials',
@@ -69,8 +67,6 @@ export const initializeProductsIndex = async () => {
       'images',
       'categoryId',
       'categoryName',
-      'vendorId',
-      'vendorName',
       'rating',
       'totalReviews',
       'stockQuantity',
@@ -104,8 +100,6 @@ export const indexProduct = async (product) => {
       isActive: product.isActive,
       categoryId: product.categoryId,
       categoryName: product.category?.name || '',
-      vendorId: product.vendorId,
-      vendorName: product.vendor?.businessName || '',
       rating: product.rating || 0,
       totalReviews: product.totalReviews || 0,
       stockQuantity: product.stockQuantity,
@@ -152,8 +146,6 @@ export const syncAllProducts = async (products) => {
       isActive: product.isActive,
       categoryId: product.categoryId,
       categoryName: product.category?.name || '',
-      vendorId: product.vendorId,
-      vendorName: product.vendor?.businessName || '',
       rating: product.rating || 0,
       totalReviews: product.totalReviews || 0,
       stockQuantity: product.stockQuantity,
@@ -188,10 +180,6 @@ export const searchProducts = async (query, options = {}) => {
     // Build filters
     if (options.categoryId) {
       searchOptions.filter.push(`categoryId = ${options.categoryId}`);
-    }
-
-    if (options.vendorId) {
-      searchOptions.filter.push(`vendorId = ${options.vendorId}`);
     }
 
     if (options.minPrice || options.maxPrice) {

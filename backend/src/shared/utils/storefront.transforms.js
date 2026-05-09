@@ -191,9 +191,6 @@ export function transformProductForStorefront(product, listing = null) {
     collection: product.collection,
     provider: product.provider,
     relatedProducts: product.relatedProducts,
-    vendor: product.vendor
-      ? { businessName: product.vendor.businessName }
-      : null,
     rating: product.rating,
     totalReviews: product.totalReviews,
     createdAt: product.createdAt,

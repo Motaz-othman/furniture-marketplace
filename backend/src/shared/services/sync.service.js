@@ -196,40 +196,6 @@ async function syncCategories(rawCategories) {
   return idMap;
 }
 
-// ─── Ensure default vendor exists ─────────────────────────────────
-
-async function ensureDefaultVendor() {
-  const vendorEmail = 'vendor@livipoint.com';
-
-  let user = await prisma.user.findUnique({ where: { email: vendorEmail } });
-
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: vendorEmail,
-        passwordHash: '$2b$10$placeholder_hash_for_seed_data_only',
-        role: 'VENDOR',
-        firstName: 'LiviPoint',
-        lastName: 'Furniture',
-      }
-    });
-  }
-
-  let vendor = await prisma.vendor.findUnique({ where: { userId: user.id } });
-
-  if (!vendor) {
-    vendor = await prisma.vendor.create({
-      data: {
-        userId: user.id,
-        businessName: 'LiviPoint Furniture Co.',
-        description: 'Premium furniture marketplace provider',
-        status: 'APPROVED',
-      }
-    });
-  }
-
-  return vendor;
-}
 
 // ─── Build inventory lookup ───────────────────────────────────────
 
@@ -262,7 +228,7 @@ async function buildCategorySlugMap() {
 
 // ─── Sync Products ────────────────────────────────────────────────
 
-async function syncProducts(products, inventoryMap, vendorId) {
+async function syncProducts(products, inventoryMap) {
   let created = 0;
   let updated = 0;
   let variantCount = 0;
@@ -318,7 +284,6 @@ async function syncProducts(products, inventoryMap, vendorId) {
           updatedAt: new Date(),
         },
         create: {
-          vendorId,
           name: apiProduct.name,
           slug,
           description: apiProduct.description || '',
@@ -470,13 +435,10 @@ export async function runFullSync() {
 
     await buildCategorySlugMap();
 
-    setProgress('Ensuring vendor exists...');
-    const vendor = await ensureDefaultVendor();
-
     const inventoryMap = buildInventoryMap(rawInventory);
 
     setProgress(`Syncing ${rawProducts.length} products...`);
-    const result = await syncProducts(rawProducts, inventoryMap, vendor.id);
+    const result = await syncProducts(rawProducts, inventoryMap);
 
     await logSync('FULL_SYNC', 'SUCCESS', {
       total: rawProducts.length,

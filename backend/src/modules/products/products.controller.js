@@ -5,7 +5,6 @@ import { indexProduct, removeProductFromIndex } from '../../shared/services/meil
 // ─── Shared includes for storefront queries ─────────────────────────
 
 const storefrontProductInclude = {
-  vendor: { select: { businessName: true } },
   category: { select: { id: true, name: true, slug: true, parentId: true } },
   variants: true,
   storefront: {
@@ -39,8 +38,7 @@ export const getAllProducts = async (req, res) => {
       include: {
         product: {
           include: {
-            vendor: { select: { businessName: true } },
-            category: { select: { id: true, name: true, slug: true, parentId: true } },
+                      category: { select: { id: true, name: true, slug: true, parentId: true } },
             variants: true,
           },
         },
@@ -175,7 +173,6 @@ export const searchProducts = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     const {
-      vendorId,
       categoryId,
       name,
       slug,
@@ -186,7 +183,6 @@ export const createProduct = async (req, res) => {
 
     const product = await prisma.product.create({
       data: {
-        vendorId,
         categoryId,
         name,
         slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
@@ -196,8 +192,7 @@ export const createProduct = async (req, res) => {
         source: 'MANUAL',
       },
       include: {
-        vendor: { select: { businessName: true } },
-        category: { select: { name: true } },
+              category: { select: { name: true } },
       },
     });
 
@@ -226,7 +221,6 @@ export const updateProduct = async (req, res) => {
       data: updateData,
       include: {
         category: true,
-        vendor: { select: { id: true, businessName: true } },
       },
     });
 
@@ -299,49 +293,3 @@ export const toggleProductStatus = async (req, res) => {
   }
 };
 
-// ─── Vendor: Get own products ────────────────────────────────────────
-
-export const getVendorProducts = async (req, res) => {
-  try {
-    const vendorId = req.user.vendorId;
-    const { page = 1, limit = 10, search, categoryId, isActive } = req.query;
-
-    const where = {
-      vendorId,
-      ...(search && {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-        ],
-      }),
-      ...(categoryId && { categoryId }),
-      ...(isActive !== undefined && { isActive: isActive === 'true' }),
-    };
-
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        category: true,
-        _count: { select: { variants: true } },
-      },
-      skip: (page - 1) * limit,
-      take: parseInt(limit),
-      orderBy: { createdAt: 'desc' },
-    });
-
-    const totalCount = await prisma.product.count({ where });
-
-    res.json({
-      products,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(totalCount / limit),
-        totalCount,
-      },
-    });
-  } catch (error) {
-    console.error('Get vendor products error:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
-  }
-};

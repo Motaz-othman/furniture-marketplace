@@ -1,6 +1,5 @@
 import prisma from '../../shared/config/db.js';
-import { updateProductRating, updateVendorRating } from '../../shared/utils/ratings.js';
-import { notifyProductReviewed } from '../../shared/services/notification.service.js';
+import { updateProductRating } from '../../shared/utils/ratings.js';
 
 // Create review (customer only)
 export const createReview = async (req, res) => {
@@ -62,23 +61,7 @@ export const createReview = async (req, res) => {
       }
     });
 
-    // ✅ AUTO-UPDATE RATINGS
     await updateProductRating(productId);
-    await updateVendorRating(review.product.vendorId);
-
-    // ✅ NOTIFY VENDOR (before response)
-    try {
-      const vendor = await prisma.vendor.findUnique({
-        where: { id: review.product.vendorId },
-        select: { userId: true }
-      });
-      
-      if (vendor) {
-        await notifyProductReviewed(vendor.userId, review.product, rating);
-      }
-    } catch (notifError) {
-      console.error('Notification error:', notifError);
-    }
 
     res.status(201).json({
       message: 'Review created successfully',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { getListings, updateListing, deleteListing, getCategories, getRawProductFilters } from '@/lib/services/storefront';
@@ -89,7 +89,13 @@ export default function ListingsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
   const [filters, setFilters] = useState({ status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' });
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -108,7 +114,7 @@ export default function ListingsPage() {
   }
 
   const queryParams = { page, limit: 20 };
-  if (search) queryParams.search = search;
+  if (debouncedSearch) queryParams.search = debouncedSearch;
   if (activeFilters.status === 'published') queryParams.isPublished = 'true';
   if (activeFilters.status === 'drafts') queryParams.isPublished = 'false';
   if (activeFilters.brand) queryParams.brand = activeFilters.brand;
@@ -119,7 +125,7 @@ export default function ListingsPage() {
   if (activeFilters.maxPrice) queryParams.maxPrice = activeFilters.maxPrice;
 
   const { data: listingsRes, isLoading } = useQuery({
-    queryKey: ['listings', search, page, activeFilters],
+    queryKey: ['listings', debouncedSearch, page, activeFilters],
     queryFn: () => getListings(queryParams),
   });
 
@@ -142,7 +148,7 @@ export default function ListingsPage() {
   const toggleMutation = useMutation({
     mutationFn: ({ id, field, value }) => updateListing(id, { [field]: value }),
     onMutate: async ({ id, field, value }) => {
-      await queryClient.cancelQueries({ queryKey: ['listings', search, page, activeFilters] });
+      await queryClient.cancelQueries({ queryKey: ['listings', debouncedSearch, page, activeFilters] });
       const previous = queryClient.getQueryData(['listings', search, page, activeFilters]);
       queryClient.setQueryData(['listings', search, page, activeFilters], (old) => {
         if (!old) return old;

@@ -119,43 +119,6 @@ export const getAccountDetails = async (accountId) => {
   }
 };
 
-// Create payment intent with transfer (split payment) - ALL METHODS
-export const createPaymentIntentWithTransfer = async (amount, vendorAccountId, commission, metadata = {}, options = {}) => {
-  try {
-    const vendorAmount = Math.round((amount - (commission ?? 0)) * 100); // Vendor gets (total - commission)
-    const totalAmount = Math.round(amount * 100);
-
-    const paymentIntentData = {
-      amount: totalAmount,
-      currency: options.currency || 'usd',
-      metadata,
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: 'always'
-      },
-      transfer_data: {
-        amount: vendorAmount,
-        destination: vendorAccountId
-      }
-    };
-
-    // Add customer if provided
-    if (options.customerId) {
-      paymentIntentData.customer = options.customerId;
-    }
-
-// Add statement descriptor suffix
-if (options.statementDescriptor) {
-    paymentIntentData.statement_descriptor_suffix = options.statementDescriptor.substring(0, 22);
-  }
-
-    const paymentIntent = await stripe.paymentIntents.create(paymentIntentData);
-    return paymentIntent;
-  } catch (error) {
-    console.error('Create payment intent with transfer error:', error);
-    throw new Error('Failed to create payment with transfer');
-  }
-};
 
 // ===== REFUND FUNCTIONS =====
 

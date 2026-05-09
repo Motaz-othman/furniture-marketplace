@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -125,14 +125,18 @@ function AddShipmentDialog({ open, onClose, orderId, unassignedItems }) {
   const [form, setForm] = useState({ type: '', provider: '', notes: '' });
   const [selectedItems, setSelectedItems] = useState([]);
 
+  function resetAndClose() {
+    setForm({ type: '', provider: '', notes: '' });
+    setSelectedItems([]);
+    onClose();
+  }
+
   const mutation = useMutation({
     mutationFn: (body) => createShipment(orderId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-order', orderId] });
       toast.success('Shipment created');
-      onClose();
-      setForm({ type: '', provider: '', notes: '' });
-      setSelectedItems([]);
+      resetAndClose();
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to create shipment'),
   });
@@ -154,7 +158,7 @@ function AddShipmentDialog({ open, onClose, orderId, unassignedItems }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) resetAndClose(); }}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Add Shipment</DialogTitle>
@@ -249,6 +253,21 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
     trackingUrl: shipment?.trackingUrl || '',
     notes: shipment?.notes || '',
   });
+
+  useEffect(() => {
+    if (open && shipment) {
+      setForm({
+        provider: shipment.provider || '',
+        type: shipment.type || '',
+        status: shipment.status || '',
+        estimatedCost: shipment.estimatedCost ?? '',
+        actualCost: shipment.actualCost ?? '',
+        trackingNumber: shipment.trackingNumber || '',
+        trackingUrl: shipment.trackingUrl || '',
+        notes: shipment.notes || '',
+      });
+    }
+  }, [open, shipment]);
 
   const mutation = useMutation({
     mutationFn: (body) => updateShipment(orderId, shipment.id, body),

@@ -21,16 +21,13 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
 
-    // Validate role
-    const userRole = role || 'CUSTOMER';
-    if (!['CUSTOMER', 'VENDOR', 'ADMIN'].includes(userRole)) {
-      return res.status(400).json({ error: 'Invalid role' });
-    }
+    // Only CUSTOMER role allowed at registration
+    const userRole = 'CUSTOMER';
 
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create user with related records
+    // Create user with customer profile
     const user = await prisma.user.create({
       data: {
         email,
@@ -38,23 +35,11 @@ export const register = async (req, res) => {
         firstName,
         lastName,
         role: userRole,
-        // Create vendor profile if role is VENDOR
-        ...(userRole === 'VENDOR' && {
-          vendor: {
-            create: {
-              businessName: businessName || `${firstName}'s Store`
-            }
-          }
-        }),
-        // Create customer profile if role is CUSTOMER
-        ...(userRole === 'CUSTOMER' && {
-          customer: {
-            create: {}
-          }
-        })
+        customer: {
+          create: {}
+        }
       },
       include: {
-        vendor: true,
         customer: true
       }
     });
@@ -114,7 +99,6 @@ export const login = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
-        vendor: true,
         customer: true
       }
     });

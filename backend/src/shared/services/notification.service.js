@@ -27,12 +27,12 @@ export const createNotification = async ({ userId, type, title, message, data = 
 };
 
 // Notification templates
-export const notifyOrderPlaced = async (vendorUserId, order) => {
+export const notifyOrderPlaced = async (customerUserId, order) => {
   return createNotification({
-    userId: vendorUserId,
+    userId: customerUserId,
     type: NOTIFICATION_TYPES.ORDER_PLACED,
-    title: 'New Order Received! 🎉',
-    message: `You have a new order #${order.orderNumber} for $${order.total.toFixed(2)}`,
+    title: 'Order Placed Successfully!',
+    message: `Your order #${order.orderNumber} for $${order.total.toFixed(2)} has been placed.`,
     data: { orderId: order.id, orderNumber: order.orderNumber }
   });
 };
@@ -66,13 +66,3 @@ export const notifyOrderCancelled = async (customerUserId, order) => {
   });
 };
 
-export const notifyProductReviewed = async (vendorUserId, product, rating) => {
-  const stars = '⭐'.repeat(rating);
-  return createNotification({
-    userId: vendorUserId,
-    type: NOTIFICATION_TYPES.PRODUCT_REVIEWED,
-    title: 'New Product Review',
-    message: `${product.name} received a ${rating}-star review ${stars}`,
-    data: { productId: product.id, rating }
-  });
-};

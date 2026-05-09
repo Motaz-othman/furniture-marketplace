@@ -19,7 +19,7 @@ export const authenticate = async (req, res, next) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      include: { vendor: true, customer: true }
+      include: { customer: true }
     });
 
     if (!user) {
@@ -45,21 +45,13 @@ export const optionalAuth = async (req, res, next) => {
       if (decoded) {
         const user = await prisma.user.findUnique({
           where: { id: decoded.userId },
-          include: { vendor: true, customer: true },
+          include: { customer: true },
         });
         if (user) req.user = user;
       }
     }
   } catch {
     // Ignore auth errors — continue as guest
-  }
-  next();
-};
-
-// Check if user is vendor
-export const vendorOnly = (req, res, next) => {
-  if (req.user.role !== 'VENDOR') {
-    return res.status(403).json({ error: 'Vendor access required' });
   }
   next();
 };
@@ -78,44 +70,4 @@ export const adminOnly = (req, res, next) => {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();
-};
-
-// Check if user is vendor OR admin
-export const vendorOrAdmin = (req, res, next) => {
-  if (req.user.role !== 'VENDOR' && req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Vendor or Admin access required' });
-  }
-  next();
-};
-
-// Check if vendor owns the product
-export const productOwnerOnly = async (req, res, next) => {
-  try {
-    console.log('🔒 productOwnerOnly middleware called');
-    console.log('🔒 Product ID:', req.params.id);
-    console.log('🔒 User vendor ID:', req.user?.vendor?.id);
-    
-    const { id } = req.params;
-
-    const product = await prisma.product.findUnique({
-      where: { id },
-      select: { vendorId: true },
-    });
-
-    if (!product) {
-      console.log('❌ Product not found in middleware');
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    if (product.vendorId !== req.user.vendor.id) {
-      console.log('❌ User is not product owner');
-      return res.status(403).json({ error: 'Not authorized to modify this product' });
-    }
-
-    console.log('✅ Product owner verified');
-    next();
-  } catch (error) {
-    console.error('❌ productOwnerOnly middleware error:', error);
-    res.status(500).json({ error: 'Authorization error' });
-  }
 };

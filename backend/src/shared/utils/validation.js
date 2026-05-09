@@ -13,7 +13,7 @@ export const registerSchema = z.object({
   password: passwordSchema,
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(1, 'Last name is required').max(50),
-  role: z.enum(['CUSTOMER', 'VENDOR', 'ADMIN']).optional(),
+  role: z.enum(['CUSTOMER', 'ADMIN']).optional(),
   businessName: z.string().max(100).optional(),
   claimGuestOrders: z.boolean().optional(),
 });
@@ -25,7 +25,6 @@ export const loginSchema = z.object({
 
 // Product validation schemas
 export const createProductSchema = z.object({
-  vendorId: z.string().uuid('Invalid vendor ID'),
   categoryId: z.string().uuid('Invalid category ID'),
   name: z.string().min(1, 'Product name is required').max(200),
   description: z.string().min(10, 'Description must be at least 10 characters'),
@@ -208,17 +207,6 @@ export const adminUpdateUserSchema = z.object({
   isBlocked: z.boolean().optional(),
 });
 
-export const adminUpdateVendorStatusSchema = z.object({
-  status: z.enum(['PENDING', 'APPROVED', 'VERIFIED']),
-});
-
-export const adminUpdateVendorRatingSchema = z.object({
-  adminRating: z.number().min(0).max(5),
-});
-
-export const adminUpdateVendorCommissionSchema = z.object({
-  commissionRate: z.number().min(0).max(1),
-});
 
 export const adminUpdateOrderStatusSchema = z.object({
   status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']),

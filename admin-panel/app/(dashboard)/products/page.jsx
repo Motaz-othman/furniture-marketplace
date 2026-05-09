@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getRawProducts, getRawProductFilters, createListing, bulkCreateListings, getCategories } from '@/lib/services/storefront';
@@ -38,6 +38,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ status: '', brand: '', categoryId: '', collection: '', minPrice: '', maxPrice: '' });
   const [selected, setSelected] = useState(new Set());
@@ -46,11 +47,16 @@ export default function ProductsPage() {
   const [formData, setFormData] = useState({ displayPrice: '', categoryId: '', isPublished: true });
   const [bulkData, setBulkData] = useState({ markupPercent: '30', isPublished: false });
 
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
   const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
 
   const { data: productsRes, isLoading } = useQuery({
-    queryKey: ['raw-products', search, page, activeFilters],
-    queryFn: () => getRawProducts({ search, page, limit: 20, ...activeFilters }),
+    queryKey: ['raw-products', debouncedSearch, page, activeFilters],
+    queryFn: () => getRawProducts({ search: debouncedSearch, page, limit: 20, ...activeFilters }),
   });
 
   const { data: categoriesRes } = useQuery({

@@ -425,7 +425,7 @@ export default function SettingsPage() {
   const mutation = useMutation({
     mutationFn: updateSettings,
     onSuccess: () => {
-      queryClient.invalidateQueries(['settings']);
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
       toast.success('Settings saved');
     },
     onError: () => toast.error('Failed to save settings'),
@@ -438,7 +438,7 @@ export default function SettingsPage() {
       const items = [...f.heroSlides.items];
       items[index] = { ...items[index], [field]: value };
       const updated = { ...f, heroSlides: { ...f.heroSlides, items } };
-      if (autoSave) mutation.mutate(updated);
+      if (autoSave && !mutation.isPending) mutation.mutate(updated);
       return updated;
     });
   }

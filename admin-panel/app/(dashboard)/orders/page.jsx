@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getOrders } from '@/lib/services/orders';
@@ -69,15 +69,21 @@ function formatCurrency(val) {
 export default function OrdersPage() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
 
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
   const params = { page, limit: 20 };
-  if (search) params.search = search;
+  if (debouncedSearch) params.search = debouncedSearch;
   if (status) params.status = status;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-orders', search, status, page],
+    queryKey: ['admin-orders', debouncedSearch, status, page],
     queryFn: () => getOrders(params),
     staleTime: 30_000,
   });
