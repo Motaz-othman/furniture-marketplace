@@ -32,3 +32,6 @@ export {
 
   // Export cart hooks
   export { useCart } from './useCart.js';
+
+  // Export settings hooks
+  export { useSettings } from './useSettings.js';

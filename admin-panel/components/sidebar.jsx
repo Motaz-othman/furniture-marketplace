@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth';
-import { Package, ShoppingBag, RefreshCw, Users, LogOut, Calculator, Cloud, ClipboardList } from 'lucide-react';
+import { Package, ShoppingBag, RefreshCw, Users, LogOut, Calculator, Cloud, ClipboardList, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,7 @@ const navItems = [
   { href: '/users', label: 'User Management', icon: Users },
   { href: '/cost-calculator', label: 'Cost Calculator', icon: Calculator },
   { href: '/gigiga-calculator', label: 'Gigiga Cloud Calculator', icon: Cloud },
+  { href: '/settings', label: 'Storefront Settings', icon: Settings },
 ];
 
 export function Sidebar() {

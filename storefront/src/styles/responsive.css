@@ -20,13 +20,17 @@
      TABLET - 1024px
      ============================================ */
   @media (max-width: 1024px) {
-    .header-container { 
-      padding: 16px 20px; 
-      gap: 20px; 
+    .header-container {
+      padding: 16px 20px;
+      gap: 20px;
     }
-    
-    .nav-container { 
-      padding: 0 20px; 
+
+    .main-nav {
+      top: 70px;
+    }
+
+    .nav-container {
+      padding: 0 20px;
     }
     
     .search-box { 
@@ -257,7 +261,7 @@
     
     /* Add padding for fixed header */
     .hero {
-      margin-top: 50px;
+      margin-top: 60px;
     }
     
     /* Mobile Bottom Nav */
@@ -589,9 +593,8 @@
      MOBILE SMALL - 640px
      ============================================ */
   @media (max-width: 640px) {
-    .hero { 
-      height: 70vh; 
-      margin-top: 50px; 
+    .hero {
+      height: 70vh;
     }
     
     .hero-title { 

@@ -22,6 +22,7 @@ import adminRoutes from './modules/admin/admin.routes.js';
 import storefrontListingsRoutes from './modules/storefront/listings.routes.js';
 import syncRoutes from './modules/sync/sync.routes.js';
 import checkoutRoutes from './modules/checkout/guest.routes.js';
+import settingsRoutes from './modules/settings/settings.routes.js';
 import { initScheduler } from './shared/services/sync.service.js';
 import { registry } from './integrations/index.js';
 import integrationsRoutes from './integrations/router.js';
@@ -92,6 +93,7 @@ app.get('/health', (req, res) => {
 
 
 // Routes
+app.use('/api/settings', settingsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/categories', categoriesRoutes);

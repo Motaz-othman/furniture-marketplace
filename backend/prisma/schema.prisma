@@ -524,3 +524,9 @@ model SyncLog {
   @@index([type])
   @@index([createdAt])
 }
+
+model SiteSettings {
+  id        String   @id @default("main")
+  settings  Json     @default("{}")
+  updatedAt DateTime @updatedAt
+}

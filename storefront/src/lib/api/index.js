@@ -63,3 +63,6 @@ export {
   removeCartItem,
   clearCart,
 } from './cart';
+
+// Export settings API
+export { getSettings } from './settings';

@@ -27,7 +27,6 @@ Thumbs.db
 
 # Prisma
 prisma/migrations/*.lock
-src/generated/
 
 # Uploads (local dev only)
 uploads/

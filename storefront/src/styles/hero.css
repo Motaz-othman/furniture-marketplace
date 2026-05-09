@@ -120,6 +120,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    padding-top: 80px;
   }
   
   .hero-slide {
@@ -158,11 +159,64 @@
     z-index: 2;
   }
   
+  /* Art-directed picture element (desktop landscape / mobile portrait) */
+  .hero-bg-picture {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .hero-bg-picture .hero-bg {
+    position: static;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Video background — direct <video> element */
+  .hero-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: cover;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Video background — YouTube / Vimeo iframe wrapper */
+  .hero-iframe-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .hero-iframe-wrapper iframe {
+    /* Scale iframe 3× to ensure it covers 16:9 content at any aspect ratio */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300%;
+    height: 300%;
+    transform: translate(-50%, -50%);
+  }
+
   .hero-content {
-    position: relative; 
-    z-index: 3; 
-    text-align: center; 
-    color: #fff; 
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    color: #fff;
     max-width: 800px;
     padding: 0 20px;
   }
@@ -240,7 +294,8 @@
 
 @media (max-width: 768px) {
   .hero {
-    height: 50vh;
+    height: 80vh;
+    min-height: 400px;
   }
 
   .hero-title {
@@ -263,7 +318,7 @@
 
 @media (max-width: 480px) {
   .hero {
-    height: 45vh;
+    height: 80vh;
   }
 
   .hero-title {

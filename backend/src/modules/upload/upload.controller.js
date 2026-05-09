@@ -1,4 +1,4 @@
-import { uploadToS3 } from '../../shared/services/s3.service.js';
+import { uploadToCloudinary } from '../../shared/services/cloudinary.service.js';
 
 // Upload single image
 export const uploadImage = async (req, res) => {
@@ -8,23 +8,24 @@ export const uploadImage = async (req, res) => {
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
     if (!allowedTypes.includes(req.file.mimetype)) {
-      return res.status(400).json({ 
-        error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' 
+      return res.status(400).json({
+        error: 'Invalid file type. Only JPEG, PNG, WebP, MP4, WebM, and MOV are allowed.'
       });
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (max 100MB for videos, 5MB for images)
+    const isVideo = req.file.mimetype.startsWith('video/');
+    const maxSize = isVideo ? 100 * 1024 * 1024 : 5 * 1024 * 1024;
     if (req.file.size > maxSize) {
-      return res.status(400).json({ 
-        error: 'File too large. Maximum size is 5MB.' 
+      return res.status(400).json({
+        error: isVideo ? 'File too large. Maximum video size is 100MB.' : 'File too large. Maximum image size is 5MB.'
       });
     }
 
-    // Upload to S3
-    const imageUrl = await uploadToS3(req.file);
+    // Upload to Cloudinary
+    const imageUrl = await uploadToCloudinary(req.file, 'hero');
 
     res.json({
       message: 'Image uploaded successfully',
@@ -52,7 +53,7 @@ export const uploadMultipleImages = async (req, res) => {
     }
 
     // Upload all images
-    const uploadPromises = req.files.map(file => uploadToS3(file));
+    const uploadPromises = req.files.map(file => uploadToCloudinary(file, 'products'));
     const imageUrls = await Promise.all(uploadPromises);
 
     res.json({

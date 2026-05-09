@@ -1,13 +1,122 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { getSettings } from '@/lib/api/settings';
 import Link from 'next/link';
 import Image from 'next/image';
 import MainLayout from '@/components/layout/MainLayout';
 import ProductCard from '@/components/products/ProductCard';
 import { useFeaturedProducts, useNewProducts, useParentCategories } from '@/lib/hooks';
 
-// Empty State Component
+const DEFAULT_HERO_SLIDES = [
+  {
+    id: '1',
+    title: 'Quality Furniture, Carefully Selected',
+    subtitle: 'Handpicked pieces from trusted makers worldwide',
+    ctaText: 'Shop Collection',
+    ctaLink: '/products',
+    mediaType: 'image',
+    mediaUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=2400&q=80',
+    focalPoint: 'center center',
+  },
+  {
+    id: '2',
+    title: 'New Arrivals Every Week',
+    subtitle: 'Discover the latest additions to our curated collection',
+    ctaText: "See What's New",
+    ctaLink: '/products?filter=new',
+    mediaType: 'image',
+    mediaUrl: 'https://images.unsplash.com/photo-1567016432779-094069958ea5?auto=format&fit=crop&w=2400&q=80',
+    focalPoint: 'center center',
+  },
+  {
+    id: '3',
+    title: 'Try Before You Buy with AR',
+    subtitle: 'See furniture in your space with augmented reality',
+    ctaText: 'Coming Soon',
+    ctaLink: '#',
+    mediaType: 'image',
+    mediaUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=2400&q=80',
+    focalPoint: 'center center',
+  },
+];
+
+function getYouTubeId(url) {
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?#\s]{11})/);
+  return m ? m[1] : null;
+}
+
+function getVimeoId(url) {
+  const m = url.match(/vimeo\.com\/(\d+)/);
+  return m ? m[1] : null;
+}
+
+function isDirectVideo(url) {
+  return /\.(mp4|webm|ogg)(\?|$)/i.test(url);
+}
+
+function HeroBackground({ slide }) {
+  if (slide.mediaType === 'video' && slide.mediaUrl) {
+    const ytId = getYouTubeId(slide.mediaUrl);
+    const vimeoId = getVimeoId(slide.mediaUrl);
+
+    if (ytId) {
+      return (
+        <div className="hero-iframe-wrapper">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&loop=1&controls=0&playlist=${ytId}&disablekb=1&modestbranding=1&showinfo=0&rel=0`}
+            allow="autoplay; fullscreen"
+            style={{ border: 0 }}
+            title="Hero video"
+          />
+        </div>
+      );
+    }
+
+    if (vimeoId) {
+      return (
+        <div className="hero-iframe-wrapper">
+          <iframe
+            src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1&muted=1&loop=1&controls=0&background=1`}
+            allow="autoplay; fullscreen"
+            style={{ border: 0 }}
+            title="Hero video"
+          />
+        </div>
+      );
+    }
+
+    if (isDirectVideo(slide.mediaUrl)) {
+      return (
+        <video
+          className="hero-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          key={slide.mediaUrl}
+        >
+          <source src={slide.mediaUrl} />
+        </video>
+      );
+    }
+  }
+
+  if (slide.mediaUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={slide.mediaUrl}
+        className="hero-bg"
+        alt={slide.title}
+        style={{ objectPosition: slide.focalPoint || 'center center' }}
+      />
+    );
+  }
+
+  return null;
+}
+
 function EmptyState({ icon, title, description, actionText, actionLink }) {
   return (
     <div className="empty-state">
@@ -37,99 +146,99 @@ export default function HomePage() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  // Fetch data using hooks
   const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError, refetch: refetchCategories } = useParentCategories();
   const { data: featuredData, isLoading: featuredLoading, error: featuredError, refetch: refetchFeatured } = useFeaturedProducts();
   const { data: newData, isLoading: newLoading, error: newError, refetch: refetchNew } = useNewProducts();
 
-  // Extract data from response
   const categories = categoriesData?.data || [];
   const featuredProducts = featuredData?.data || [];
   const newProducts = newData?.data || [];
 
-  // Hero carousel auto-advance with pause support
-  useEffect(() => {
-    if (isPaused) return;
+  const [heroSlides, setHeroSlides] = useState(DEFAULT_HERO_SLIDES);
+  const [offerBar, setOfferBar] = useState({
+    enabled: true,
+    items: [
+      { emoji: '🎉', text: '20% Off First Order' },
+      { emoji: '🚚', text: 'Free Shipping Over $500' },
+      { emoji: '💳', text: 'Buy Now, Pay Later' },
+      { emoji: '🔄', text: '30-Day Easy Returns' },
+    ],
+  });
+  const [socialBar, setSocialBar] = useState({
+    enabled: true,
+    items: [
+      { emoji: '⭐', text: '4.8/5 Customer Rating' },
+      { emoji: '📈', text: 'Trending Products' },
+      { emoji: '😊', text: '98% Satisfaction Rate' },
+      { emoji: '🏆', text: 'Award-Winning Service' },
+    ],
+  });
+  const [brandStory, setBrandStory] = useState({
+    enabled: true,
+    title: 'Our Story',
+    paragraph1: 'At LiviPoint, we believe your home should tell your story. That\'s why we\'ve spent years building relationships with the world\'s finest furniture makers, bringing you pieces that combine timeless design with modern craftsmanship.',
+    paragraph2: 'Every item in our collection is carefully vetted for quality, sustainability, and style. We don\'t just sell furniture—we help you create spaces that inspire, comfort, and endure.',
+    buttonText: 'Learn More About Us',
+    buttonLink: '/about',
+    imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80',
+  });
 
+  useEffect(() => {
+    getSettings()
+      .then(s => {
+        if (s?.heroSlides?.items?.length > 0) setHeroSlides(s.heroSlides.items);
+        if (s?.offerBar) setOfferBar(s.offerBar);
+        if (s?.socialBar) setSocialBar(s.socialBar);
+        if (s?.brandStory) setBrandStory(s.brandStory);
+      })
+      .catch(err => console.error('Settings fetch failed:', err));
+  }, []);
+
+  // Reset slide index if slides change and current index is out of bounds
+  useEffect(() => {
+    setCurrentSlide(prev => (prev >= heroSlides.length ? 0 : prev));
+  }, [heroSlides.length]);
+
+  const slideCount = heroSlides.length;
+
+  // Auto-advance carousel
+  useEffect(() => {
+    if (isPaused || slideCount < 2) return;
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 3);
-    }, 7000); // Increased to 7 seconds for better readability
+      setCurrentSlide(prev => (prev + 1) % slideCount);
+    }, 7000);
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, slideCount]);
 
-  // Keyboard navigation for hero carousel
+  // Keyboard navigation
   useEffect(() => {
+    if (slideCount < 2) return;
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') {
-        setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1));
-      } else if (e.key === 'ArrowRight') {
-        setCurrentSlide((prev) => (prev + 1) % 3);
-      }
+      if (e.key === 'ArrowLeft') setCurrentSlide(prev => (prev === 0 ? slideCount - 1 : prev - 1));
+      if (e.key === 'ArrowRight') setCurrentSlide(prev => (prev + 1) % slideCount);
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [slideCount]);
 
-  // Swipe gesture handlers for hero carousel
-  const handleTouchStart = useCallback((e) => {
-    touchStartX.current = e.touches[0].clientX;
-  }, []);
-
-  const handleTouchMove = useCallback((e) => {
-    touchEndX.current = e.touches[0].clientX;
-  }, []);
-
+  // Swipe handlers
+  const handleTouchStart = useCallback((e) => { touchStartX.current = e.touches[0].clientX; }, []);
+  const handleTouchMove = useCallback((e) => { touchEndX.current = e.touches[0].clientX; }, []);
   const handleTouchEnd = useCallback(() => {
-    const swipeThreshold = 50;
     const diff = touchStartX.current - touchEndX.current;
-
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0) {
-        // Swipe left - go to next slide
-        setCurrentSlide((prev) => (prev + 1) % 3);
-      } else {
-        // Swipe right - go to previous slide
-        setCurrentSlide((prev) => (prev === 0 ? 2 : prev - 1));
-      }
+    if (Math.abs(diff) > 50) {
+      setCurrentSlide(prev =>
+        diff > 0
+          ? (prev + 1) % slideCount
+          : (prev === 0 ? slideCount - 1 : prev - 1)
+      );
     }
-  }, []);
+  }, [slideCount]);
 
-  // Hero slides
-  const heroSlides = [
-    {
-      title: "Quality Furniture, Carefully Selected",
-      subtitle: "Handpicked pieces from trusted makers worldwide",
-      cta: "Shop Collection",
-      link: "/products",
-      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=2400&q=80"
-    },
-    {
-      title: "New Arrivals Every Week",
-      subtitle: "Discover the latest additions to our curated collection",
-      cta: "See What's New",
-      link: "/products?filter=new",
-      image: "https://images.unsplash.com/photo-1567016432779-094069958ea5?auto=format&fit=crop&w=2400&q=80"
-    },
-    {
-      title: "Try Before You Buy with AR",
-      subtitle: "See furniture in your space with augmented reality",
-      cta: "Coming Soon",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=2400&q=80"
-    }
-  ];
-
-  // Scroll carousel using native scroll
   const scrollCarousel = (direction, containerId) => {
     const container = document.getElementById(containerId);
     if (!container) return;
-
-    const scrollAmount = 300;
-    container.scrollBy({
-      left: direction === 'right' ? scrollAmount : -scrollAmount,
-      behavior: 'smooth'
-    });
+    container.scrollBy({ left: direction === 'right' ? 300 : -300, behavior: 'smooth' });
   };
 
   return (
@@ -146,40 +255,42 @@ export default function HomePage() {
       >
         {heroSlides.map((slide, index) => (
           <div
-            key={index}
+            key={slide.id || index}
             className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
           >
-            <Image
-              src={slide.image}
-              className="hero-bg"
-              alt={slide.title}
-              fill
-              sizes="100vw"
-              priority={index === 0}
-            />
-            <div className="hero-overlay"></div>
+            <HeroBackground slide={slide} />
+            <div className="hero-overlay" />
           </div>
         ))}
 
         <div className="hero-content">
-          <h1 className="hero-title">{heroSlides[currentSlide].title}</h1>
-          <p className="hero-subtitle">{heroSlides[currentSlide].subtitle}</p>
-          <Link href={heroSlides[currentSlide].link} className="btn btn-hero">{heroSlides[currentSlide].cta}</Link>
+          <h1 className="hero-title">{heroSlides[currentSlide]?.title}</h1>
+          <p className="hero-subtitle">{heroSlides[currentSlide]?.subtitle}</p>
+          {heroSlides[currentSlide]?.ctaText && (
+            <Link
+              href={heroSlides[currentSlide]?.ctaLink || '#'}
+              className="btn btn-hero"
+            >
+              {heroSlides[currentSlide].ctaText}
+            </Link>
+          )}
 
-          <div className="hero-dots">
-            {heroSlides.map((_, index) => (
-              <button
-                key={index}
-                className={`hero-dot ${index === currentSlide ? 'active' : ''}`}
-                onClick={() => setCurrentSlide(index)}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
+          {slideCount > 1 && (
+            <div className="hero-dots">
+              {heroSlides.map((_, index) => (
+                <button
+                  key={index}
+                  className={`hero-dot ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => setCurrentSlide(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* CATEGORIES - FIXED WITH LINKS! */}
+      {/* CATEGORIES */}
       <section className="categories-section">
         <div className="container">
           <div className="section-header category-header">
@@ -201,9 +312,7 @@ export default function HomePage() {
             <div className="error-state">
               <div className="error-icon">⚠️</div>
               <p className="error-message">Unable to load categories</p>
-              <button className="error-retry-btn" onClick={() => refetchCategories()}>
-                Try Again
-              </button>
+              <button className="error-retry-btn" onClick={() => refetchCategories()}>Try Again</button>
             </div>
           ) : categories.length === 0 ? (
             <EmptyState
@@ -222,18 +331,9 @@ export default function HomePage() {
               >‹</button>
               <div className="categories-scroll" id="categories-scroll">
                 {categories.map((cat) => (
-                  <Link
-                    href={`/categories/${cat.slug}`}
-                    key={cat.id}
-                    className="subcategory-card"
-                  >
+                  <Link href={`/categories/${cat.slug}`} key={cat.id} className="subcategory-card">
                     <div className="subcategory-image">
-                      <Image
-                        src={cat.imageUrl}
-                        alt={cat.name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, 200px"
-                      />
+                      <Image src={cat.imageUrl} alt={cat.name} fill sizes="(max-width: 640px) 50vw, 200px" />
                     </div>
                     <h3 className="subcategory-name">{cat.name}</h3>
                   </Link>
@@ -250,39 +350,29 @@ export default function HomePage() {
       </section>
 
       {/* OFFER BAR */}
-      <section className="social-proof-bar">
-        <div className="container">
-          <div className="proof-stats">
-            <div className="proof-stat">
-              <div className="proof-number">🎉</div>
-              <div className="proof-label">20% Off First Order</div>
-            </div>
-            <div className="proof-stat">
-              <div className="proof-number">🚚</div>
-              <div className="proof-label">Free Shipping Over $500</div>
-            </div>
-            <div className="proof-stat">
-              <div className="proof-number">💳</div>
-              <div className="proof-label">Buy Now, Pay Later</div>
-            </div>
-            <div className="proof-stat">
-              <div className="proof-number">🔄</div>
-              <div className="proof-label">30-Day Easy Returns</div>
+      {offerBar.enabled && offerBar.items.length > 0 && (
+        <section className="social-proof-bar">
+          <div className="container">
+            <div className="proof-stats">
+              {offerBar.items.map((item, i) => (
+                <div key={i} className="proof-stat">
+                  <div className="proof-number">{item.emoji}</div>
+                  <div className="proof-label">{item.text}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* TRENDING PRODUCTS - Using Featured */}
+      {/* TRENDING PRODUCTS */}
       <section className="product-section">
         <div className="container">
           <div className="section-header product-header">
-            <div>
-              <h2 className="section-title">Trending Now</h2>
-            </div>
+            <div><h2 className="section-title">Trending Now</h2></div>
             <Link href="/products" className="section-link">View All</Link>
           </div>
-          
+
           {featuredLoading ? (
             <div className="skeleton-carousel">
               {[1, 2, 3, 4].map((i) => (
@@ -300,9 +390,7 @@ export default function HomePage() {
             <div className="error-state">
               <div className="error-icon">⚠️</div>
               <p className="error-message">Unable to load trending products</p>
-              <button className="error-retry-btn" onClick={() => refetchFeatured()}>
-                Try Again
-              </button>
+              <button className="error-retry-btn" onClick={() => refetchFeatured()}>Try Again</button>
             </div>
           ) : featuredProducts.length === 0 ? (
             <EmptyState
@@ -335,39 +423,29 @@ export default function HomePage() {
       </section>
 
       {/* CUSTOMER SATISFACTION BAR */}
+      {socialBar.enabled && socialBar.items.length > 0 && (
       <section className="social-media-bar">
         <div className="container">
           <div className="social-media-content">
-            <div className="social-feature">
-              <div className="social-feature-icon">⭐</div>
-              <div className="social-feature-label">4.8/5 Customer Rating</div>
-            </div>
-            <div className="social-feature">
-              <div className="social-feature-icon">📈</div>
-              <div className="social-feature-label">Trending Products</div>
-            </div>
-            <div className="social-feature">
-              <div className="social-feature-icon">😊</div>
-              <div className="social-feature-label">98% Satisfaction Rate</div>
-            </div>
-            <div className="social-feature">
-              <div className="social-feature-icon">🏆</div>
-              <div className="social-feature-label">Award-Winning Service</div>
-            </div>
+            {socialBar.items.map((item, i) => (
+              <div key={i} className="social-feature">
+                <div className="social-feature-icon">{item.emoji}</div>
+                <div className="social-feature-label">{item.text}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+      )}
 
       {/* NEW ARRIVALS */}
       <section className="product-section" style={{ background: '#fafaf8' }}>
         <div className="container">
           <div className="section-header product-header">
-            <div>
-              <h2 className="section-title">New Arrivals</h2>
-            </div>
+            <div><h2 className="section-title">New Arrivals</h2></div>
             <Link href="/products?filter=new" className="section-link">View All</Link>
           </div>
-          
+
           {newLoading ? (
             <div className="skeleton-carousel">
               {[1, 2, 3, 4].map((i) => (
@@ -385,9 +463,7 @@ export default function HomePage() {
             <div className="error-state">
               <div className="error-icon">⚠️</div>
               <p className="error-message">Unable to load new arrivals</p>
-              <button className="error-retry-btn" onClick={() => refetchNew()}>
-                Try Again
-              </button>
+              <button className="error-retry-btn" onClick={() => refetchNew()}>Try Again</button>
             </div>
           ) : newProducts.length === 0 ? (
             <EmptyState
@@ -420,35 +496,41 @@ export default function HomePage() {
       </section>
 
       {/* BRAND STORY */}
-      <section className="brand-story-section">
-        <div className="container">
-          <div className="brand-story-content">
-            <div className="brand-story-text">
-              <h2 className="section-title" style={{ textAlign: 'left' }}>Our Story</h2>
-              <p className="brand-story-description">
-                At LiviPoint, we believe your home should tell your story. That's why we've spent years building relationships
-                with the world's finest furniture makers, bringing you pieces that combine timeless design with modern craftsmanship.
-              </p>
-              <p className="brand-story-description">
-                Every item in our collection is carefully vetted for quality, sustainability, and style. We don't just sell furniture—we
-                help you create spaces that inspire, comfort, and endure.
-              </p>
-              <Link href="/about" className="btn" style={{ marginTop: '20px' }}>Learn More About Us</Link>
-            </div>
-            <div className="brand-story-image">
-              <Image
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80"
-                alt="Our showroom"
-                width={450}
-                height={600}
-                style={{ width: '100%', height: 'auto' }}
-              />
+      {brandStory.enabled && (
+        <section className="brand-story-section">
+          <div className="container">
+            <div className="brand-story-content">
+              <div className="brand-story-text">
+                <h2 className="section-title" style={{ textAlign: 'left' }}>{brandStory.title}</h2>
+                {brandStory.paragraph1 && (
+                  <p className="brand-story-description">{brandStory.paragraph1}</p>
+                )}
+                {brandStory.paragraph2 && (
+                  <p className="brand-story-description">{brandStory.paragraph2}</p>
+                )}
+                {brandStory.buttonText && (
+                  <Link href={brandStory.buttonLink || '#'} className="btn" style={{ marginTop: '20px' }}>
+                    {brandStory.buttonText}
+                  </Link>
+                )}
+              </div>
+              {brandStory.imageUrl && (
+                <div className="brand-story-image">
+                  <Image
+                    src={brandStory.imageUrl}
+                    alt={brandStory.title}
+                    width={450}
+                    height={600}
+                    style={{ width: '100%', height: 'auto' }}
+                  />
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* FEATURED IN / TRUST BADGES */}
+      {/* FEATURED IN */}
       <section className="featured-in">
         <div className="container">
           <h3 className="featured-title">As Featured In</h3>
