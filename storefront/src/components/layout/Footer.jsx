@@ -71,7 +71,7 @@ export default function Footer() {
 
       <div className="footer-bottom">
         <div className="footer-bottom-content">
-          <p>© {currentYear} Furnivo. All rights reserved.</p>
+          <p>© {currentYear} LiviPoint. All rights reserved.</p>
           
           <div className="footer-trust">
             <div className="payment-methods">

@@ -42,7 +42,7 @@ const cormorant = Cormorant({
 });
 
 export const metadata = {
-  metadataBase: new URL('https://livipoint.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://livipoint.com'),
   title: {
     default: 'LiviPoint - Quality Furniture Store',
     template: '%s | LiviPoint',

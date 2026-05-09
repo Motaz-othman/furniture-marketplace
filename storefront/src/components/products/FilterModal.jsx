@@ -60,7 +60,12 @@ const FilterModal = memo(function FilterModal({ isOpen, onClose, filters, onFilt
   const handlePriceChange = useCallback((index, value) => {
     setPriceRange(prev => {
       const newRange = [...prev];
-      newRange[index] = parseInt(value);
+      const parsed = parseInt(value) || 0;
+      newRange[index] = parsed;
+      if (newRange[0] > newRange[1]) {
+        if (index === 0) newRange[1] = newRange[0];
+        else newRange[0] = newRange[1];
+      }
       return newRange;
     });
   }, []);

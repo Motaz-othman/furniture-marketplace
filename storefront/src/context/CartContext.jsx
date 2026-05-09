@@ -21,9 +21,10 @@ function writeStorage(items) {
 }
 
 function computeTotals(items) {
-  const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
-  const total = items.reduce((sum, i) => sum + (i._price || 0) * i.quantity, 0);
-  return { itemCount, total: Math.round(total * 100) / 100 };
+  const itemCount = items.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0);
+  const rawTotal = items.reduce((sum, i) => sum + (Number(i._price) || 0) * (Number(i.quantity) || 0), 0);
+  const total = isFinite(rawTotal) ? Math.round(rawTotal * 100) / 100 : 0;
+  return { itemCount, total };
 }
 
 // Store minimal product data needed for cart page display

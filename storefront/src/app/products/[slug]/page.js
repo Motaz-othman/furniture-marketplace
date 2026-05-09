@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { getProductBySlug } from '@/lib/api/products';
 import { getCategoryById } from '@/lib/api/categories';
 import ProductDetailContent from './ProductDetailContent';
@@ -158,6 +159,8 @@ function BreadcrumbJsonLd({ product, parentCategory }) {
 export default async function ProductDetailPage({ params }) {
   const { slug } = await params;
   const product = await fetchProduct(slug);
+
+  if (!product) notFound();
 
   // Fetch parent category for breadcrumbs
   let parentCategory = null;
