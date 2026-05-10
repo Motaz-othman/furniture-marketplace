@@ -352,7 +352,7 @@ export default function HomePage() {
       <section className="product-section">
         <div className="container">
           <div className="section-header product-header">
-            <div><h2 className="section-title">Trending Now</h2></div>
+            <h2 className="section-title">Trending Now</h2>
             <Link href="/products" className="section-link">View All</Link>
           </div>
 
@@ -425,7 +425,7 @@ export default function HomePage() {
       <section className="product-section" style={{ background: '#fafaf8' }}>
         <div className="container">
           <div className="section-header product-header">
-            <div><h2 className="section-title">New Arrivals</h2></div>
+            <h2 className="section-title">New Arrivals</h2>
             <Link href="/products?filter=new" className="section-link">View All</Link>
           </div>
 

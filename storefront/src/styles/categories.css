@@ -90,8 +90,14 @@
   }
 
   .shop-by-room-title {
+    font-family: var(--font-primary, Inter, sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-light);
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
 
   /* Mobile-first: uniform 2-column grid */

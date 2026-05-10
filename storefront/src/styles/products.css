@@ -11,31 +11,36 @@
 
   .product-header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
-    position: relative;
+    margin-bottom: 32px;
   }
 
-  .product-header > div {
-    text-align: center;
+  .product-header .section-title {
+    font-family: var(--font-primary, Inter, sans-serif);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 0;
   }
-  
+
   .section-link {
     font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    text-decoration: underline;
-    cursor: pointer;
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    letter-spacing: 1.5px;
+    text-decoration: none;
+    color: var(--text-light);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+    transition: color 0.2s ease;
+    white-space: nowrap;
   }
 
   .section-link:hover {
-    color: var(--accent-color);
+    color: var(--text-main);
   }
   
   .product-carousel-wrapper {
