@@ -62,6 +62,9 @@ if (process.env.STRIPE_SECRET_KEY && (process.env.STRIPE_SECRET_KEY === 'sk_test
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy so real client IPs are used (not Vercel/Render edge IPs)
+app.set('trust proxy', 1);
+
 // ✅ THEN add webhook route
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), async (req, res, next) => {
   const { handleStripeWebhook } = await import('./modules/payments/webhook.controller.js');
