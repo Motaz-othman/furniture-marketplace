@@ -175,7 +175,7 @@ export default function HomePage() {
     enabled: true,
     items: [
       { id: '1', name: 'Living Room',           link: '/categories/living-room',  imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80' },
-      { id: '2', name: 'Outdoor',               link: '/categories/outdoor',      imageUrl: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&q=80' },
+      { id: '2', name: 'Outdoor',               link: '/categories/outdoor',      imageUrl: 'https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=800&q=80' },
       { id: '3', name: 'Bedroom',               link: '/categories/bedroom',      imageUrl: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80' },
       { id: '4', name: 'Dining Room & Kitchen', link: '/categories/dining-room',  imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80' },
       { id: '5', name: 'Home Office',           link: '/categories/office',       imageUrl: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80' },

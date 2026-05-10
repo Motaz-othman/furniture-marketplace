@@ -89,7 +89,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
+    <html lang="en" className={`${inter.variable} ${cormorant.variable}`} data-scroll-behavior="smooth">
       <body className={inter.className}>
         <QueryProvider>
           <AuthProvider>
