@@ -99,7 +99,6 @@ export const getListingById = async (req, res) => {
       include: {
         product: {
           include: {
-            vendor: { select: { businessName: true } },
             category: true,
             variants: true,
           },
@@ -301,7 +300,6 @@ export const getRawProductById = async (req, res) => {
       include: {
         category: true,
         variants: true,
-        vendor: { select: { businessName: true } },
         storefront: { select: { id: true, isPublished: true } },
       },
     });

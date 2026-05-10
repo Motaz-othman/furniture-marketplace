@@ -14,12 +14,7 @@ async function syncMeilisearch() {
     const products = await prisma.product.findMany({
       where: { isActive: true },
       include: {
-        category: {
-          select: { name: true }
-        },
-        vendor: {
-          select: { businessName: true }
-        }
+        category: { select: { name: true } }
       }
     });
 

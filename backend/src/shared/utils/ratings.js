@@ -34,6 +34,7 @@ export const updateProductRating = async (productId) => {
 
   } catch (error) {
     console.error('Update product rating error:', error);
+    throw error;
   }
 };
 

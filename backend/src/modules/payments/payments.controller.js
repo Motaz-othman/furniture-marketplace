@@ -66,8 +66,7 @@ export const createOrderPayment = async (req, res) => {
 } catch (error) {
     console.error('Create order payment error:', error);
     
-    // Check if it's a Stripe error
-    if (error.type && error.type.includes('Stripe')) {
+    if (error.type) {
       return res.status(400).json(formatPaymentError(error));
     }
     

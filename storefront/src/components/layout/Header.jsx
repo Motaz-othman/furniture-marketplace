@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { User, Heart, ShoppingCart, ArrowLeft, Menu, X, Search, Flame, Sparkles, Package, Sofa, BedDouble, UtensilsCrossed, Briefcase, TreeDeciduous, Lamp } from '@/components/ui/Icons';
-import { useParentCategories, useAuth, useCart } from '@/lib/hooks';
+import { useParentCategories, useAuth, useCart, useWishlist } from '@/lib/hooks';
 import MegaMenu from './MegaMenu';
 import MobileCategoryAccordion from './MobileCategoryAccordion';
 
@@ -17,6 +17,7 @@ export default function Header() {
   // Auth state
   const { user, isAuthenticated } = useAuth();
   const { itemCount } = useCart();
+  const { count: wishlistCount } = useWishlist();
 
   // Check if we're on a subpage (not homepage)
   const isSubpage = pathname !== '/';
@@ -126,8 +127,9 @@ export default function Header() {
               <User size={20} />
             </Link>
           )}
-          <Link href="/wishlist" className="action-link" aria-label="Wishlist">
+          <Link href="/wishlist" className="action-link cart-link" aria-label="Wishlist">
             <Heart size={20} />
+            {wishlistCount > 0 && <span className="cart-count">{wishlistCount}</span>}
           </Link>
           <Link href="/cart" className="action-link cart-link" aria-label="Shopping Cart">
             <ShoppingCart size={20} />

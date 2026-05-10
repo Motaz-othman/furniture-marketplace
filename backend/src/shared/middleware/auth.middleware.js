@@ -61,6 +61,9 @@ export const customerOnly = (req, res, next) => {
   if (req.user.role !== 'CUSTOMER') {
     return res.status(403).json({ error: 'Customer access required' });
   }
+  if (!req.user.customer) {
+    return res.status(500).json({ error: 'Customer profile not found' });
+  }
   next();
 };
 

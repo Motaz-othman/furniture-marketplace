@@ -14,19 +14,14 @@ export const getCart = async (req, res) => {
     const cartItems = await prisma.cartItem.findMany({
       where: { customerId },
       include: {
-        product: {
-          include: {
-            vendor: {
-              select: { businessName: true }
-            }
-          }
-        },
+        product: true,
         variant: true
       }
     });
 
     // Calculate total using variant retailPrice or product minPrice
     const total = cartItems.reduce((sum, item) => {
+      if (!item.product) return sum;
       const price = getItemPrice(item.variant, item.product);
       return sum + (price * item.quantity);
     }, 0);

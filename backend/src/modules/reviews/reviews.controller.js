@@ -56,7 +56,7 @@ export const createReview = async (req, res) => {
           }
         },
         product: {
-          select: { vendorId: true, name: true }
+          select: { name: true }
         }
       }
     });
@@ -108,15 +108,7 @@ export const updateReview = async (req, res) => {
     const { id } = req.params;
     const { rating, comment } = req.body;
 
-    // Check ownership and get product info
-    const existingReview = await prisma.review.findUnique({
-      where: { id },
-      include: {
-        product: {
-          select: { vendorId: true }
-        }
-      }
-    });
+    const existingReview = await prisma.review.findUnique({ where: { id } });
 
     if (!existingReview || existingReview.customerId !== customerId) {
       return res.status(404).json({ error: 'Review not found' });
@@ -127,9 +119,7 @@ export const updateReview = async (req, res) => {
       data: { rating, comment }
     });
 
-    // ✅ AUTO-UPDATE RATINGS
     await updateProductRating(existingReview.productId);
-    await updateVendorRating(existingReview.product.vendorId);
 
     res.json({
       message: 'Review updated successfully',
@@ -148,30 +138,14 @@ export const deleteReview = async (req, res) => {
     const customerId = req.user.customer.id;
     const { id } = req.params;
 
-    // Check ownership and get product info before deleting
-    const review = await prisma.review.findUnique({
-      where: { id },
-      include: {
-        product: {
-          select: { vendorId: true }
-        }
-      }
-    });
+    const review = await prisma.review.findUnique({ where: { id } });
 
     if (!review || review.customerId !== customerId) {
       return res.status(404).json({ error: 'Review not found' });
     }
 
-    const productId = review.productId;
-    const vendorId = review.product.vendorId;
-
-    await prisma.review.delete({
-      where: { id }
-    });
-
-    // ✅ AUTO-UPDATE RATINGS
-    await updateProductRating(productId);
-    await updateVendorRating(vendorId);
+    await prisma.review.delete({ where: { id } });
+    await updateProductRating(review.productId);
 
     res.json({ message: 'Review deleted successfully' });
 

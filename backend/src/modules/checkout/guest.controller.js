@@ -78,7 +78,7 @@ export const guestCheckout = async (req, res) => {
       const product = productMap.get(item.productId);
       if (item.variantId) {
         const variant = product.variants.find(v => v.id === item.variantId);
-        return variant?.price?.retailPrice ?? variant?.price ?? 0;
+        return variant?.price?.retailPrice ?? 0;
       }
       return product.minPrice ?? 0;
     }
@@ -138,11 +138,12 @@ export const guestCheckout = async (req, res) => {
             where: { id: item.variantId },
             data: { stockQuantity: { decrement: item.quantity } },
           });
+        } else {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { totalStock: { decrement: item.quantity } },
+          });
         }
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { totalStock: { decrement: item.quantity } },
-        });
       }
 
       return createdOrder;

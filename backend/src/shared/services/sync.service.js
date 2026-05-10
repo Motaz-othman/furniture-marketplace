@@ -495,11 +495,10 @@ export async function runIncrementalSync() {
     }
 
     await buildCategorySlugMap();
-    const vendor = await ensureDefaultVendor();
     const inventoryMap = buildInventoryMap(rawInventory);
 
     setProgress(`Syncing ${rawProducts.length} changed products...`);
-    const result = await syncProducts(rawProducts, inventoryMap, vendor.id);
+    const result = await syncProducts(rawProducts, inventoryMap);
 
     await logSync('INCREMENTAL_SYNC', 'SUCCESS', {
       total: rawProducts.length,
@@ -551,11 +550,10 @@ export async function syncSingleProduct(externalId) {
     }
 
     await buildCategorySlugMap();
-    const vendor = await ensureDefaultVendor();
     const inventoryMap = buildInventoryMap(rawInventory);
 
     setProgress(`Syncing product "${targetProduct.name}"...`);
-    const result = await syncProducts([targetProduct], inventoryMap, vendor.id);
+    const result = await syncProducts([targetProduct], inventoryMap);
 
     await logSync('SINGLE_PRODUCT', 'SUCCESS', {
       total: 1,

@@ -4,10 +4,9 @@ import { searchProducts } from '../../shared/services/meilisearch.service.js';
 export const search = async (req, res) => {
   try {
     const { 
-      q, 
-      categoryId, 
-      vendorId, 
-      minPrice, 
+      q,
+      categoryId,
+      minPrice,
       maxPrice, 
       materials, 
       colors, 
@@ -24,9 +23,8 @@ export const search = async (req, res) => {
       limit: parseInt(limit),
       offset,
       categoryId,
-      vendorId,
       minPrice: minPrice ? parseFloat(minPrice) : null,
-      maxPrice: maxPrice ? maxPrice ? parseFloat(maxPrice) : null : null,
+      maxPrice: maxPrice ? parseFloat(maxPrice) : null,
       materials: materials ? materials.split(',') : [],
       colors: colors ? colors.split(',') : [],
       roomType,

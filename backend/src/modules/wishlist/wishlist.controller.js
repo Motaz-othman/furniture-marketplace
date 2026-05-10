@@ -30,9 +30,12 @@ export const addToWishlist = async (req, res) => {
           select: {
             id: true,
             name: true,
-            price: true,
-            images: true,
-            stockQuantity: true
+            slug: true,
+            minPrice: true,
+            maxPrice: true,
+            mainImage: true,
+            totalStock: true,
+            isActive: true
           }
         }
       }
@@ -61,11 +64,14 @@ export const getWishlist = async (req, res) => {
           select: {
             id: true,
             name: true,
-            price: true,
-            images: true,
-            stockQuantity: true,
-            category: { select: { name: true } },
-            vendor: { select: { businessName: true } }
+            slug: true,
+            minPrice: true,
+            maxPrice: true,
+            mainImage: true,
+            media: true,
+            totalStock: true,
+            isActive: true,
+            category: { select: { id: true, name: true, slug: true } }
           }
         }
       },

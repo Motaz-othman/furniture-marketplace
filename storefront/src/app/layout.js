@@ -22,6 +22,7 @@ import '../styles/checkout.css';
 import { QueryProvider } from '@/lib/hooks/QueryProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 
@@ -93,16 +94,18 @@ export default function RootLayout({ children }) {
         <QueryProvider>
           <AuthProvider>
             <CartProvider>
-              <ErrorBoundary>
-                {children}
-              </ErrorBoundary>
-              <Toaster
-                position="top-center"
-                toastOptions={{
-                  duration: 3000,
-                  style: { fontSize: '14px' },
-                }}
-              />
+              <WishlistProvider>
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
+                <Toaster
+                  position="top-center"
+                  toastOptions={{
+                    duration: 3000,
+                    style: { fontSize: '14px' },
+                  }}
+                />
+              </WishlistProvider>
             </CartProvider>
           </AuthProvider>
         </QueryProvider>

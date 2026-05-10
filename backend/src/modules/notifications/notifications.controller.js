@@ -4,19 +4,12 @@ export const getNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
     
-    // ✅ ADD DEBUG
-    console.log('=== GET NOTIFICATIONS DEBUG ===');
-    console.log('Token userId:', userId);
-    console.log('User object:', req.user);
-    
     const { page = 1, limit = 20, unreadOnly = false } = req.query;
 
     const where = { userId };
     if (unreadOnly === 'true') {
       where.isRead = false;
     }
-    
-    console.log('Where clause:', where);
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const take = parseInt(limit);
@@ -31,9 +24,6 @@ export const getNotifications = async (req, res) => {
       prisma.notification.count({ where })
     ]);
     
-    console.log('Found notifications:', notifications.length);
-    console.log('=== END DEBUG ===');
-
     res.json({
       notifications,
       pagination: {

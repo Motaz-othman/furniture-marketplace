@@ -35,3 +35,6 @@ export {
 
   // Export settings hooks
   export { useSettings } from './useSettings.js';
+
+  // Export wishlist hook
+  export { useWishlist } from '../../context/WishlistContext';

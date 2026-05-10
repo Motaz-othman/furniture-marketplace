@@ -10,7 +10,7 @@ import { sendPasswordResetEmail } from '../../shared/services/email.service.js';
 // Register new user
 export const register = async (req, res) => {
   try {
-    const { email, password, firstName, lastName, role, businessName, claimGuestOrders } = req.body;
+    const { email, password, firstName, lastName, claimGuestOrders } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -350,7 +350,6 @@ export const getMe = async (req, res) => {
       select: {
         id: true, email: true, firstName: true, lastName: true, phone: true,
         role: true, createdAt: true, updatedAt: true,
-        vendor: { select: { id: true, businessName: true, status: true } },
         customer: { select: { id: true } }
       }
     });

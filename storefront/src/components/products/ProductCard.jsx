@@ -4,11 +4,13 @@ import { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatPrice, getColorFromVariant, getThumbnailUrl } from '@/lib/utils';
+import { useWishlist } from '@/lib/hooks';
 import { Heart } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ProductCard = memo(function ProductCard({ product, index }) {
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -48,10 +50,16 @@ const ProductCard = memo(function ProductCard({ product, index }) {
     setImageLoaded(true);
   }, []);
 
-  const handleWishlistToggle = useCallback((e) => {
+  const handleWishlistToggle = useCallback(async (e) => {
     e.preventDefault();
-    setIsWishlisted(prev => !prev);
-  }, []);
+    const wasWishlisted = isWishlisted(product.id);
+    try {
+      await toggleWishlist(product);
+      toast.success(wasWishlisted ? 'Removed from wishlist' : 'Added to wishlist');
+    } catch {
+      toast.error('Failed to update wishlist');
+    }
+  }, [product, isWishlisted, toggleWishlist]);
 
   const handleImageDotClick = useCallback((e, idx) => {
     e.preventDefault();
@@ -85,12 +93,12 @@ const ProductCard = memo(function ProductCard({ product, index }) {
 
         {/* Wishlist button — top right */}
         <button
-          className={`action-btn wishlist-btn ${isWishlisted ? 'active' : ''}`}
+          className={`action-btn wishlist-btn ${isWishlisted(product.id) ? 'active' : ''}`}
           onClick={handleWishlistToggle}
           aria-label="Add to wishlist"
           title="Add to Wishlist"
         >
-          <Heart size={18} strokeWidth={1.8} fill={isWishlisted ? 'currentColor' : 'none'} />
+          <Heart size={18} strokeWidth={1.8} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
         </button>
 
 
