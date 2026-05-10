@@ -40,7 +40,7 @@ dotenv.config();
 
 // ── Validate required environment variables at startup ──────────────
 const isProduction = process.env.NODE_ENV === 'production';
-const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'];
+const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET'];
 for (const key of REQUIRED_ENV) {
   if (!process.env[key]) {
     const msg = `Missing required environment variable: ${key}`;
@@ -55,8 +55,7 @@ if (process.env.JWT_SECRET && (process.env.JWT_SECRET === 'your_jwt_secret_here'
 }
 if (process.env.STRIPE_SECRET_KEY && (process.env.STRIPE_SECRET_KEY === 'sk_test_placeholder' || !process.env.STRIPE_SECRET_KEY.startsWith('sk_'))) {
   const msg = 'STRIPE_SECRET_KEY is invalid or placeholder. Set a real Stripe secret key.';
-  if (isProduction) { console.error(`❌ ${msg}`); process.exit(1); }
-  else console.warn(`⚠️  ${msg}`);
+  console.warn(`⚠️  ${msg}`);
 }
 
 const app = express();
