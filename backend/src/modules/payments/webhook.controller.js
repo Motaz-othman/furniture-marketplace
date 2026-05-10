@@ -5,17 +5,13 @@ import { verifyWebhookSignature } from '../../shared/services/stripe.service.js'
 export const handleStripeWebhook = async (req, res) => {
   try {
     const signature = req.headers['stripe-signature'];
-
-    // For now, skip signature verification if webhook secret not set
-    let event;
-    if (process.env.STRIPE_WEBHOOK_SECRET) {
-      event = verifyWebhookSignature(req.body, signature);
-    } else {
-      // In development, accept webhook without verification
-      event = JSON.parse(req.body.toString());
+    if (!signature) {
+      return res.status(400).json({ error: 'Missing stripe-signature header' });
     }
 
-    console.log('Webhook received:', event.type);
+    const event = verifyWebhookSignature(req.body, signature);
+
+    console.log(`Webhook received: ${event.type}`);
 
     // Handle different event types
     switch (event.type) {

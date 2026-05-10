@@ -35,6 +35,17 @@ const DEFAULT_SETTINGS = {
       },
     ],
   },
+  shopByRoom: {
+    enabled: true,
+    items: [
+      { id: '1', name: 'Living Room',          link: '/categories/living-room',   imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80' },
+      { id: '2', name: 'Outdoor',              link: '/categories/outdoor',       imageUrl: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&q=80' },
+      { id: '3', name: 'Bedroom',              link: '/categories/bedroom',       imageUrl: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80' },
+      { id: '4', name: 'Dining Room & Kitchen',link: '/categories/dining-room',   imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80' },
+      { id: '5', name: 'Home Office',          link: '/categories/office',        imageUrl: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80' },
+      { id: '6', name: 'Decor',               link: '/categories/decor',         imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80' },
+    ],
+  },
   offerBar: {
     enabled: true,
     items: [

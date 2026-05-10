@@ -80,6 +80,102 @@
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   }
   
+  /* ============================================
+     SHOP BY ROOM
+     ============================================ */
+
+  .shop-by-room-section {
+    padding: 48px 0 56px;
+    background: #fff;
+  }
+
+  .shop-by-room-title {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  /* Mobile-first: uniform 2-column grid */
+  .shop-by-room-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .room-tile {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 8px;
+    aspect-ratio: 4/3;
+    text-decoration: none;
+    background: #f0f0f0;
+  }
+
+  .room-tile-image {
+    position: absolute;
+    inset: 0;
+  }
+
+  .room-tile-image img {
+    transition: transform 0.5s ease;
+  }
+
+  .room-tile:hover .room-tile-image img {
+    transform: scale(1.05);
+  }
+
+  .room-tile-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 60%);
+    transition: background 0.3s ease;
+  }
+
+  .room-tile:hover .room-tile-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 60%);
+  }
+
+  .room-tile-name {
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+    z-index: 2;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  /* Desktop: 3-column equal grid */
+  @media (min-width: 768px) {
+    .shop-by-room-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .room-tile-name {
+      font-size: 17px;
+      bottom: 18px;
+      left: 20px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .shop-by-room-section {
+      padding: 56px 0 64px;
+    }
+
+    .shop-by-room-grid {
+      gap: 14px;
+    }
+
+    .room-tile {
+      aspect-ratio: 3/2;
+    }
+  }
+
   /* Social Proof Bar */
   .social-proof-bar {
     background: linear-gradient(135deg, #aa7c6d 0%, #9a6c5d 100%);

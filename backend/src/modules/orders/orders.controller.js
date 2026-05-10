@@ -33,41 +33,16 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
-    // Validate all items
-    const invalidItems = [];
+    // Basic product/variant existence checks (outside transaction — fast)
+    const quickInvalid = [];
     for (const item of cartItems) {
-      if (!item.product) {
-        invalidItems.push({ reason: 'Product no longer exists', cartItemId: item.id });
-        continue;
-      }
-      if (!item.product.isActive) {
-        invalidItems.push({ reason: 'Product is no longer available', name: item.product.name });
-        continue;
-      }
-      if (item.variantId) {
-        if (!item.variant) {
-          invalidItems.push({ reason: 'Product variant no longer exists', name: item.product.name });
-          continue;
-        }
-        const variantLabel = Array.isArray(item.variant.attributes)
-          ? item.variant.attributes.map(a => (a.values?.[0] || a.normalizedValues?.[0] || '')).filter(Boolean).join(' / ')
-          : (item.variant.name || '');
-        if (!item.variant.isActive) {
-          invalidItems.push({ reason: 'Product variant is no longer available', name: item.product.name, variant: variantLabel });
-          continue;
-        }
-        if (item.variant.stockQuantity < item.quantity) {
-          invalidItems.push({ reason: 'Insufficient stock', name: item.product.name, variant: variantLabel, available: item.variant.stockQuantity, requested: item.quantity });
-        }
-      } else {
-        if (item.product.totalStock < item.quantity) {
-          invalidItems.push({ reason: 'Insufficient stock', name: item.product.name, available: item.product.totalStock, requested: item.quantity });
-        }
-      }
+      if (!item.product) { quickInvalid.push({ reason: 'Product no longer exists', cartItemId: item.id }); continue; }
+      if (!item.product.isActive) { quickInvalid.push({ reason: 'Product is no longer available', name: item.product.name }); continue; }
+      if (item.variantId && !item.variant) { quickInvalid.push({ reason: 'Variant no longer exists', name: item.product.name }); continue; }
+      if (item.variantId && !item.variant.isActive) { quickInvalid.push({ reason: 'Variant is no longer available', name: item.product.name }); continue; }
     }
-
-    if (invalidItems.length > 0) {
-      return res.status(400).json({ error: 'Some items are no longer available.', invalidItems });
+    if (quickInvalid.length > 0) {
+      return res.status(400).json({ error: 'Some items are no longer available.', invalidItems: quickInvalid });
     }
 
     const address = await prisma.address.findUnique({ where: { id: addressId } });
@@ -80,11 +55,34 @@ export const createOrder = async (req, res) => {
       return sum + (price * item.quantity);
     }, 0);
 
-    const tax = subtotal * 0.08;
-    const shippingCost = 50;
+    const taxRate = parseFloat(process.env.TAX_RATE ?? '0.08');
+    const shippingCost = parseFloat(process.env.SHIPPING_COST ?? '50');
+    const tax = Math.round(subtotal * taxRate * 100) / 100;
     const total = subtotal + tax + shippingCost;
 
     const order = await prisma.$transaction(async (tx) => {
+      // ── Re-validate stock INSIDE transaction to prevent race conditions ──
+      const invalidItems = [];
+      for (const item of cartItems) {
+        if (item.variantId) {
+          const fresh = await tx.productVariant.findUnique({ where: { id: item.variantId }, select: { stockQuantity: true, name: true } });
+          const variantLabel = Array.isArray(item.variant.attributes)
+            ? item.variant.attributes.map(a => (a.values?.[0] || a.normalizedValues?.[0] || '')).filter(Boolean).join(' / ')
+            : (fresh?.name || '');
+          if (!fresh || fresh.stockQuantity < item.quantity) {
+            invalidItems.push({ reason: 'Insufficient stock', name: item.product.name, variant: variantLabel, available: fresh?.stockQuantity ?? 0, requested: item.quantity });
+          }
+        } else {
+          const fresh = await tx.product.findUnique({ where: { id: item.productId }, select: { totalStock: true } });
+          if (!fresh || fresh.totalStock < item.quantity) {
+            invalidItems.push({ reason: 'Insufficient stock', name: item.product.name, available: fresh?.totalStock ?? 0, requested: item.quantity });
+          }
+        }
+      }
+      if (invalidItems.length > 0) {
+        throw Object.assign(new Error('STOCK_CONFLICT'), { invalidItems });
+      }
+
       const created = await tx.order.create({
         data: {
           customerId,
@@ -154,6 +152,9 @@ export const createOrder = async (req, res) => {
 
     res.status(201).json({ message: 'Order created successfully', order: { ...order, clientSecret } });
   } catch (error) {
+    if (error.message === 'STOCK_CONFLICT') {
+      return res.status(409).json({ error: 'Some items ran out of stock. Please review your cart.', invalidItems: error.invalidItems });
+    }
     console.error('Create order error:', error);
     res.status(500).json({ error: 'Failed to create order' });
   }

@@ -2,7 +2,6 @@
 
 import { use, useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { SlidersHorizontal, X } from '@/components/ui/Icons';
 import MainLayout from '@/components/layout/MainLayout';
 import VirtualProductGrid from '@/components/products/VirtualProductGrid';
@@ -460,58 +459,27 @@ export default function CategoryPage({ params }) {
           />
         </div>
 
-        {/* Subcategories (if parent category has children) */}
+        {/* Subcategory pill tabs */}
         {subcategories.length > 0 && (
-          <div className="subcategories-section">
-            <div className="container">
-              <div className="subcategories-grid" ref={subcategoriesRef}>
-                {/* "All" filter card */}
+          <div className="subcategory-pills-bar">
+            <div className="subcategory-pills-scroll">
+              <button
+                type="button"
+                className={`subcategory-pill ${!activeSubcategory ? 'active' : ''}`}
+                onClick={() => handleSubcategorySelect(null)}
+              >
+                All
+              </button>
+              {subcategories.map((subcat) => (
                 <button
+                  key={subcat.id}
                   type="button"
-                  className={`subcategory-card ${!activeSubcategory ? 'active' : ''}`}
-                  onClick={() => handleSubcategorySelect(null)}
+                  className={`subcategory-pill ${activeSubcategory?.id === subcat.id ? 'active' : ''}`}
+                  onClick={() => handleSubcategorySelect(subcat)}
                 >
-                  {parentCategory.imageUrl && (
-                    <div className="subcategory-image">
-                      <Image
-                        src={parentCategory.imageUrl}
-                        alt={parentCategory.name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, 200px"
-                      />
-                    </div>
-                  )}
-                  <h3 className="subcategory-name">All {parentCategory.name}</h3>
-                  <span className="subcategory-count">{allProducts.length} items</span>
+                  {subcat.name}
                 </button>
-
-                {/* Subcategory cards */}
-                {subcategories.map((subcat) => {
-                  const productCount = getSubcategoryProductCount(subcat.id);
-                  const isActive = activeSubcategory?.id === subcat.id;
-                  return (
-                    <button
-                      key={subcat.id}
-                      type="button"
-                      className={`subcategory-card ${isActive ? 'active' : ''}`}
-                      onClick={() => handleSubcategorySelect(subcat)}
-                    >
-                      {subcat.imageUrl && (
-                        <div className="subcategory-image">
-                          <Image
-                            src={subcat.imageUrl}
-                            alt={subcat.name}
-                            fill
-                            sizes="(max-width: 640px) 50vw, 200px"
-                          />
-                        </div>
-                      )}
-                      <h3 className="subcategory-name">{subcat.name}</h3>
-                      <span className="subcategory-count">{productCount} items</span>
-                    </button>
-                  );
-                })}
-              </div>
+              ))}
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import FilterModal from '@/components/products/FilterModal';
 import ProductCard from '@/components/products/ProductCard';
@@ -14,12 +15,40 @@ const DEFAULT_FILTERS = {
   availability: null
 };
 
-export default function ProductsPage() {
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [sortBy, setSortBy] = useState('newest');
-  const [currentPage, setCurrentPage] = useState(1);
+function parseFiltersFromParams(params) {
+  return {
+    categories: params.get('categories') ? params.get('categories').split(',') : [],
+    subcategories: params.get('subcategories') ? params.get('subcategories').split(',') : [],
+    priceRange: [
+      parseInt(params.get('minPrice') || '0'),
+      parseInt(params.get('maxPrice') || '5000'),
+    ],
+    availability: params.get('availability') || null,
+  };
+}
+
+function filtersToParams(filters, sort, page) {
+  const p = new URLSearchParams();
+  if (filters.categories.length) p.set('categories', filters.categories.join(','));
+  if (filters.subcategories.length) p.set('subcategories', filters.subcategories.join(','));
+  if (filters.priceRange[0] > 0) p.set('minPrice', filters.priceRange[0]);
+  if (filters.priceRange[1] < 5000) p.set('maxPrice', filters.priceRange[1]);
+  if (filters.availability) p.set('availability', filters.availability);
+  if (sort !== 'newest') p.set('sort', sort);
+  if (page > 1) p.set('page', page);
+  return p.toString();
+}
+
+function ProductsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [viewMode, setViewMode] = useState('grid');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+
+  const filters = useMemo(() => parseFiltersFromParams(searchParams), [searchParams]);
+  const sortBy = searchParams.get('sort') || 'newest';
+  const currentPage = parseInt(searchParams.get('page') || '1');
 
   // Fetch products and categories
   const { data, isLoading } = useProducts({
@@ -88,26 +117,29 @@ export default function ProductsPage() {
     });
   }, [products, filters, subcategoryMap]);
 
+  const pushParams = useCallback((newFilters, newSort, newPage) => {
+    const qs = filtersToParams(newFilters, newSort, newPage);
+    router.push(`/products${qs ? `?${qs}` : ''}`, { scroll: false });
+  }, [router]);
+
   const handleFilterChange = useCallback((newFilters) => {
-    setFilters(newFilters);
-    setCurrentPage(1);
-  }, []);
+    pushParams(newFilters, sortBy, 1);
+  }, [pushParams, sortBy]);
 
   const handleClearFilters = useCallback(() => {
-    setFilters(DEFAULT_FILTERS);
-    setCurrentPage(1);
-  }, []);
+    router.push('/products', { scroll: false });
+  }, [router]);
 
   const openFilterModal = useCallback(() => setIsFilterModalOpen(true), []);
   const closeFilterModal = useCallback(() => setIsFilterModalOpen(false), []);
 
-  const handleSortChange = useCallback((e) => setSortBy(e.target.value), []);
+  const handleSortChange = useCallback((e) => pushParams(filters, e.target.value, 1), [pushParams, filters]);
   const setGridView = useCallback(() => setViewMode('grid'), []);
   const setListView = useCallback(() => setViewMode('list'), []);
 
-  const goToPrevPage = useCallback(() => setCurrentPage(prev => Math.max(1, prev - 1)), []);
-  const goToNextPage = useCallback(() => setCurrentPage(prev => Math.min(totalPages, prev + 1)), [totalPages]);
-  const goToPage = useCallback((page) => setCurrentPage(page), []);
+  const goToPrevPage = useCallback(() => pushParams(filters, sortBy, Math.max(1, currentPage - 1)), [pushParams, filters, sortBy, currentPage]);
+  const goToNextPage = useCallback(() => pushParams(filters, sortBy, Math.min(totalPages, currentPage + 1)), [pushParams, filters, sortBy, currentPage, totalPages]);
+  const goToPage = useCallback((page) => pushParams(filters, sortBy, page), [pushParams, filters, sortBy]);
 
   const activeFiltersCount = useMemo(() => (
     (filters.categories?.length || 0) +
@@ -115,6 +147,7 @@ export default function ProductsPage() {
     (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000 ? 1 : 0) +
     (filters.availability ? 1 : 0)
   ), [filters]);
+
 
   return (
     <MainLayout>
@@ -248,5 +281,12 @@ export default function ProductsPage() {
         </div>
       </div>
     </MainLayout>
+  );
+}
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<MainLayout><div className="products-page"><ProductsGridSkeleton /></div></MainLayout>}>
+      <ProductsContent />
+    </Suspense>
   );
 }

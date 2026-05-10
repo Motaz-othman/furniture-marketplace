@@ -50,8 +50,86 @@ const DEFAULT_HERO_SLIDES = [
   },
 ];
 
+const DEFAULT_SHOP_BY_ROOM = [
+  { id: '1', name: 'Living Room',           link: '/categories/living-room',  imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80' },
+  { id: '2', name: 'Outdoor',               link: '/categories/outdoor',      imageUrl: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&q=80' },
+  { id: '3', name: 'Bedroom',               link: '/categories/bedroom',      imageUrl: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80' },
+  { id: '4', name: 'Dining Room & Kitchen', link: '/categories/dining-room',  imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80' },
+  { id: '5', name: 'Home Office',           link: '/categories/office',       imageUrl: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80' },
+  { id: '6', name: 'Decor',                 link: '/categories/decor',        imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80' },
+];
+
+function RoomTileEditor({ room, onUpdate, onRemove }) {
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImage(file);
+      onUpdate('imageUrl', url);
+      toast.success('Room image uploaded');
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Upload failed');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3 p-3 border border-border rounded-lg">
+      <div
+        className="relative w-16 h-16 rounded-md overflow-hidden bg-muted shrink-0 cursor-pointer"
+        onClick={() => !uploading && fileRef.current?.click()}
+        title="Click to upload image"
+      >
+        {room.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={room.imageUrl} alt={room.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            <Upload className="h-5 w-5" />
+          </div>
+        )}
+        {uploading && (
+          <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        )}
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFile} />
+      </div>
+      <div className="flex-1 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            value={room.name}
+            onChange={e => onUpdate('name', e.target.value)}
+            placeholder="Room name"
+            className="text-sm"
+          />
+          <Input
+            value={room.link}
+            onChange={e => onUpdate('link', e.target.value)}
+            placeholder="/categories/living-room"
+            className="text-sm font-mono"
+          />
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Image: <span className="font-medium">1200 × 800px</span> · Ratio: <span className="font-medium">3:2 landscape</span> · Max: <span className="font-medium">5MB</span> · JPG, PNG or WebP
+        </p>
+      </div>
+      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0" onClick={onRemove}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
 const DEFAULT = {
   heroSlides: { items: DEFAULT_HERO_SLIDES },
+  shopByRoom: { enabled: true, items: DEFAULT_SHOP_BY_ROOM },
   offerBar: {
     enabled: true,
     items: [
@@ -417,6 +495,12 @@ export default function SettingsPage() {
           items: data.heroSlides?.items?.length > 0
             ? data.heroSlides.items
             : DEFAULT.heroSlides.items,
+        },
+        shopByRoom: {
+          enabled: data.shopByRoom?.enabled ?? true,
+          items: data.shopByRoom?.items?.length > 0
+            ? data.shopByRoom.items
+            : DEFAULT.shopByRoom.items,
         },
       });
     }
@@ -799,6 +883,56 @@ export default function SettingsPage() {
               <input ref={storyImageRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleStoryImage} />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Shop by Room ── */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Shop by Room</CardTitle>
+              <CardDescription>Room tiles shown on the homepage. Each links to a category page.</CardDescription>
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={form.shopByRoom?.enabled ?? true}
+                onCheckedChange={(v) => setForm(f => ({ ...f, shopByRoom: { ...f.shopByRoom, enabled: v } }))}
+              />
+              <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={() => {
+                const newRoom = { id: crypto.randomUUID(), name: '', link: '/categories/', imageUrl: '' };
+                setForm(f => ({ ...f, shopByRoom: { ...f.shopByRoom, items: [...(f.shopByRoom?.items || []), newRoom] } }));
+              }}>
+                <Plus className="h-4 w-4" /> Add Room
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {(form.shopByRoom?.items || []).map((room, i) => (
+            <RoomTileEditor
+              key={room.id}
+              room={room}
+              onUpdate={(field, value) => {
+                setForm(f => {
+                  const items = [...(f.shopByRoom?.items || [])];
+                  items[i] = { ...items[i], [field]: value };
+                  return { ...f, shopByRoom: { ...f.shopByRoom, items } };
+                });
+              }}
+              onRemove={() => {
+                setForm(f => {
+                  const items = (f.shopByRoom?.items || []).filter((_, idx) => idx !== i);
+                  return { ...f, shopByRoom: { ...f.shopByRoom, items } };
+                });
+              }}
+            />
+          ))}
+          {(form.shopByRoom?.items || []).length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-lg">
+              No rooms yet. Click "Add Room" to create one.
+            </p>
+          )}
         </CardContent>
       </Card>
 

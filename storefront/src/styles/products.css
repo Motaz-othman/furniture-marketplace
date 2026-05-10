@@ -267,6 +267,34 @@
     overflow: hidden;
   }
   
+  /* Product Card Rating */
+  .product-card-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+
+  .product-card-stars {
+    display: flex;
+    gap: 1px;
+  }
+
+  .card-star {
+    font-size: 12px;
+    color: #ddd;
+    line-height: 1;
+  }
+
+  .card-star.filled {
+    color: #f59e0b;
+  }
+
+  .product-card-review-count {
+    font-size: 11px;
+    color: var(--text-light);
+  }
+
   /* Color Swatches */
   .color-swatches {
     display: flex;

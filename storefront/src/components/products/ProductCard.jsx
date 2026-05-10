@@ -145,6 +145,20 @@ const ProductCard = memo(function ProductCard({ product, index }) {
       <div className="product-info">
         <h3>{product.name}</h3>
 
+        {product.totalReviews > 0 && (
+          <div className="product-card-rating">
+            <div className="product-card-stars">
+              {[1,2,3,4,5].map((star) => (
+                <span
+                  key={star}
+                  className={`card-star ${star <= Math.round(product.rating) ? 'filled' : ''}`}
+                >★</span>
+              ))}
+            </div>
+            <span className="product-card-review-count">({product.totalReviews})</span>
+          </div>
+        )}
+
         {product.variants && product.variants.length > 0 && (
           <div className="color-swatches">
             {product.variants.slice(0, 3).map((variant, idx) => {

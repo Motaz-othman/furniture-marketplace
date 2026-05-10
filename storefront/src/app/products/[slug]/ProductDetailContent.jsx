@@ -488,6 +488,22 @@ export default function ProductDetailContent({ slug }) {
 
             <h1 className="product-title">{product.name}</h1>
 
+            {product.totalReviews > 0 && (
+              <div className="product-detail-rating">
+                <div className="product-detail-stars">
+                  {[1,2,3,4,5].map((star) => {
+                    const filled = star <= Math.floor(product.rating);
+                    const half = !filled && star === Math.ceil(product.rating) && product.rating % 1 >= 0.5;
+                    return (
+                      <span key={star} className={`detail-star ${filled ? 'filled' : half ? 'half' : ''}`}>★</span>
+                    );
+                  })}
+                </div>
+                <span className="product-detail-rating-score">{product.rating.toFixed(1)}</span>
+                <span className="product-detail-review-count">({product.totalReviews} {product.totalReviews === 1 ? 'review' : 'reviews'})</span>
+              </div>
+            )}
+
             <div className="product-meta-top">
               <span className="sku">SKU: {currentSku}</span>
               <span className={`stock-status ${currentStock === 0 ? 'out-of-stock' : currentStock <= 5 ? 'low-stock' : 'in-stock'}`}>

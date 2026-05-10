@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, updateProfile, changePassword, deleteAccount, getMe, forgotPassword, resetPassword } from './auth.controller.js';
+import { register, login, updateProfile, changePassword, deleteAccount, getMe, forgotPassword, resetPassword, refreshToken } from './auth.controller.js';
 import { authenticate } from '../../shared/middleware/auth.middleware.js';
 import { validate } from '../../shared/middleware/validate.middleware.js';
 import { authLimiter } from '../../shared/middleware/rateLimiter.js';
@@ -18,4 +18,5 @@ router.delete('/account', authenticate, deleteAccount);
 router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), forgotPassword);
 router.post('/reset-password', authLimiter, validate(resetPasswordSchema), resetPassword);
 router.get('/me', authenticate, getMe);
+router.post('/refresh', refreshToken);
 export default router;

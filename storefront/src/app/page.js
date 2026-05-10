@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import MainLayout from '@/components/layout/MainLayout';
 import ProductCard from '@/components/products/ProductCard';
-import { useFeaturedProducts, useNewProducts, useParentCategories } from '@/lib/hooks';
+import { useFeaturedProducts, useNewProducts } from '@/lib/hooks';
 
 const DEFAULT_HERO_SLIDES = [
   {
@@ -146,11 +146,9 @@ export default function HomePage() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError, refetch: refetchCategories } = useParentCategories();
   const { data: featuredData, isLoading: featuredLoading, error: featuredError, refetch: refetchFeatured } = useFeaturedProducts();
   const { data: newData, isLoading: newLoading, error: newError, refetch: refetchNew } = useNewProducts();
 
-  const categories = categoriesData?.data || [];
   const featuredProducts = featuredData?.data || [];
   const newProducts = newData?.data || [];
 
@@ -173,6 +171,17 @@ export default function HomePage() {
       { emoji: '🏆', text: 'Award-Winning Service' },
     ],
   });
+  const [shopByRoom, setShopByRoom] = useState({
+    enabled: true,
+    items: [
+      { id: '1', name: 'Living Room',           link: '/categories/living-room',  imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80' },
+      { id: '2', name: 'Outdoor',               link: '/categories/outdoor',      imageUrl: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&q=80' },
+      { id: '3', name: 'Bedroom',               link: '/categories/bedroom',      imageUrl: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80' },
+      { id: '4', name: 'Dining Room & Kitchen', link: '/categories/dining-room',  imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80' },
+      { id: '5', name: 'Home Office',           link: '/categories/office',       imageUrl: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80' },
+      { id: '6', name: 'Decor',                 link: '/categories/decor',        imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80' },
+    ],
+  });
   const [brandStory, setBrandStory] = useState({
     enabled: true,
     title: 'Our Story',
@@ -189,6 +198,7 @@ export default function HomePage() {
         if (s?.heroSlides?.items?.length > 0) setHeroSlides(s.heroSlides.items);
         if (s?.offerBar) setOfferBar(s.offerBar);
         if (s?.socialBar) setSocialBar(s.socialBar);
+        if (s?.shopByRoom) setShopByRoom(s.shopByRoom);
         if (s?.brandStory) setBrandStory(s.brandStory);
       })
       .catch(err => console.error('Settings fetch failed:', err));
@@ -290,64 +300,37 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section className="categories-section">
-        <div className="container">
-          <div className="section-header category-header">
-            <div>
-              <h2 className="section-title">Explore Our Collections</h2>
-            </div>
-          </div>
-
-          {categoriesLoading ? (
-            <div className="skeleton-carousel">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="skeleton-category-card">
-                  <div className="skeleton-image"></div>
-                  <div className="skeleton-text"></div>
-                </div>
+      {/* SHOP BY ROOM */}
+      {shopByRoom.enabled && shopByRoom.items.length > 0 && (
+        <section className="shop-by-room-section">
+          <div className="container">
+            <h2 className="section-title shop-by-room-title">Shop by Room</h2>
+            <div className="shop-by-room-grid">
+              {shopByRoom.items.map((room, i) => (
+                <Link
+                  key={room.id}
+                  href={room.link || '/products'}
+                  className="room-tile"
+                >
+                  <div className="room-tile-image">
+                    {room.imageUrl && (
+                      <Image
+                        src={room.imageUrl}
+                        alt={room.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    )}
+                    <div className="room-tile-overlay" />
+                  </div>
+                  <span className="room-tile-name">{room.name}</span>
+                </Link>
               ))}
             </div>
-          ) : categoriesError ? (
-            <div className="error-state">
-              <div className="error-icon">⚠️</div>
-              <p className="error-message">Unable to load categories</p>
-              <button className="error-retry-btn" onClick={() => refetchCategories()}>Try Again</button>
-            </div>
-          ) : categories.length === 0 ? (
-            <EmptyState
-              icon="🏠"
-              title="No Collections Yet"
-              description="We're curating amazing furniture collections for you. Check back soon!"
-              actionText="Browse All Products"
-              actionLink="/products"
-            />
-          ) : (
-            <div className="category-carousel-wrapper">
-              <button
-                className="carousel-arrow carousel-arrow-left"
-                onClick={() => scrollCarousel('left', 'categories-scroll')}
-                aria-label="Scroll categories left"
-              >‹</button>
-              <div className="categories-scroll" id="categories-scroll">
-                {categories.map((cat) => (
-                  <Link href={`/categories/${cat.slug}`} key={cat.id} className="subcategory-card">
-                    <div className="subcategory-image">
-                      <Image src={cat.imageUrl} alt={cat.name} fill sizes="(max-width: 640px) 50vw, 200px" />
-                    </div>
-                    <h3 className="subcategory-name">{cat.name}</h3>
-                  </Link>
-                ))}
-              </div>
-              <button
-                className="carousel-arrow carousel-arrow-right"
-                onClick={() => scrollCarousel('right', 'categories-scroll')}
-                aria-label="Scroll categories right"
-              >›</button>
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* OFFER BAR */}
       {offerBar.enabled && offerBar.items.length > 0 && (

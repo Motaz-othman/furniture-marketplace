@@ -83,9 +83,28 @@ export const guestCheckout = async (req, res) => {
       return product.minPrice ?? 0;
     }
 
-    // ── Create ONE order in a transaction ─────────────────────────────────
+    // ── Calculate totals ──────────────────────────────────────────────
+    const subtotal = items.reduce((sum, item) => sum + resolvePrice(item) * item.quantity, 0);
+    const taxRate = parseFloat(process.env.TAX_RATE ?? '0.08');
+    const shippingCost = parseFloat(process.env.SHIPPING_COST ?? '0');
+    const tax = Math.round(subtotal * taxRate * 100) / 100;
+    const total = subtotal + tax + shippingCost;
+
+    // ── Create Stripe payment intent FIRST — if this fails, no order is created ─
+    let paymentIntent;
+    try {
+      paymentIntent = await createPaymentIntent(
+        total,
+        { orderNumber: 'pending', guestEmail: email },
+        {},
+      );
+    } catch (paymentError) {
+      console.error('Payment intent creation failed:', paymentError);
+      return res.status(502).json({ error: 'Payment service unavailable. Please try again.' });
+    }
+
+    // ── Create order + decrement stock in one transaction ─────────────
     const order = await prisma.$transaction(async (tx) => {
-      // Create guest address
       const guestAddress = await tx.address.create({
         data: {
           street: address.street,
@@ -95,12 +114,6 @@ export const guestCheckout = async (req, res) => {
           country: address.country || 'US',
         },
       });
-
-      const subtotal = items.reduce((sum, item) => sum + resolvePrice(item) * item.quantity, 0);
-      const tax = Math.round(subtotal * 0.08 * 100) / 100;
-      // Shipping cost is TBD — set to 0 until carrier is assigned via admin
-      const shippingCost = 0;
-      const total = subtotal + tax + shippingCost;
 
       const createdOrder = await tx.order.create({
         data: {
@@ -116,6 +129,8 @@ export const guestCheckout = async (req, res) => {
           shippingCost,
           total,
           notes: notes || null,
+          stripePaymentIntentId: paymentIntent.id,
+          paymentStatus: 'PROCESSING',
           items: {
             create: items.map(item => ({
               productId: item.productId,
@@ -131,7 +146,6 @@ export const guestCheckout = async (req, res) => {
         },
       });
 
-      // ── Decrement stock ───────────────────────────────────────────────
       for (const item of items) {
         if (item.variantId) {
           await tx.productVariant.update({
@@ -149,34 +163,8 @@ export const guestCheckout = async (req, res) => {
       return createdOrder;
     });
 
-    // ── Create Stripe payment intent (no vendor split — we are the seller) ─
-    let clientSecret = null;
-    let paymentIntentId = null;
-
-    try {
-      const paymentIntent = await createPaymentIntent(
-        order.total,
-        {
-          orderId: order.id,
-          orderNumber: order.orderNumber,
-          guestEmail: email,
-        },
-        {},
-      );
-
-      await prisma.order.update({
-        where: { id: order.id },
-        data: {
-          stripePaymentIntentId: paymentIntent.id,
-          paymentStatus: 'PROCESSING',
-        },
-      });
-
-      clientSecret = paymentIntent.client_secret;
-      paymentIntentId = paymentIntent.id;
-    } catch (paymentError) {
-      console.error('Payment intent creation failed:', paymentError);
-    }
+    const clientSecret = paymentIntent.client_secret;
+    const paymentIntentId = paymentIntent.id;
 
     res.status(201).json({
       message: 'Order created successfully',

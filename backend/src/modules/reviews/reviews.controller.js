@@ -11,18 +11,13 @@ export const createReview = async (req, res) => {
     const hasPurchased = await prisma.orderItem.findFirst({
       where: {
         productId,
-        order: {
-          customerId,
-          status: {
-            notIn: ['PENDING', 'CANCELLED']
-          }
-        }
+        order: { customerId, status: 'DELIVERED' }
       }
     });
 
     if (!hasPurchased) {
-      return res.status(403).json({ 
-        error: 'You can only review products you have purchased and received' 
+      return res.status(403).json({
+        error: 'You can only review products from delivered orders'
       });
     }
 

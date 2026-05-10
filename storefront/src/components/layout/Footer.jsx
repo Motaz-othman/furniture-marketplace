@@ -1,9 +1,29 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { post } from '@/lib/api/client';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle'); // idle | loading | success | error
+  const [message, setMessage] = useState('');
+
+  async function handleSubscribe(e) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus('loading');
+    try {
+      const res = await post('/newsletter/subscribe', { email: email.trim() });
+      setStatus('success');
+      setMessage(res.message || 'Successfully subscribed!');
+      setEmail('');
+    } catch (err) {
+      setStatus('error');
+      setMessage(err.response?.data?.error || 'Something went wrong. Try again.');
+    }
+  }
 
   return (
     <footer>
@@ -14,25 +34,38 @@ export default function Footer() {
           <p style={{ marginBottom: '16px', fontSize: '13px', color: '#ccc' }}>
             Get 10% off your first order and exclusive design tips.
           </p>
-          <form
-            style={{ display: 'flex' }}
-            onSubmit={(e) => e.preventDefault()}
-            aria-labelledby="newsletter-heading"
-          >
-            <label htmlFor="newsletter-email" className="visually-hidden">
-              Email address
-            </label>
-            <input
-              id="newsletter-email"
-              type="email"
-              placeholder="Enter your email"
-              aria-label="Email address for newsletter"
-              required
-            />
-            <button type="submit" aria-label="Subscribe to newsletter">
-              SIGN UP
-            </button>
-          </form>
+
+          {status === 'success' ? (
+            <p style={{ fontSize: '13px', color: '#4ade80', fontWeight: 500 }}>{message}</p>
+          ) : (
+            <>
+              <form
+                style={{ display: 'flex' }}
+                onSubmit={handleSubscribe}
+                aria-labelledby="newsletter-heading"
+              >
+                <label htmlFor="newsletter-email" className="visually-hidden">
+                  Email address
+                </label>
+                <input
+                  id="newsletter-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  aria-label="Email address for newsletter"
+                  required
+                  disabled={status === 'loading'}
+                />
+                <button type="submit" aria-label="Subscribe to newsletter" disabled={status === 'loading'}>
+                  {status === 'loading' ? '...' : 'SIGN UP'}
+                </button>
+              </form>
+              {status === 'error' && (
+                <p style={{ fontSize: '12px', color: '#f87171', marginTop: '8px' }}>{message}</p>
+              )}
+            </>
+          )}
         </div>
 
         {/* Shop Column */}
@@ -72,7 +105,7 @@ export default function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom-content">
           <p>© {currentYear} LiviPoint. All rights reserved.</p>
-          
+
           <div className="footer-trust">
             <div className="payment-methods">
               <span className="payment-label">We Accept:</span>

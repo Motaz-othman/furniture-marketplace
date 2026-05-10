@@ -223,6 +223,53 @@
   letter-spacing: -0.5px;
 }
 
+.product-detail-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+
+.product-detail-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.detail-star {
+  font-size: 18px;
+  color: #ddd;
+  line-height: 1;
+}
+
+.detail-star.filled {
+  color: #f59e0b;
+}
+
+.detail-star.half {
+  position: relative;
+  color: #ddd;
+}
+
+.detail-star.half::before {
+  content: '★';
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+  color: #f59e0b;
+}
+
+.product-detail-rating-score {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.product-detail-review-count {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
 .product-meta-top {
   display: flex;
   flex-direction: column;

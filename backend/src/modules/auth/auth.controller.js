@@ -1,7 +1,7 @@
 // backend/src/modules/auth/auth.controller.js
 import prisma from '../../shared/config/db.js';
 import { hashPassword, comparePassword } from '../../shared/utils/bcrypt.util.js';
-import { generateToken } from '../../shared/utils/jwt.util.js';
+import { generateToken, generateRefreshToken, verifyToken } from '../../shared/utils/jwt.util.js';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { sendPasswordResetEmail } from '../../shared/services/email.service.js';
@@ -67,20 +67,17 @@ export const register = async (req, res) => {
       }
     }
 
-    // Generate token
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role
-    });
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
+    const token = generateToken(tokenPayload);
+    const refreshToken = generateRefreshToken(tokenPayload);
 
-    // Remove password from response
     const { passwordHash: _, ...userWithoutPassword } = user;
 
     res.status(201).json({
       message: 'User registered successfully',
       user: userWithoutPassword,
       token,
+      refreshToken,
       ...(claimedOrders > 0 && { claimedOrders }),
     });
 
@@ -120,20 +117,17 @@ export const login = async (req, res) => {
       data: { lastLoginAt: new Date() }
     });
 
-    // Generate token
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role
-    });
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
+    const token = generateToken(tokenPayload);
+    const refreshToken = generateRefreshToken(tokenPayload);
 
-    // Remove password from response
     const { passwordHash: _, ...userWithoutPassword } = user;
 
     res.json({
       message: 'Login successful',
       user: userWithoutPassword,
-      token
+      token,
+      refreshToken
     });
 
   } catch (error) {
@@ -146,13 +140,19 @@ export const login = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { firstName, lastName, email, phone } = req.body;
+    const { firstName, lastName, email, phone, currentPassword } = req.body;
 
-    // Check if email already exists (if changing email)
+    // Require password confirmation when changing email
     if (email && email !== req.user.email) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email }
-      });
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Current password is required to change your email' });
+      }
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      const isValid = await comparePassword(currentPassword, user.passwordHash);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Incorrect password' });
+      }
+      const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
         return res.status(400).json({ error: 'Email already in use' });
       }
@@ -357,5 +357,34 @@ export const getMe = async (req, res) => {
     res.json({ user });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get user' });
+  }
+};
+
+// Refresh access token using a valid refresh token
+export const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(400).json({ error: 'Refresh token required' });
+    }
+
+    const decoded = verifyToken(refreshToken);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!user || user.isBlocked) {
+      return res.status(401).json({ error: 'User not found or blocked' });
+    }
+
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
+    const newToken = generateToken(tokenPayload);
+    const newRefreshToken = generateRefreshToken(tokenPayload);
+
+    res.json({ token: newToken, refreshToken: newRefreshToken });
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({ error: 'Failed to refresh token' });
   }
 };
