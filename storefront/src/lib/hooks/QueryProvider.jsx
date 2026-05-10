@@ -19,9 +19,9 @@ export function QueryProvider({ children }) {
         defaultOptions: {
           queries: {
             // Default options for all queries
-            refetchOnWindowFocus: false, // Don't refetch on window focus
-            retry: 1, // Retry failed requests once
-            staleTime: 5 * 60 * 1000, // 5 minutes
+            refetchOnWindowFocus: false,
+            retry: 0, // Don't retry on 429 — it makes it worse
+            staleTime: 10 * 60 * 1000, // 10 minutes — reduces repeat calls
           },
         },
       })

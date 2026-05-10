@@ -5,7 +5,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 // General API limiter
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDevelopment ? 5000 : 100,
+  max: isDevelopment ? 5000 : 1000,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
