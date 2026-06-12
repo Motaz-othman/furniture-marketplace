@@ -1,7 +1,7 @@
 import { post, get } from './client';
 
 export async function guestCheckout(data) {
-  return post('/checkout/guest', data);
+  return post('/checkout/guest', data, { timeout: 30000 });
 }
 
 export async function trackOrder(orderNumber, email) {

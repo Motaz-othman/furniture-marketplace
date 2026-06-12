@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "NODE_OPTIONS=--no-deprecation next dev --webpack",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_OPTIONS=--no-deprecation next start",
     "lint": "next lint"
   },
   "dependencies": {

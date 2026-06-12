@@ -18,10 +18,10 @@ export function QueryProvider({ children }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Default options for all queries
             refetchOnWindowFocus: false,
-            retry: 0, // Don't retry on 429 — it makes it worse
-            staleTime: 10 * 60 * 1000, // 10 minutes — reduces repeat calls
+            retry: 0,
+            staleTime: 10 * 60 * 1000,  // 10 min — data stays fresh
+            gcTime: 30 * 60 * 1000,     // 30 min — keep cache alive longer
           },
         },
       })

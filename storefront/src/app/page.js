@@ -56,7 +56,7 @@ function isDirectVideo(url) {
   return /\.(mp4|webm|ogg)(\?|$)/i.test(url);
 }
 
-function HeroBackground({ slide }) {
+function HeroBackground({ slide, priority = false }) {
   if (slide.mediaType === 'video' && slide.mediaUrl) {
     const ytId = getYouTubeId(slide.mediaUrl);
     const vimeoId = getVimeoId(slide.mediaUrl);
@@ -111,6 +111,9 @@ function HeroBackground({ slide }) {
         className="hero-bg"
         alt={slide.title}
         style={{ objectPosition: slide.focalPoint || 'center center' }}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : 'low'}
+        decoding="async"
       />
     );
   }
@@ -269,7 +272,7 @@ export default function HomePage() {
             key={slide.id || index}
             className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
           >
-            <HeroBackground slide={slide} />
+            <HeroBackground slide={slide} priority={currentSlide === 0} />
             <div className="hero-overlay" />
           </div>
         ))}

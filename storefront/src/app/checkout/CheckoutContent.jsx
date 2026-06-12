@@ -215,11 +215,18 @@ export default function CheckoutContent() {
       }
     } catch (err) {
       const data = err.response?.data;
+      // Log full error so we can see exactly what the backend returns
+      console.error('[Checkout] Order failed:', {
+        status: err.response?.status,
+        data,
+        message: err.message,
+      });
       if (data?.details?.length) {
         const messages = data.details.map((d) => `${d.field}: ${d.message}`).join('\n');
         toast.error(messages, { duration: 5000 });
       } else {
-        toast.error(data?.error || 'Failed to place order. Please try again.');
+        const msg = data?.error || data?.message || err.message || 'Failed to place order. Please try again.';
+        toast.error(msg, { duration: 5000 });
       }
     } finally {
       setIsSubmitting(false);

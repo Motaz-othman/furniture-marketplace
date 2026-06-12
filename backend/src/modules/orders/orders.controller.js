@@ -124,7 +124,7 @@ export const createOrder = async (req, res) => {
 
       await tx.cartItem.deleteMany({ where: { customerId } });
       return created;
-    });
+    }, { maxWait: 10000, timeout: 30000 });
 
     // Create payment intent — if Stripe is unavailable, cancel the order rather than
     // leaving it with no way to pay (stripePaymentIntentId would stay null forever).
@@ -298,7 +298,7 @@ export const cancelOrder = async (req, res) => {
         }
       }
       return cancelled;
-    });
+    }, { maxWait: 10000, timeout: 30000 });
 
     try {
       const customer = await prisma.customer.findUnique({ where: { id: customerId }, select: { userId: true } });

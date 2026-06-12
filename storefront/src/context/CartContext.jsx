@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { AuthContext } from './AuthContext';
 import { get, post, patch, del } from '@/lib/api/client';
 
@@ -141,7 +142,7 @@ export function CartProvider({ children }) {
         const res = await get('/cart');
         syncState((res.items || []).map(normalizeServerItem));
       } catch {
-        throw new Error('Failed to add to cart');
+        toast.error('Failed to add to cart. Please try again.');
       }
     } else {
       const stored = readStorage();
@@ -175,7 +176,7 @@ export function CartProvider({ children }) {
         const res = await get('/cart');
         syncState((res.items || []).map(normalizeServerItem));
       } catch {
-        throw new Error('Failed to update cart');
+        toast.error('Failed to update cart. Please try again.');
       }
     } else {
       const stored = readStorage();
@@ -192,7 +193,7 @@ export function CartProvider({ children }) {
         const res = await get('/cart');
         syncState((res.items || []).map(normalizeServerItem));
       } catch {
-        throw new Error('Failed to remove from cart');
+        toast.error('Failed to remove item. Please try again.');
       }
     } else {
       const stored = readStorage().filter((i) => i.id !== id);

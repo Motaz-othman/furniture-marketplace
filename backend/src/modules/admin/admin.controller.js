@@ -235,7 +235,7 @@ export const deleteUser = async (req, res) => {
 
       await tx.notification.deleteMany({ where: { userId: id } });
       await tx.user.delete({ where: { id } });
-    });
+    }, { maxWait: 10000, timeout: 30000 });
 
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
@@ -530,7 +530,7 @@ export const deleteProduct = async (req, res) => {
       await tx.cartItem.deleteMany({ where: { productId: id } });
       await tx.orderItem.deleteMany({ where: { productId: id } });
       await tx.product.delete({ where: { id } });
-    });
+    }, { maxWait: 10000, timeout: 30000 });
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Delete product error:', error);

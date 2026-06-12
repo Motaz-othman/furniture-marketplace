@@ -5,9 +5,14 @@ const isDev = process.env.NODE_ENV === 'development';
 // In the error handler: Sentry.captureException(args[0]);
 
 export const logger = {
-  // Always log errors — Vercel captures these in its log dashboard
+  // Dev: console.warn keeps errors visible without triggering the Next.js overlay
+  // Prod: console.error is captured by Vercel's log dashboard
   error: (...args) => {
-    console.error(...args);
+    if (isDev) {
+      console.warn('[error]', ...args);
+    } else {
+      console.error(...args);
+    }
   },
   warn: (...args) => { if (isDev) console.warn(...args); },
   info: (...args) => { if (isDev) console.info(...args); },

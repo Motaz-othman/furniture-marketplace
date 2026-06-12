@@ -17,6 +17,11 @@ const csp = [
 
 const nextConfig = {
   allowedDevOrigins: ['192.168.1.247'],
+  compress: true,
+  poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@tanstack/react-query'],
+  },
   images: {
     remotePatterns: [
       {

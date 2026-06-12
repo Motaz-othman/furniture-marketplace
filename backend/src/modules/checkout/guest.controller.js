@@ -170,7 +170,7 @@ export const guestCheckout = async (req, res) => {
       }
 
       return createdOrder;
-      });
+      }, { maxWait: 10000, timeout: 30000 });
     } catch (txError) {
       // Cancel the PaymentIntent so the customer cannot be charged for a non-existent order.
       try {
