@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { uploadImage, uploadMultipleImages } from './upload.controller.js';
-import { authenticate } from '../../shared/middleware/auth.middleware.js';
+import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -13,8 +13,8 @@ const upload = multer({
   }
 });
 
-// Upload routes (require authentication)
-router.post('/image', authenticate, upload.single('image'), uploadImage);
-router.post('/images', authenticate, upload.array('images', 10), uploadMultipleImages);
+// Upload routes — admin only to prevent Cloudinary quota abuse
+router.post('/image', authenticate, adminOnly, upload.single('image'), uploadImage);
+router.post('/images', authenticate, adminOnly, upload.array('images', 10), uploadMultipleImages);
 
 export default router;

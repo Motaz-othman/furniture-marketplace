@@ -6,52 +6,52 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
 
 // Create payment intent with ALL payment methods
 export const createPaymentIntent = async (amount, metadata = {}, options = {}) => {
+  const totalAmount = Math.round(amount * 100); // Convert to cents
+
+  const paymentIntentData = {
+    amount: totalAmount,
+    currency: options.currency || 'usd',
+    metadata,
+    automatic_payment_methods: {
+      enabled: true,
+      allow_redirects: 'always'
+    }
+  };
+
+  if (options.customerId) {
+    paymentIntentData.customer = options.customerId;
+  }
+
+  if (options.statementDescriptor) {
+    paymentIntentData.statement_descriptor = options.statementDescriptor;
+  }
+
+  if (options.paymentMethodTypes && options.paymentMethodTypes.length > 0) {
+    paymentIntentData.payment_method_types = options.paymentMethodTypes;
+    delete paymentIntentData.automatic_payment_methods;
+  }
+
+  return await stripe.paymentIntents.create(paymentIntentData);
+};
+
+// Update payment intent metadata (e.g. attach orderId after order is created)
+export const updatePaymentIntentMetadata = async (paymentIntentId, metadata) => {
+  return await stripe.paymentIntents.update(paymentIntentId, { metadata });
+};
+
+// Cancel payment intent (e.g. when order creation fails after intent was created)
+export const cancelPaymentIntent = async (paymentIntentId) => {
   try {
-    const totalAmount = Math.round(amount * 100); // Convert to cents
-
-    const paymentIntentData = {
-      amount: totalAmount,
-      currency: options.currency || 'usd',
-      metadata,
-      automatic_payment_methods: {
-        enabled: true, // Enables cards, Apple Pay, Google Pay, Link
-        allow_redirects: 'always' // Enables Buy Now Pay Later, bank redirects
-      }
-    };
-
-    // Add customer if provided (required for saved payment methods)
-    if (options.customerId) {
-      paymentIntentData.customer = options.customerId;
-    }
-
-    // Add statement descriptor (appears on customer's bank statement)
-    if (options.statementDescriptor) {
-      paymentIntentData.statement_descriptor = options.statementDescriptor;
-    }
-
-    // Enable specific payment method types
-    if (options.paymentMethodTypes && options.paymentMethodTypes.length > 0) {
-      paymentIntentData.payment_method_types = options.paymentMethodTypes;
-      delete paymentIntentData.automatic_payment_methods;
-    }
-
-    const paymentIntent = await stripe.paymentIntents.create(paymentIntentData);
-    return paymentIntent;
+    return await stripe.paymentIntents.cancel(paymentIntentId);
   } catch (error) {
-    console.error('Create payment intent error:', error);
-    throw new Error('Failed to create payment intent');
+    console.error('Cancel payment intent error:', error);
+    throw error;
   }
 };
 
 // Retrieve payment intent
 export const retrievePaymentIntent = async (paymentIntentId) => {
-  try {
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    return paymentIntent;
-  } catch (error) {
-    console.error('Retrieve payment intent error:', error);
-    throw new Error('Failed to retrieve payment intent');
-  }
+  return await stripe.paymentIntents.retrieve(paymentIntentId);
 };
 
 // Verify webhook signature
@@ -124,23 +124,9 @@ export const getAccountDetails = async (accountId) => {
 
 // Create refund
 export const createRefund = async (paymentIntentId, amount = null, reason = 'requested_by_customer') => {
-  try {
-    const refundData = {
-      payment_intent: paymentIntentId,
-      reason
-    };
-
-    // If amount specified, partial refund. Otherwise full refund.
-    if (amount) {
-      refundData.amount = Math.round(amount * 100);
-    }
-
-    const refund = await stripe.refunds.create(refundData);
-    return refund;
-  } catch (error) {
-    console.error('Create refund error:', error);
-    throw new Error('Failed to create refund');
-  }
+  const refundData = { payment_intent: paymentIntentId, reason };
+  if (amount) refundData.amount = Math.round(amount * 100);
+  return await stripe.refunds.create(refundData);
 };
 
 // Get refund details

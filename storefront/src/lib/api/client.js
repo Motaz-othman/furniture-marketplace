@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { logger } from '@/lib/logger';
 
 // Check if we should use fake data
 const USE_FAKE_DATA = process.env.NEXT_PUBLIC_USE_FAKE_DATA === 'true';
@@ -62,14 +63,14 @@ apiClient.interceptors.response.use(
 
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
-      console.error('Access forbidden:', error.response?.data?.error);
+      logger.error('Access forbidden:', error.response?.data?.error);
     }
 
     // Handle 500 Server Error (skip auth/me — handled by AuthContext)
     if (error.response?.status === 500) {
       const url = error.config?.url || '';
       if (!url.includes('/auth/me')) {
-        console.error('Server error:', error.response?.data?.error);
+        logger.error('Server error:', error.response?.data?.error);
       }
     }
     

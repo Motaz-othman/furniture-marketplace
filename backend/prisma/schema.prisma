@@ -61,6 +61,7 @@ model User {
 
   resetPasswordToken    String?   @unique
   resetPasswordExpires  DateTime?
+  tokenVersion          Int       @default(0)
   notifications  Notification[]
   
   customer     Customer?

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getSettings } from '@/lib/api/settings';
+import { logger } from '@/lib/logger';
 
 export default function AnnouncementBar() {
   const [bar, setBar] = useState(null);
@@ -10,7 +11,7 @@ export default function AnnouncementBar() {
   useEffect(() => {
     getSettings()
       .then(s => { if (s?.announcementBar) setBar(s.announcementBar); })
-      .catch(err => console.error('Settings fetch failed:', err));
+      .catch(err => logger.error('Settings fetch failed:', err));
   }, []);
 
   if (!bar?.enabled || !bar?.items?.length) return null;

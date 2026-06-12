@@ -3,17 +3,23 @@ import { verifyWebhookSignature } from '../../shared/services/stripe.service.js'
 
 // Handle Stripe webhooks
 export const handleStripeWebhook = async (req, res) => {
+  // Step 1: verify signature — bad signature → 400, Stripe will NOT retry
+  let event;
   try {
     const signature = req.headers['stripe-signature'];
     if (!signature) {
       return res.status(400).json({ error: 'Missing stripe-signature header' });
     }
+    event = verifyWebhookSignature(req.body, signature);
+  } catch (error) {
+    console.error('Webhook signature verification failed:', error);
+    return res.status(400).json({ error: 'Invalid webhook signature' });
+  }
 
-    const event = verifyWebhookSignature(req.body, signature);
-
+  // Step 2: process event — DB failures → 500, Stripe WILL retry
+  try {
     console.log(`Webhook received: ${event.type}`);
 
-    // Handle different event types
     switch (event.type) {
       case 'payment_intent.succeeded':
         await handlePaymentSuccess(event.data.object);
@@ -34,85 +40,61 @@ export const handleStripeWebhook = async (req, res) => {
     res.json({ received: true });
 
   } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(400).json({ error: 'Webhook handler failed' });
+    console.error('Webhook processing error:', error);
+    res.status(500).json({ error: 'Webhook processing failed' });
   }
 };
 
-// Handle successful payment
+// Handle successful payment — idempotent: only updates if still in PROCESSING state
 const handlePaymentSuccess = async (paymentIntent) => {
-  try {
-    const orderId = paymentIntent.metadata.orderId;
-
-    if (!orderId) {
-      console.error('No orderId in payment intent metadata');
-      return;
-    }
-
-    // Update order payment status
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: 'SUCCEEDED',
-        status: 'CONFIRMED' // Auto-confirm order on payment
-      }
-    });
-
-    console.log(`Payment succeeded for order ${orderId}`);
-
-  } catch (error) {
-    console.error('Handle payment success error:', error);
+  const orderId = paymentIntent.metadata.orderId;
+  if (!orderId) {
+    console.error('No orderId in payment intent metadata');
+    return;
   }
+
+  const { count } = await prisma.order.updateMany({
+    where: { id: orderId, paymentStatus: { not: 'SUCCEEDED' } },
+    data: { paymentStatus: 'SUCCEEDED', status: 'CONFIRMED' }
+  });
+
+  if (count > 0) console.log(`Payment succeeded for order ${orderId}`);
+  else console.log(`Duplicate payment.succeeded event ignored for order ${orderId}`);
 };
 
-// Handle failed payment
+// Handle failed payment — idempotent: only updates if not already failed/succeeded
 const handlePaymentFailed = async (paymentIntent) => {
-  try {
-    const orderId = paymentIntent.metadata.orderId;
-
-    if (!orderId) {
-      console.error('No orderId in payment intent metadata');
-      return;
-    }
-
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: 'FAILED'
-      }
-    });
-
-    console.log(`Payment failed for order ${orderId}`);
-
-  } catch (error) {
-    console.error('Handle payment failed error:', error);
+  const orderId = paymentIntent.metadata.orderId;
+  if (!orderId) {
+    console.error('No orderId in payment intent metadata');
+    return;
   }
+
+  const { count } = await prisma.order.updateMany({
+    where: { id: orderId, paymentStatus: { notIn: ['FAILED', 'SUCCEEDED', 'REFUNDED'] } },
+    data: { paymentStatus: 'FAILED' }
+  });
+
+  if (count > 0) console.log(`Payment failed for order ${orderId}`);
+  else console.log(`Duplicate payment.failed event ignored for order ${orderId}`);
 };
 
-// Handle refund
+// Handle refund — idempotent: only updates if not already refunded
 const handleRefund = async (charge) => {
-  try {
-    // Find order by payment intent
-    const order = await prisma.order.findFirst({
-      where: { stripePaymentIntentId: charge.payment_intent }
-    });
+  const order = await prisma.order.findFirst({
+    where: { stripePaymentIntentId: charge.payment_intent }
+  });
 
-    if (!order) {
-      console.error('Order not found for refund');
-      return;
-    }
-
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        paymentStatus: 'REFUNDED',
-        status: 'REFUNDED'
-      }
-    });
-
-    console.log(`Refund processed for order ${order.id}`);
-
-  } catch (error) {
-    console.error('Handle refund error:', error);
+  if (!order) {
+    console.error('Order not found for refund, payment_intent:', charge.payment_intent);
+    return;
   }
+
+  const { count } = await prisma.order.updateMany({
+    where: { id: order.id, paymentStatus: { not: 'REFUNDED' } },
+    data: { paymentStatus: 'REFUNDED', status: 'REFUNDED' }
+  });
+
+  if (count > 0) console.log(`Refund processed for order ${order.id}`);
+  else console.log(`Duplicate charge.refunded event ignored for order ${order.id}`);
 };

@@ -134,33 +134,8 @@ exports.Prisma.UserScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   resetPasswordToken: 'resetPasswordToken',
-  resetPasswordExpires: 'resetPasswordExpires'
-};
-
-exports.Prisma.VendorScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  businessName: 'businessName',
-  description: 'description',
-  logo: 'logo',
-  businessPhone: 'businessPhone',
-  businessEmail: 'businessEmail',
-  address: 'address',
-  shippingZones: 'shippingZones',
-  returnPolicy: 'returnPolicy',
-  shippingPolicy: 'shippingPolicy',
-  rating: 'rating',
-  totalReviews: 'totalReviews',
-  stripeAccountId: 'stripeAccountId',
-  stripeAccountStatus: 'stripeAccountStatus',
-  onboardingComplete: 'onboardingComplete',
-  payoutsEnabled: 'payoutsEnabled',
-  commissionRate: 'commissionRate',
-  status: 'status',
-  adminRating: 'adminRating',
-  adminNotes: 'adminNotes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  resetPasswordExpires: 'resetPasswordExpires',
+  tokenVersion: 'tokenVersion'
 };
 
 exports.Prisma.CustomerScalarFieldEnum = {
@@ -195,7 +170,6 @@ exports.Prisma.CategoryScalarFieldEnum = {
 
 exports.Prisma.ProductScalarFieldEnum = {
   id: 'id',
-  vendorId: 'vendorId',
   categoryId: 'categoryId',
   name: 'name',
   slug: 'slug',
@@ -238,7 +212,6 @@ exports.Prisma.CartItemScalarFieldEnum = {
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
-  vendorId: 'vendorId',
   addressId: 'addressId',
   orderNumber: 'orderNumber',
   status: 'status',
@@ -246,7 +219,6 @@ exports.Prisma.OrderScalarFieldEnum = {
   tax: 'tax',
   shippingCost: 'shippingCost',
   total: 'total',
-  commission: 'commission',
   stripePaymentId: 'stripePaymentId',
   trackingNumber: 'trackingNumber',
   trackingUrl: 'trackingUrl',
@@ -402,6 +374,18 @@ exports.Prisma.SyncLogScalarFieldEnum = {
   providerId: 'providerId'
 };
 
+exports.Prisma.SiteSettingsScalarFieldEnum = {
+  id: 'id',
+  settings: 'settings',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NewsletterSubscriberScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  subscribedAt: 'subscribedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -433,7 +417,6 @@ exports.Prisma.JsonNullValueFilter = {
 };
 exports.Role = exports.$Enums.Role = {
   CUSTOMER: 'CUSTOMER',
-  VENDOR: 'VENDOR',
   ADMIN: 'ADMIN'
 };
 
@@ -479,7 +462,6 @@ exports.ShipmentStatus = exports.$Enums.ShipmentStatus = {
 
 exports.Prisma.ModelName = {
   User: 'User',
-  Vendor: 'Vendor',
   Customer: 'Customer',
   Address: 'Address',
   Category: 'Category',
@@ -494,7 +476,9 @@ exports.Prisma.ModelName = {
   ProductVariant: 'ProductVariant',
   StorefrontListing: 'StorefrontListing',
   IntegrationProvider: 'IntegrationProvider',
-  SyncLog: 'SyncLog'
+  SyncLog: 'SyncLog',
+  SiteSettings: 'SiteSettings',
+  NewsletterSubscriber: 'NewsletterSubscriber'
 };
 
 /**

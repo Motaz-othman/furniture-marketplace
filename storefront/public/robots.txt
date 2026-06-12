@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Private routes
+Disallow: /account
+Disallow: /checkout
+Disallow: /api/
+
+Sitemap: https://livipoint.vercel.app/sitemap.xml

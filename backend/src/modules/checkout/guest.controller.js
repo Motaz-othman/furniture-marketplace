@@ -1,5 +1,5 @@
 import prisma from '../../shared/config/db.js';
-import { createPaymentIntent } from '../../shared/services/stripe.service.js';
+import { createPaymentIntent, cancelPaymentIntent, updatePaymentIntentMetadata } from '../../shared/services/stripe.service.js';
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
@@ -104,8 +104,11 @@ export const guestCheckout = async (req, res) => {
     }
 
     // ── Create order + decrement stock in one transaction ─────────────
-    const order = await prisma.$transaction(async (tx) => {
-      const guestAddress = await tx.address.create({
+    // If the transaction fails, cancel the PaymentIntent so the customer is never charged.
+    let order;
+    try {
+      order = await prisma.$transaction(async (tx) => {
+        const guestAddress = await tx.address.create({
         data: {
           street: address.street,
           city: address.city,
@@ -148,19 +151,41 @@ export const guestCheckout = async (req, res) => {
 
       for (const item of items) {
         if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
+          const result = await tx.productVariant.updateMany({
+            where: { id: item.variantId, stockQuantity: { gte: item.quantity } },
             data: { stockQuantity: { decrement: item.quantity } },
           });
+          if (result.count === 0) {
+            throw new Error(`Item sold out during checkout`);
+          }
         } else {
-          await tx.product.update({
-            where: { id: item.productId },
+          const result = await tx.product.updateMany({
+            where: { id: item.productId, totalStock: { gte: item.quantity } },
             data: { totalStock: { decrement: item.quantity } },
           });
+          if (result.count === 0) {
+            throw new Error(`Item sold out during checkout`);
+          }
         }
       }
 
       return createdOrder;
+      });
+    } catch (txError) {
+      // Cancel the PaymentIntent so the customer cannot be charged for a non-existent order.
+      try {
+        await cancelPaymentIntent(paymentIntent.id);
+      } catch (cancelError) {
+        console.error('Failed to cancel orphaned PaymentIntent:', cancelError);
+      }
+      throw txError;
+    }
+
+    // Attach the real orderId so the webhook handler can look up the order
+    await updatePaymentIntentMetadata(paymentIntent.id, {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      guestEmail: email,
     });
 
     const clientSecret = paymentIntent.client_secret;
@@ -185,11 +210,7 @@ export const guestCheckout = async (req, res) => {
 export const trackGuestOrder = async (req, res) => {
   try {
     const { orderNumber } = req.params;
-    const { email } = req.query;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required to look up your order' });
-    }
+    const { email } = req.body;
 
     const order = await prisma.order.findUnique({
       where: { orderNumber },

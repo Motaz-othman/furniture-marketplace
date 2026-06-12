@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { createOrderPayment, getPaymentStatus } from './payments.controller.js';
-import { handleStripeWebhook } from './webhook.controller.js';
 import { processRefund, getRefundDetails } from './refunds.controller.js';
 import { getCustomerPaymentHistory, getPaymentDetails } from './history.controller.js';
 import { authenticate, customerOnly, adminOnly } from '../../shared/middleware/auth.middleware.js';
@@ -24,7 +23,5 @@ router.get('/refund/:refundId', authenticate, adminOnly, getRefundDetails);
 
 router.get('/history/customer', authenticate, customerOnly, getCustomerPaymentHistory);
 router.get('/history/details/:orderId', authenticate, getPaymentDetails);
-
-router.post('/webhook', handleStripeWebhook);
 
 export default router;

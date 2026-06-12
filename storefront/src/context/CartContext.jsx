@@ -115,7 +115,9 @@ export function CartProvider({ children }) {
       return get('/cart');
     }).then((res) => {
       syncState((res.items || []).map(normalizeServerItem));
-    }).catch(() => {});
+    }).catch(() => {
+      syncState(readStorage());
+    });
   }, [isAuthenticated, authLoading, syncState]);
 
   // ─── Clear on logout ────────────────────────────────────────────────────────
@@ -210,8 +212,12 @@ export function CartProvider({ children }) {
 
   const refreshCart = useCallback(async () => {
     if (isAuthenticated) {
-      const res = await get('/cart');
-      syncState((res.items || []).map(normalizeServerItem));
+      try {
+        const res = await get('/cart');
+        syncState((res.items || []).map(normalizeServerItem));
+      } catch {
+        // Keep current cart state if refresh fails
+      }
     } else {
       syncState(readStorage());
     }

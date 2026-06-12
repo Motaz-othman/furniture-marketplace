@@ -1,7 +1,7 @@
 // backend/src/modules/auth/auth.controller.js
 import prisma from '../../shared/config/db.js';
 import { hashPassword, comparePassword } from '../../shared/utils/bcrypt.util.js';
-import { generateToken, generateRefreshToken, verifyToken } from '../../shared/utils/jwt.util.js';
+import { generateToken, generateRefreshToken, verifyToken, verifyRefreshToken } from '../../shared/utils/jwt.util.js';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { sendPasswordResetEmail } from '../../shared/services/email.service.js';
@@ -69,7 +69,7 @@ export const register = async (req, res) => {
 
     const tokenPayload = { userId: user.id, email: user.email, role: user.role };
     const token = generateToken(tokenPayload);
-    const refreshToken = generateRefreshToken(tokenPayload);
+    const refreshToken = generateRefreshToken({ ...tokenPayload, tokenVersion: user.tokenVersion ?? 0 });
 
     const { passwordHash: _, ...userWithoutPassword } = user;
 
@@ -119,7 +119,7 @@ export const login = async (req, res) => {
 
     const tokenPayload = { userId: user.id, email: user.email, role: user.role };
     const token = generateToken(tokenPayload);
-    const refreshToken = generateRefreshToken(tokenPayload);
+    const refreshToken = generateRefreshToken({ ...tokenPayload, tokenVersion: user.tokenVersion ?? 0 });
 
     const { passwordHash: _, ...userWithoutPassword } = user;
 
@@ -205,10 +205,9 @@ export const changePassword = async (req, res) => {
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // ✅ FIX: Update passwordHash (not password)
     await prisma.user.update({
       where: { id: userId },
-      data: { passwordHash: hashedPassword }
+      data: { passwordHash: hashedPassword, tokenVersion: { increment: 1 } }
     });
 
     res.json({ message: 'Password changed successfully' });
@@ -223,11 +222,17 @@ export const changePassword = async (req, res) => {
 export const deleteAccount = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { password } = req.body;
 
-    await prisma.user.delete({
-      where: { id: userId }
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
+    const isValid = await comparePassword(password, user.passwordHash);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Incorrect password' });
+    }
+
+    await prisma.user.delete({ where: { id: userId } });
     res.json({ message: 'Account deleted successfully' });
 
   } catch (error) {
@@ -326,13 +331,14 @@ export const resetPassword = async (req, res) => {
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password and clear reset token
+    // Update password, clear reset token, and revoke all refresh tokens
     await prisma.user.update({
       where: { id: user.id },
       data: {
         passwordHash: hashedPassword,
         resetPasswordToken: null,
-        resetPasswordExpires: null
+        resetPasswordExpires: null,
+        tokenVersion: { increment: 1 }
       }
     });
 
@@ -368,7 +374,7 @@ export const refreshToken = async (req, res) => {
       return res.status(400).json({ error: 'Refresh token required' });
     }
 
-    const decoded = verifyToken(refreshToken);
+    const decoded = verifyRefreshToken(refreshToken);
     if (!decoded) {
       return res.status(401).json({ error: 'Invalid or expired refresh token' });
     }
@@ -378,13 +384,32 @@ export const refreshToken = async (req, res) => {
       return res.status(401).json({ error: 'User not found or blocked' });
     }
 
+    // Reject tokens issued before the last logout or password change
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({ error: 'Refresh token has been revoked' });
+    }
+
     const tokenPayload = { userId: user.id, email: user.email, role: user.role };
     const newToken = generateToken(tokenPayload);
-    const newRefreshToken = generateRefreshToken(tokenPayload);
+    const newRefreshToken = generateRefreshToken({ ...tokenPayload, tokenVersion: user.tokenVersion });
 
     res.json({ token: newToken, refreshToken: newRefreshToken });
   } catch (error) {
     console.error('Refresh token error:', error);
     res.status(500).json({ error: 'Failed to refresh token' });
+  }
+};
+
+// Logout — invalidates all refresh tokens for this user
+export const logout = async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { tokenVersion: { increment: 1 } }
+    });
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Logout failed' });
   }
 };

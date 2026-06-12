@@ -13,7 +13,6 @@ export const registerSchema = z.object({
   password: passwordSchema,
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(1, 'Last name is required').max(50),
-  role: z.enum(['CUSTOMER', 'ADMIN']).optional(),
   businessName: z.string().max(100).optional(),
   claimGuestOrders: z.boolean().optional(),
 });
@@ -85,7 +84,9 @@ export const createCategorySchema = z.object({
   name: z.string().min(1, 'Category name is required').max(100),
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase with hyphens').optional(),
   description: z.string().max(500).optional(),
-  image: z.string().url('Invalid image URL').optional()
+  imageUrl: z.string().url('Invalid image URL').optional().or(z.literal('')),
+  parentId: z.string().uuid('Invalid parent ID').optional().nullable(),
+  sortOrder: z.number().int().min(0).optional(),
 });
 
 // Cart validation schemas
@@ -191,6 +192,14 @@ export const guestCheckoutSchema = z.object({
 });
 
 // Password reset validation schemas
+export const trackOrderSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, 'Password is required'),
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address')
 });

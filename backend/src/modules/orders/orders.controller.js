@@ -126,8 +126,9 @@ export const createOrder = async (req, res) => {
       return created;
     });
 
-    // Create payment intent
-    let clientSecret = null;
+    // Create payment intent — if Stripe is unavailable, cancel the order rather than
+    // leaving it with no way to pay (stripePaymentIntentId would stay null forever).
+    let clientSecret;
     try {
       const paymentIntent = await createPaymentIntent(
         order.total,
@@ -141,6 +142,11 @@ export const createOrder = async (req, res) => {
       clientSecret = paymentIntent.client_secret;
     } catch (paymentError) {
       console.error('Payment intent creation failed:', paymentError);
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { status: 'CANCELLED', paymentStatus: 'FAILED' }
+      }).catch(() => {});
+      return res.status(502).json({ error: 'Payment service unavailable. Your order has been cancelled — please try again.' });
     }
 
     // Notify customer

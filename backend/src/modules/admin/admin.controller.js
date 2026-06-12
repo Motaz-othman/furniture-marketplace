@@ -20,28 +20,21 @@ export const getPlatformStats = async (req, res) => {
       prisma.product.count({ where: { isActive: true } }),
     ]);
 
-    const orders = await prisma.order.findMany({
-      select: { total: true, status: true, createdAt: true }
-    });
-
-    const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const ordersByStatus = {};
-    orders.forEach(o => { ordersByStatus[o.status] = (ordersByStatus[o.status] || 0) + 1; });
-
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [recentOrders, recentUsers] = await Promise.all([
+    const [totalOrders, totalRevenueAgg, ordersByStatusRaw, recentOrders, recentUsers, recentRevenueAgg] = await Promise.all([
+      prisma.order.count(),
+      prisma.order.aggregate({ _sum: { total: true } }),
+      prisma.order.groupBy({ by: ['status'], _count: { _all: true } }),
       prisma.order.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
       prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.order.aggregate({ where: { createdAt: { gte: thirtyDaysAgo } }, _sum: { total: true } }),
     ]);
 
-    const recentOrdersData = await prisma.order.findMany({
-      where: { createdAt: { gte: thirtyDaysAgo } },
-      select: { total: true }
-    });
-    const recentRevenue = recentOrdersData.reduce((sum, o) => sum + (o.total || 0), 0);
+    const totalRevenue = totalRevenueAgg._sum.total || 0;
+    const ordersByStatus = Object.fromEntries(ordersByStatusRaw.map(r => [r.status, r._count._all]));
+    const recentRevenue = recentRevenueAgg._sum.total || 0;
 
     const [totalCategories, totalReviews] = await Promise.all([
       prisma.category.count(),
@@ -64,21 +57,28 @@ export const getPlatformStats = async (req, res) => {
 
 export const getRevenueChart = async (req, res) => {
   try {
-    const months = [];
     const now = new Date();
+    const monthRanges = Array.from({ length: 12 }, (_, i) => {
+      const start = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() - (11 - i) + 1, 0, 23, 59, 59);
+      return { start, end };
+    });
 
-    for (let i = 11; i >= 0; i--) {
-      const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+    const results = await Promise.all(
+      monthRanges.map(({ start, end }) =>
+        prisma.order.aggregate({
+          where: { createdAt: { gte: start, lte: end }, status: { notIn: ['CANCELLED', 'REFUNDED'] } },
+          _sum: { total: true },
+          _count: { _all: true },
+        })
+      )
+    );
 
-      const orders = await prisma.order.findMany({
-        where: { createdAt: { gte: start, lte: end }, status: { notIn: ['CANCELLED', 'REFUNDED'] } },
-        select: { total: true }
-      });
-
-      const revenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-      months.push({ month: start.toLocaleString('default', { month: 'short', year: '2-digit' }), revenue, orders: orders.length });
-    }
+    const months = results.map((result, i) => ({
+      month: monthRanges[i].start.toLocaleString('default', { month: 'short', year: '2-digit' }),
+      revenue: result._sum.total || 0,
+      orders: result._count._all,
+    }));
 
     res.json({ data: months });
   } catch (error) {
@@ -208,24 +208,34 @@ export const deleteUser = async (req, res) => {
     if (id === req.user.id) return res.status(400).json({ error: 'Cannot delete yourself' });
     if (existingUser.role === 'ADMIN') return res.status(400).json({ error: 'Cannot delete an admin user' });
 
+    // Read order IDs before the transaction (reads outside are fine — we validate inside)
+    let orderIds = [];
     if (existingUser.customer) {
-      const customerId = existingUser.customer.id;
-      await prisma.wishlist.deleteMany({ where: { customerId } });
-      await prisma.review.deleteMany({ where: { customerId } });
-      await prisma.cartItem.deleteMany({ where: { customerId } });
-
-      const customerOrders = await prisma.order.findMany({ where: { customerId }, select: { id: true } });
-      const orderIds = customerOrders.map(o => o.id);
-      if (orderIds.length > 0) {
-        await prisma.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
-        await prisma.order.deleteMany({ where: { customerId } });
-      }
-      await prisma.address.deleteMany({ where: { customerId } });
-      await prisma.customer.delete({ where: { id: customerId } });
+      const customerOrders = await prisma.order.findMany({
+        where: { customerId: existingUser.customer.id },
+        select: { id: true },
+      });
+      orderIds = customerOrders.map(o => o.id);
     }
 
-    await prisma.notification.deleteMany({ where: { userId: id } });
-    await prisma.user.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      if (existingUser.customer) {
+        const customerId = existingUser.customer.id;
+        await tx.wishlist.deleteMany({ where: { customerId } });
+        await tx.review.deleteMany({ where: { customerId } });
+        await tx.cartItem.deleteMany({ where: { customerId } });
+
+        if (orderIds.length > 0) {
+          await tx.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
+          await tx.order.deleteMany({ where: { customerId } });
+        }
+        await tx.address.deleteMany({ where: { customerId } });
+        await tx.customer.delete({ where: { id: customerId } });
+      }
+
+      await tx.notification.deleteMany({ where: { userId: id } });
+      await tx.user.delete({ where: { id } });
+    });
 
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
@@ -512,15 +522,19 @@ export const toggleProductActive = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.productVariant.deleteMany({ where: { productId: id } });
-    await prisma.review.deleteMany({ where: { productId: id } });
-    await prisma.wishlist.deleteMany({ where: { productId: id } });
-    await prisma.cartItem.deleteMany({ where: { productId: id } });
-    await prisma.orderItem.deleteMany({ where: { productId: id } });
-    await prisma.product.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.storefrontListing.deleteMany({ where: { productId: id } });
+      await tx.productVariant.deleteMany({ where: { productId: id } });
+      await tx.review.deleteMany({ where: { productId: id } });
+      await tx.wishlist.deleteMany({ where: { productId: id } });
+      await tx.cartItem.deleteMany({ where: { productId: id } });
+      await tx.orderItem.deleteMany({ where: { productId: id } });
+      await tx.product.delete({ where: { id } });
+    });
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Delete product error:', error);
+    if (error.code === 'P2025') return res.status(404).json({ error: 'Product not found' });
     res.status(500).json({ error: 'Failed to delete product' });
   }
 };

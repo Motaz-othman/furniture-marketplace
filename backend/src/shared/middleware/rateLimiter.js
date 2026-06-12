@@ -2,14 +2,22 @@ import rateLimit from 'express-rate-limit';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-// General API limiter — skip for public GET requests (products, categories, settings)
+// General API limiter — covers all methods including GET
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDevelopment ? 5000 : 500,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.method === 'GET',
+});
+
+// Read limiter — more lenient limit for public browsing (products, search, categories)
+export const readLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isDevelopment ? 10000 : 2000,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // Auth routes — login, register, password reset

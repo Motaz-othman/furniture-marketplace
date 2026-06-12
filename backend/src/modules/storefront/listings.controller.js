@@ -194,21 +194,39 @@ export const createListing = async (req, res) => {
 export const updateListing = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = { ...req.body };
+    const {
+      displayName, displayDescription, displayImages,
+      displayPrice, discountedPrice, compareAtPrice,
+      pricingRule, variantPrices, variantStocks,
+      categoryId, isPublished, isTrending, isNewArrival,
+      sortOrder, displayStock,
+    } = req.body;
 
-    // Parse numeric fields
-    if (updateData.displayPrice !== undefined) {
-      updateData.displayPrice = updateData.displayPrice != null ? parseFloat(updateData.displayPrice) : null;
+    const updateData = {};
+    if (displayName !== undefined) updateData.displayName = displayName;
+    if (displayDescription !== undefined) updateData.displayDescription = displayDescription;
+    if (displayImages !== undefined) updateData.displayImages = displayImages;
+    if (categoryId !== undefined) updateData.categoryId = categoryId;
+    if (isPublished !== undefined) updateData.isPublished = isPublished;
+    if (isTrending !== undefined) updateData.isTrending = isTrending;
+    if (isNewArrival !== undefined) updateData.isNewArrival = isNewArrival;
+    if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
+    if (pricingRule !== undefined) updateData.pricingRule = pricingRule;
+    if (variantPrices !== undefined) updateData.variantPrices = variantPrices;
+    if (variantStocks !== undefined) updateData.variantStocks = variantStocks;
+
+    if (displayPrice !== undefined) {
+      updateData.displayPrice = displayPrice != null ? parseFloat(displayPrice) : null;
     }
-    if (updateData.discountedPrice !== undefined) {
-      updateData.discountedPrice = updateData.discountedPrice != null ? parseFloat(updateData.discountedPrice) : null;
+    if (discountedPrice !== undefined) {
+      updateData.discountedPrice = discountedPrice != null ? parseFloat(discountedPrice) : null;
       updateData.isOnSale = updateData.discountedPrice != null;
     }
-    if (updateData.compareAtPrice !== undefined) {
-      updateData.compareAtPrice = updateData.compareAtPrice != null ? parseFloat(updateData.compareAtPrice) : null;
+    if (compareAtPrice !== undefined) {
+      updateData.compareAtPrice = compareAtPrice != null ? parseFloat(compareAtPrice) : null;
     }
-    if (updateData.displayStock !== undefined) {
-      updateData.displayStock = updateData.displayStock != null ? parseInt(updateData.displayStock) : null;
+    if (displayStock !== undefined) {
+      updateData.displayStock = displayStock != null ? parseInt(displayStock) : null;
     }
 
     const listing = await prisma.storefrontListing.update({

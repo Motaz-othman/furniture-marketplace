@@ -1,5 +1,5 @@
 import prisma from '../../shared/config/db.js';
-import { createRefund, getRefund } from '../../shared/services/stripe.service.js';
+import { createRefund, getRefund, listRefunds } from '../../shared/services/stripe.service.js';
 import { formatPaymentError } from '../../shared/utils/payment-errors.js';
 
 // Process refund (admin only)
@@ -13,12 +13,24 @@ export const processRefund = async (req, res) => {
     if (order.paymentStatus !== 'SUCCEEDED') return res.status(400).json({ error: 'Order has not been paid yet' });
     if (!order.stripePaymentIntentId) return res.status(400).json({ error: 'No payment found for this order' });
 
-    const refundAmount = amount || order.total;
-    if (refundAmount > order.total) return res.status(400).json({ error: 'Refund amount cannot exceed order total' });
+    // Query Stripe for already-issued refunds to prevent over-refunding
+    const existingRefunds = await listRefunds(order.stripePaymentIntentId);
+    const alreadyRefunded = existingRefunds.reduce((sum, r) => sum + r.amount, 0) / 100;
+    const maxRefundable = order.total - alreadyRefunded;
+
+    if (maxRefundable <= 0) {
+      return res.status(400).json({ error: 'This order has already been fully refunded' });
+    }
+
+    const refundAmount = amount || maxRefundable;
+    if (refundAmount > maxRefundable) {
+      return res.status(400).json({ error: `Maximum refundable amount is $${maxRefundable.toFixed(2)}` });
+    }
 
     const refund = await createRefund(order.stripePaymentIntentId, refundAmount, reason || 'requested_by_customer');
 
-    const isFullRefund = refundAmount >= order.total;
+    const totalRefunded = alreadyRefunded + refundAmount;
+    const isFullRefund = totalRefunded >= order.total;
     await prisma.order.update({
       where: { id: orderId },
       data: {

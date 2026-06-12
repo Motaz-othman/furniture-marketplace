@@ -2,6 +2,7 @@
 
 import { Component } from 'react';
 import Link from 'next/link';
+import { logger } from '@/lib/logger';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -14,13 +15,7 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log error to an error reporting service in production
-    if (process.env.NODE_ENV === 'production') {
-      // Example: Send to error tracking service
-      // logErrorToService(error, errorInfo);
-    } else {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
-    }
+    logger.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
   handleRetry = () => {

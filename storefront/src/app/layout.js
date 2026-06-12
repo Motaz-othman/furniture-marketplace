@@ -104,6 +104,7 @@ export default function RootLayout({ children }) {
                     duration: 3000,
                     style: { fontSize: '14px' },
                   }}
+                  containerProps={{ 'aria-live': 'polite', 'aria-atomic': 'true', role: 'status' }}
                 />
               </WishlistProvider>
             </CartProvider>

@@ -14,7 +14,8 @@ import { formatPrice } from '@/lib/utils';
 import { guestCheckout } from '@/lib/api/checkout';
 import { getAddresses } from '@/lib/api/addresses';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 const EMPTY_CONTACT = { email: '', firstName: '', lastName: '', phone: '' };
 const EMPTY_ADDRESS = { street: '', city: '', state: '', zipCode: '', country: 'US' };
@@ -108,7 +109,9 @@ export default function CheckoutContent() {
             });
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          toast.error('Could not load your saved addresses. You can enter one manually.');
+        });
     }
   }, [isAuthenticated, user, selectedAddressId]);
 

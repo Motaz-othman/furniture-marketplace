@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSettings } from '@/lib/api/settings';
+import { logger } from '@/lib/logger';
 import Link from 'next/link';
 import Image from 'next/image';
 import MainLayout from '@/components/layout/MainLayout';
@@ -201,7 +202,7 @@ export default function HomePage() {
         if (s?.shopByRoom) setShopByRoom(s.shopByRoom);
         if (s?.brandStory) setBrandStory(s.brandStory);
       })
-      .catch(err => console.error('Settings fetch failed:', err));
+      .catch(err => logger.error('Settings fetch failed:', err));
   }, []);
 
   // Reset slide index if slides change and current index is out of bounds
@@ -306,7 +307,7 @@ export default function HomePage() {
           <div className="container">
             <h2 className="section-title shop-by-room-title">Shop by Room</h2>
             <div className="shop-by-room-grid">
-              {shopByRoom.items.map((room, i) => (
+              {shopByRoom.items.map((room) => (
                 <Link
                   key={room.id}
                   href={room.link || '/products'}
@@ -512,19 +513,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      {/* FEATURED IN */}
-      <section className="featured-in">
-        <div className="container">
-          <h3 className="featured-title">As Featured In</h3>
-          <div className="featured-logos">
-            <div className="featured-logo">ARCHITECTURAL DIGEST</div>
-            <div className="featured-logo">ELLE DECOR</div>
-            <div className="featured-logo">DWELL</div>
-            <div className="featured-logo">INTERIOR DESIGN</div>
-          </div>
-        </div>
-      </section>
     </MainLayout>
   );
 }
