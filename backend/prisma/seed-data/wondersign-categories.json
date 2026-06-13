@@ -76,7 +76,7 @@
     "name": "Nightstands",
     "slug": "nightstands",
     "path": "bedroom/nightstands",
-    "imageUrl": "https://images.unsplash.com/photo-1595428773937-78b4b8b39f7d?w=600",
+    "imageUrl": "https://images.unsplash.com/photo-1593194632872-3d19dab6e278?w=600",
     "parentId": 2,
     "displayOrder": 2
   },
@@ -103,7 +103,7 @@
     "name": "Vanities & Mirrors",
     "slug": "vanities-mirrors",
     "path": "bedroom/vanities-mirrors",
-    "imageUrl": "https://images.unsplash.com/photo-1595514535116-8f0c1c26d904?w=600",
+    "imageUrl": "https://images.unsplash.com/photo-1576698483491-8c43f0862543?w=600",
     "parentId": 2,
     "displayOrder": 5
   },
@@ -139,7 +139,7 @@
     "name": "Bar Stools",
     "slug": "bar-stools",
     "path": "dining-room/bar-stools",
-    "imageUrl": "https://images.unsplash.com/photo-1595428773937-78b4b8b39f7d?w=600",
+    "imageUrl": "https://images.unsplash.com/photo-1593194632872-3d19dab6e278?w=600",
     "parentId": 3,
     "displayOrder": 3
   },
@@ -148,7 +148,7 @@
     "name": "Buffets & Sideboards",
     "slug": "buffets-sideboards",
     "path": "dining-room/buffets-sideboards",
-    "imageUrl": "https://images.unsplash.com/photo-1595514518526-0e1fb42b7a63?w=600",
+    "imageUrl": "https://images.unsplash.com/photo-1532588213355-52317771cce6?w=600",
     "parentId": 3,
     "displayOrder": 4
   },
@@ -229,7 +229,7 @@
     "name": "Patio Seating",
     "slug": "patio-seating",
     "path": "outdoor/patio-seating",
-    "imageUrl": "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=600",
+    "imageUrl": "https://images.unsplash.com/photo-1724139564791-ffb1135d8c90?w=600",
     "parentId": 5,
     "displayOrder": 1
   },
@@ -247,7 +247,7 @@
     "name": "Loungers & Daybeds",
     "slug": "loungers-daybeds",
     "path": "outdoor/loungers-daybeds",
-    "imageUrl": "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=600",
+    "imageUrl": "https://images.unsplash.com/photo-1656888272709-1248ee3fcf32?w=600",
     "parentId": 5,
     "displayOrder": 3
   },
@@ -319,7 +319,7 @@
     "name": "Kids Beds",
     "slug": "kids-beds",
     "path": "kids-room/kids-beds",
-    "imageUrl": "https://images.unsplash.com/photo-1595428773937-78b4b8b39f7d?w=600",
+    "imageUrl": "https://images.unsplash.com/photo-1593194632872-3d19dab6e278?w=600",
     "parentId": 7,
     "displayOrder": 1
   },
@@ -364,7 +364,7 @@
     "name": "Vanities",
     "slug": "bathroom-vanities",
     "path": "bathroom/bathroom-vanities",
-    "imageUrl": "https://images.unsplash.com/photo-1595514535116-8f0c1c26d904?w=600",
+    "imageUrl": "https://images.unsplash.com/photo-1576698483491-8c43f0862543?w=600",
     "parentId": 8,
     "displayOrder": 1
   },
