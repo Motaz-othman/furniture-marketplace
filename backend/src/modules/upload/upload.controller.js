@@ -1,4 +1,4 @@
-import { uploadToCloudinary } from '../../shared/services/cloudinary.service.js';
+import { uploadToS3 } from '../../shared/services/s3.service.js';
 
 // Upload single image
 export const uploadImage = async (req, res) => {
@@ -24,8 +24,8 @@ export const uploadImage = async (req, res) => {
       });
     }
 
-    // Upload to Cloudinary
-    const imageUrl = await uploadToCloudinary(req.file, 'hero');
+    // Upload to S3
+    const imageUrl = await uploadToS3(req.file, 'hero');
 
     res.json({
       message: 'Image uploaded successfully',
@@ -53,7 +53,7 @@ export const uploadMultipleImages = async (req, res) => {
     }
 
     // Upload all images
-    const uploadPromises = req.files.map(file => uploadToCloudinary(file, 'products'));
+    const uploadPromises = req.files.map(file => uploadToS3(file, 'products'));
     const imageUrls = await Promise.all(uploadPromises);
 
     res.json({

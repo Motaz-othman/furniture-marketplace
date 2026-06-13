@@ -8,7 +8,7 @@ const csp = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' js.stripe.com",
   "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
   "font-src 'self' fonts.gstatic.com",
-  "img-src 'self' data: blob: res.cloudinary.com images.unsplash.com *.stripe.com",
+  "img-src 'self' data: blob: res.cloudinary.com images.unsplash.com *.s3.amazonaws.com *.s3.us-east-1.amazonaws.com *.stripe.com",
   `connect-src 'self' ${backendUrl} api.stripe.com`,
   "frame-src js.stripe.com hooks.stripe.com *.youtube-nocookie.com player.vimeo.com",
   "worker-src 'self' blob:",
@@ -31,6 +31,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.s3.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.s3.us-east-1.amazonaws.com',
       },
     ],
   },

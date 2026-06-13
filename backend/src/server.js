@@ -40,7 +40,7 @@ dotenv.config();
 
 // ── Validate required environment variables at startup ──────────────
 const isProduction = process.env.NODE_ENV === 'production';
-const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET', 'JWT_REFRESH_SECRET', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'MEILISEARCH_HOST'];
+const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET', 'JWT_REFRESH_SECRET', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'];
 for (const key of REQUIRED_ENV) {
   if (!process.env[key]) {
     const msg = `Missing required environment variable: ${key}`;

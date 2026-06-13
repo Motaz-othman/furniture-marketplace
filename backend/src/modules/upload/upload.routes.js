@@ -13,7 +13,7 @@ const upload = multer({
   }
 });
 
-// Upload routes — admin only to prevent Cloudinary quota abuse
+// Upload routes — admin only
 router.post('/image', authenticate, adminOnly, upload.single('image'), uploadImage);
 router.post('/images', authenticate, adminOnly, upload.array('images', 10), uploadMultipleImages);
 

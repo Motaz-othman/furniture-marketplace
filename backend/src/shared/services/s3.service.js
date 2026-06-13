@@ -11,12 +11,12 @@ const s3Client = new S3Client({
   }
 });
 
-export const uploadToS3 = async (file) => {
+export const uploadToS3 = async (file, folder = 'products') => {
   try {
     // Generate unique filename
     const fileExtension = file.originalname.split('.').pop();
     const fileName = `${crypto.randomBytes(16).toString('hex')}.${fileExtension}`;
-    const key = `products/${fileName}`;
+    const key = `${folder}/${fileName}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET,

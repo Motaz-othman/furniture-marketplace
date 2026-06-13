@@ -1,47 +1,98 @@
+import prisma from '../../shared/config/db.js';
 import { searchProducts } from '../../shared/services/meilisearch.service.js';
+
+const isMeilisearchConfigured = () => !!process.env.MEILISEARCH_HOST && !!process.env.MEILISEARCH_ADMIN_KEY;
 
 // Search products
 export const search = async (req, res) => {
   try {
-    const { 
+    const {
       q,
       categoryId,
       minPrice,
-      maxPrice, 
-      materials, 
-      colors, 
-      roomType, 
-      style,
+      maxPrice,
       sort,
-      page = 1, 
-      limit = 20 
+      page = 1,
+      limit = 20
     } = req.query;
 
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
 
-    const options = {
-      limit: parseInt(limit),
-      offset,
-      categoryId,
-      minPrice: minPrice ? parseFloat(minPrice) : null,
-      maxPrice: maxPrice ? parseFloat(maxPrice) : null,
-      materials: materials ? materials.split(',') : [],
-      colors: colors ? colors.split(',') : [],
-      roomType,
-      style,
-      sort
-    };
+    if (isMeilisearchConfigured()) {
+      try {
+        const results = await searchProducts(q || '', {
+          limit: limitNum,
+          offset,
+          categoryId,
+          minPrice: minPrice ? parseFloat(minPrice) : null,
+          maxPrice: maxPrice ? parseFloat(maxPrice) : null,
+          sort
+        });
 
-    const results = await searchProducts(q || '', options);
+        return res.json({
+          query: q || '',
+          hits: results.hits,
+          totalHits: results.estimatedTotalHits,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(results.estimatedTotalHits / limitNum),
+          processingTimeMs: results.processingTimeMs
+        });
+      } catch (error) {
+        console.error('Meilisearch failed, falling back to database search:', error);
+      }
+    }
+
+    // ── Fallback: database search via Prisma ──
+    const where = { isActive: true };
+
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { brand: { contains: q, mode: 'insensitive' } },
+        { collection: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    if (categoryId) where.categoryId = categoryId;
+    if (minPrice || maxPrice) {
+      where.minPrice = {};
+      if (minPrice) where.minPrice.gte = parseFloat(minPrice);
+      if (maxPrice) where.minPrice.lte = parseFloat(maxPrice);
+    }
+
+    const orderBy = sort === 'price:asc' ? { minPrice: 'asc' }
+      : sort === 'price:desc' ? { minPrice: 'desc' }
+      : sort === 'name:asc' ? { name: 'asc' }
+      : sort === 'rating:desc' ? { rating: 'desc' }
+      : { createdAt: 'desc' };
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy,
+        skip: offset,
+        take: limitNum,
+        select: {
+          id: true, name: true, slug: true, description: true, brand: true,
+          minPrice: true, maxPrice: true, compareAtPrice: true, mainImage: true,
+          totalStock: true, rating: true, totalReviews: true, categoryId: true,
+          category: { select: { id: true, name: true, slug: true } },
+        },
+      }),
+      prisma.product.count({ where }),
+    ]);
 
     res.json({
       query: q || '',
-      hits: results.hits,
-      totalHits: results.estimatedTotalHits,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      totalPages: Math.ceil(results.estimatedTotalHits / parseInt(limit)),
-      processingTimeMs: results.processingTimeMs
+      hits: products,
+      totalHits: total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+      processingTimeMs: 0
     });
 
   } catch (error) {
