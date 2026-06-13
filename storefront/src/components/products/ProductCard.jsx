@@ -13,6 +13,7 @@ const ProductCard = memo(function ProductCard({ product, index }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Memoize variant images calculation
   const currentImages = useMemo(() => {
@@ -44,10 +45,15 @@ const ProductCard = memo(function ProductCard({ product, index }) {
   // Reset image loaded state when image changes
   useEffect(() => {
     setImageLoaded(false);
+    setImageError(false);
   }, [currentImageUrl]);
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true);
+  }, []);
+
+  const handleImageError = useCallback(() => {
+    setImageError(true);
   }, []);
 
   const handleWishlistToggle = useCallback(async (e) => {
@@ -107,7 +113,7 @@ const ProductCard = memo(function ProductCard({ product, index }) {
           <div className={`progressive-image-shimmer ${imageLoaded ? 'loaded' : ''}`} />
 
           {/* Main image using Next.js Image for optimization */}
-          {currentImageUrl ? (
+          {currentImageUrl && !imageError ? (
             <Image
               src={currentImageUrl}
               alt={product.name}
@@ -115,6 +121,7 @@ const ProductCard = memo(function ProductCard({ product, index }) {
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className={`product-img progressive-image-main ${imageLoaded ? 'loaded' : ''}`}
               onLoad={handleImageLoad}
+              onError={handleImageError}
               placeholder={thumbnailUrl ? 'blur' : 'empty'}
               blurDataURL={thumbnailUrl || undefined}
               priority={index < 4}
