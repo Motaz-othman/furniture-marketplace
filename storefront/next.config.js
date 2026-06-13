@@ -2,6 +2,7 @@
 
 const isProd = process.env.NODE_ENV === 'production';
 const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://furniture-marketplace-backend.onrender.com/api';
+const backendOrigin = new URL(backendUrl).origin;
 
 const csp = [
   "default-src 'self'",
@@ -9,7 +10,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
   "font-src 'self' fonts.gstatic.com",
   "img-src 'self' data: blob: res.cloudinary.com images.unsplash.com *.s3.amazonaws.com *.s3.us-east-1.amazonaws.com *.stripe.com",
-  `connect-src 'self' ${backendUrl} api.stripe.com`,
+  `connect-src 'self' ${backendOrigin} api.stripe.com`,
   "frame-src js.stripe.com hooks.stripe.com *.youtube-nocookie.com player.vimeo.com",
   "worker-src 'self' blob:",
   "media-src 'self' blob:",
