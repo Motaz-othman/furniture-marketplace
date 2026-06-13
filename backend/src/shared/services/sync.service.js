@@ -262,116 +262,86 @@ async function syncProducts(products, inventoryMap) {
       const media = await migrateMediaToS3(apiProduct.media) || apiProduct.media || null;
       const mainImage = media?.mainImages?.[0]?.url || null;
 
-      const product = await prisma.product.upsert({
-        where: {
-          externalId_source: { externalId, source: 'WONDERSIGN' }
-        },
-        update: {
-          name: apiProduct.name,
-          description: apiProduct.description || '',
-          brand: apiProduct.brand || null,
-          collection: apiProduct.collection || null,
-          provider: apiProduct.provider || null,
-          categories: apiProduct.categories || null,
-          media,
-          relatedProducts: apiProduct.relatedProducts || null,
-          variantKey: apiProduct.variantKey || null,
-          categoryId: categoryId || null,
-          minPrice, maxPrice, compareAtPrice, totalStock, mainImage,
-          isFeatured, isNew, isOnSale,
-          isActive: true,
-          lastSyncAt: new Date(),
-          updatedAt: new Date(),
-        },
-        create: {
-          name: apiProduct.name,
-          slug,
-          description: apiProduct.description || '',
-          brand: apiProduct.brand || null,
-          collection: apiProduct.collection || null,
-          provider: apiProduct.provider || null,
-          categories: apiProduct.categories || null,
-          media,
-          relatedProducts: apiProduct.relatedProducts || null,
-          variantKey: apiProduct.variantKey || null,
-          categoryId: categoryId || null,
-          minPrice, maxPrice, compareAtPrice, totalStock, mainImage,
-          isFeatured, isNew, isOnSale,
-          isActive: true,
-          source: 'WONDERSIGN',
-          externalId,
-          lastSyncAt: new Date(),
-        }
+      const data = {
+        name: apiProduct.name,
+        description: apiProduct.description || '',
+        brand: apiProduct.brand || null,
+        collection: apiProduct.collection || null,
+        provider: apiProduct.provider || null,
+        categories: apiProduct.categories || null,
+        media,
+        relatedProducts: apiProduct.relatedProducts || null,
+        variantKey: apiProduct.variantKey || null,
+        categoryId: categoryId || null,
+        minPrice, maxPrice, compareAtPrice, totalStock, mainImage,
+        isFeatured, isNew, isOnSale,
+        isActive: true,
+        source: 'WONDERSIGN',
+        externalId,
+        lastSyncAt: new Date(),
+      };
+
+      // Match by externalId+source first; fall back to slug so re-syncing
+      // doesn't collide with a pre-existing (e.g. MANUAL) product of the same name.
+      let existing = await prisma.product.findUnique({
+        where: { externalId_source: { externalId, source: 'WONDERSIGN' } }
       });
+      if (!existing) {
+        existing = await prisma.product.findUnique({ where: { slug } });
+      }
+
+      const product = existing
+        ? await prisma.product.update({ where: { id: existing.id }, data })
+        : await prisma.product.create({ data: { ...data, slug } });
 
       for (const v of apiProduct.variants) {
         const inv = inventoryMap.get(v.sku);
         const stockQty = inv?.availableQuantity || 0;
 
-        await prisma.productVariant.upsert({
-          where: { externalProductId: v.productId },
-          update: {
-            name: v.name || null,
-            description: v.description || null,
-            consumerBrand: v.consumerBrand || null,
-            productType: v.productType || null,
-            sku: v.sku,
-            customerSku: v.customerSku || null,
-            upc: v.upc || null,
-            status: v.status || 'Active',
-            changedState: v.changedState || null,
-            isActive: v.status === 'Active',
-            isDirectShipping: v.isDirectShipping || false,
-            isInCatalog: v.isInCatalog || 'included',
-            isPackage: v.isPackage || false,
-            isSoldIndividually: v.isSoldIndividually ?? true,
-            price: v.price,
-            dimensions: v.dimensions || null,
-            packaging: v.packaging || null,
-            attributes: v.attributes || null,
-            options: v.options || null,
-            categories: v.categories || null,
-            packageProducts: v.packageProducts || null,
-            packageProductType: v.packageProductType || null,
-            stockQuantity: stockQty,
-            rank: v.rank || 0,
-            custom: v.custom || null,
-            introducedAt: v.introducedAt ? new Date(v.introducedAt) : null,
-            deletedAt: v.deletedAt ? new Date(v.deletedAt) : null,
-            updatedAt: new Date(),
-          },
-          create: {
-            productId: product.id,
-            externalProductId: v.productId,
-            name: v.name || null,
-            description: v.description || null,
-            consumerBrand: v.consumerBrand || null,
-            productType: v.productType || null,
-            sku: v.sku,
-            customerSku: v.customerSku || null,
-            upc: v.upc || null,
-            status: v.status || 'Active',
-            changedState: v.changedState || null,
-            isActive: v.status === 'Active',
-            isDirectShipping: v.isDirectShipping || false,
-            isInCatalog: v.isInCatalog || 'included',
-            isPackage: v.isPackage || false,
-            isSoldIndividually: v.isSoldIndividually ?? true,
-            price: v.price,
-            dimensions: v.dimensions || null,
-            packaging: v.packaging || null,
-            attributes: v.attributes || null,
-            options: v.options || null,
-            categories: v.categories || null,
-            packageProducts: v.packageProducts || null,
-            packageProductType: v.packageProductType || null,
-            stockQuantity: stockQty,
-            rank: v.rank || 0,
-            custom: v.custom || null,
-            introducedAt: v.introducedAt ? new Date(v.introducedAt) : null,
-            deletedAt: v.deletedAt ? new Date(v.deletedAt) : null,
-          }
-        });
+        const variantData = {
+          productId: product.id,
+          externalProductId: v.productId,
+          name: v.name || null,
+          description: v.description || null,
+          consumerBrand: v.consumerBrand || null,
+          productType: v.productType || null,
+          sku: v.sku,
+          customerSku: v.customerSku || null,
+          upc: v.upc || null,
+          status: v.status || 'Active',
+          changedState: v.changedState || null,
+          isActive: v.status === 'Active',
+          isDirectShipping: v.isDirectShipping || false,
+          isInCatalog: v.isInCatalog || 'included',
+          isPackage: v.isPackage || false,
+          isSoldIndividually: v.isSoldIndividually ?? true,
+          price: v.price,
+          dimensions: v.dimensions || null,
+          packaging: v.packaging || null,
+          attributes: v.attributes || null,
+          options: v.options || null,
+          categories: v.categories || null,
+          packageProducts: v.packageProducts || null,
+          packageProductType: v.packageProductType || null,
+          stockQuantity: stockQty,
+          rank: v.rank || 0,
+          custom: v.custom || null,
+          introducedAt: v.introducedAt ? new Date(v.introducedAt) : null,
+          deletedAt: v.deletedAt ? new Date(v.deletedAt) : null,
+        };
+
+        // Match by externalProductId first; fall back to sku so re-syncing
+        // doesn't collide with a pre-existing (e.g. MANUAL) variant of the same SKU.
+        let existingVariant = await prisma.productVariant.findUnique({ where: { externalProductId: v.productId } });
+        if (!existingVariant && v.sku) {
+          existingVariant = await prisma.productVariant.findUnique({ where: { sku: v.sku } });
+        }
+
+        if (existingVariant) {
+          await prisma.productVariant.update({ where: { id: existingVariant.id }, data: variantData });
+        } else {
+          await prisma.productVariant.create({ data: variantData });
+        }
         variantCount++;
       }
 
