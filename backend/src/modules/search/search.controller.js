@@ -1,6 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { Prisma } from '../../generated/prisma/index.js';
-import { buildFuzzyConditions } from '../../shared/utils/fuzzySearch.js';
+import { buildSearchScoring } from '../../shared/utils/fuzzySearch.js';
 import { CURATED_SEARCH_KEYWORDS } from '../../shared/constants/searchKeywords.js';
 
 // Search products — uses Postgres trigram similarity for typo-tolerant matching
@@ -23,8 +23,10 @@ export const search = async (req, res) => {
     const term = q ? q.trim() : '';
 
     if (term) {
-      // Every word must match somewhere (substring) or be a close trigram match (typo tolerance)
-      const conditions = [Prisma.sql`p."isActive" = true`, ...buildFuzzyConditions(term)];
+      // A product matches if it matches AT LEAST ONE word of the search term;
+      // products matching MORE words rank higher (see ORDER BY below).
+      const { matchCountExpr, similarityScoreExpr, anyWordMatches } = buildSearchScoring(term);
+      const conditions = [Prisma.sql`p."isActive" = true`, anyWordMatches];
 
       if (categoryId) conditions.push(Prisma.sql`p."categoryId" = ${categoryId}`);
       if (minPrice) conditions.push(Prisma.sql`p."minPrice" >= ${parseFloat(minPrice)}`);
@@ -37,7 +39,9 @@ export const search = async (req, res) => {
         : sort === 'name:asc' ? Prisma.sql`p.name ASC`
         : sort === 'rating:desc' ? Prisma.sql`p.rating DESC`
         : Prisma.sql`
+          ${matchCountExpr} DESC,
           (CASE WHEN p.name ILIKE ${`%${term}%`} THEN 0 ELSE 1 END) ASC,
+          ${similarityScoreExpr} DESC,
           similarity(p.name, ${term}) DESC
         `;
 
