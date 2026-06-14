@@ -1,4 +1,5 @@
 import prisma from '../../shared/config/db.js';
+import { invalidateKeywords } from '../../shared/services/keywords.service.js';
 
 // ─── Public: Get all categories ──────────────────────────────────────
 
@@ -148,6 +149,7 @@ export const createCategory = async (req, res) => {
       },
     });
 
+    invalidateKeywords();
     res.status(201).json({ message: 'Category created successfully', category });
   } catch (error) {
     console.error('Create category error:', error);
@@ -167,6 +169,7 @@ export const updateCategory = async (req, res) => {
       data: { name, slug, description, imageUrl, parentId, sortOrder },
     });
 
+    invalidateKeywords();
     res.json({ message: 'Category updated successfully', category });
   } catch (error) {
     console.error('Update category error:', error);
@@ -192,6 +195,7 @@ export const deleteCategory = async (req, res) => {
 
     await prisma.category.delete({ where: { id } });
 
+    invalidateKeywords();
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {
     console.error('Delete category error:', error);

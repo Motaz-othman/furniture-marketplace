@@ -1,7 +1,7 @@
 import prisma from '../../shared/config/db.js';
 import { Prisma } from '../../generated/prisma/index.js';
 import { buildSearchScoring } from '../../shared/utils/fuzzySearch.js';
-import { CURATED_SEARCH_KEYWORDS } from '../../shared/constants/searchKeywords.js';
+import { getKeywords as getKeywordsCached } from '../../shared/services/keywords.service.js';
 
 // Search products — uses Postgres trigram similarity for typo-tolerant matching
 export const search = async (req, res) => {
@@ -128,35 +128,15 @@ export const search = async (req, res) => {
   }
 };
 
-// Generic keyword vocabulary for search autocomplete: category names
-// (compound names like "Chairs & Recliners" are split into atomic terms)
-// plus a curated list of common furniture search phrases. Cached in memory
-// since the category list rarely changes — the storefront fetches this once
+// Generic keyword vocabulary for search autocomplete: category names plus a
+// curated list of common furniture search phrases. Cached in-memory (see
+// shared/services/keywords.service.js) — the storefront fetches this once
 // and matches against it client-side for instant suggestions with no
 // per-keystroke request.
-let keywordsCache = null;
-
-export const getKeywords = async (req, res) => {
+export const getKeywords = async (_req, res) => {
   try {
-    if (!keywordsCache) {
-      const categories = await prisma.category.findMany({ select: { name: true } });
-
-      const keywords = new Set();
-      for (const { name } of categories) {
-        for (const part of name.split(/\s*&\s*|\s+and\s+/i)) {
-          const trimmed = part.trim();
-          if (trimmed) keywords.add(trimmed);
-        }
-      }
-
-      for (const term of CURATED_SEARCH_KEYWORDS) {
-        keywords.add(term);
-      }
-
-      keywordsCache = Array.from(keywords).sort();
-    }
-
-    res.json({ keywords: keywordsCache });
+    const keywords = await getKeywordsCached();
+    res.json({ keywords });
   } catch (error) {
     console.error('Get keywords error:', error);
     res.status(500).json({ error: 'Failed to load keywords' });

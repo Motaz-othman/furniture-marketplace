@@ -14,6 +14,16 @@ const storefrontProductInclude = {
   },
 };
 
+const storefrontListingInclude = {
+  product: {
+    include: {
+      category: { select: { id: true, name: true, slug: true, parentId: true } },
+      variants: true,
+    },
+  },
+  category: { select: { id: true, name: true, slug: true, parentId: true } },
+};
+
 // ─── Public: Get all storefront products ─────────────────────────────
 
 export const getAllProducts = async (req, res) => {
@@ -31,66 +41,65 @@ export const getAllProducts = async (req, res) => {
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-    // Fetch all published products via StorefrontListing
-    const listings = await prisma.storefrontListing.findMany({
-      where: { isPublished: true },
-      include: {
-        product: {
-          include: {
-                      category: { select: { id: true, name: true, slug: true, parentId: true } },
-            variants: true,
-          },
-        },
-        category: { select: { id: true, name: true, slug: true, parentId: true } },
-      },
-    });
+    // isFeatured/isNew/isOnSale map 1:1 to these StorefrontListing flags
+    // (see transformProductForStorefront), so they can be filtered in SQL.
+    const where = { isPublished: true };
+    if (categoryId) {
+      where.OR = [
+        { categoryId },
+        { categoryId: null, product: { categoryId } },
+      ];
+    }
+    if (featured === 'true') where.isTrending = true;
+    if (isNew === 'true') where.isNewArrival = true;
+    if (sale === 'true') where.discountedPrice = { not: null };
 
-    // Transform all listings to frontend shape
-    let products = listings.map(listing =>
+    let listings, total;
+
+    if (search && search.trim()) {
+      // Relevance-ranked product ids from the fuzzy search (1 round trip),
+      // then a single fetch of just those products' full data, filtered by
+      // the same isPublished/featured/isNew/sale/category conditions as the
+      // non-search path. Sort + paginate in JS — the matched set is small.
+      const matchedIds = await findMatchingProductIds(prisma, search.trim());
+
+      const matchedListings = await prisma.storefrontListing.findMany({
+        where: { ...where, productId: { in: matchedIds } },
+        include: storefrontListingInclude,
+      });
+
+      const rank = new Map(matchedIds.map((id, i) => [id, i]));
+      matchedListings.sort((a, b) => rank.get(a.productId) - rank.get(b.productId));
+
+      total = matchedListings.length;
+      listings = matchedListings.slice(skip, skip + limitNum);
+    } else {
+      const orderBy = sortBy === 'price-asc' ? [{ product: { minPrice: 'asc' } }, { id: 'asc' }]
+        : sortBy === 'price-desc' ? [{ product: { minPrice: 'desc' } }, { id: 'asc' }]
+        : sortBy === 'name' ? [{ product: { name: 'asc' } }, { id: 'asc' }]
+        : sortBy === 'newest' ? [{ product: { createdAt: 'desc' } }, { id: 'asc' }]
+        : [{ sortOrder: 'asc' }, { product: { createdAt: 'desc' } }, { id: 'asc' }];
+
+      [total, listings] = await Promise.all([
+        prisma.storefrontListing.count({ where }),
+        prisma.storefrontListing.findMany({
+          where,
+          orderBy,
+          skip,
+          take: limitNum,
+          include: storefrontListingInclude,
+        }),
+      ]);
+    }
+
+    const products = listings.map(listing =>
       transformProductForStorefront(listing.product, listing)
     );
 
-    // Apply filters
-    if (categoryId) {
-      products = products.filter(p => p.categoryId === categoryId);
-    }
-    if (featured === 'true') {
-      products = products.filter(p => p.isFeatured);
-    }
-    if (isNew === 'true') {
-      products = products.filter(p => p.isNew);
-    }
-    if (sale === 'true') {
-      products = products.filter(p => p.isOnSale);
-    }
-    if (search && search.trim()) {
-      const matchedIds = await findMatchingProductIds(prisma, search.trim());
-      const rank = new Map(matchedIds.map((id, i) => [id, i]));
-      products = products.filter(p => rank.has(p.id));
-      products.sort((a, b) => rank.get(a.id) - rank.get(b.id));
-    }
-
-    // Sort
-    if (sortBy === 'price-asc') {
-      products.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-desc') {
-      products.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'name') {
-      products.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortBy === 'newest') {
-      products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }
-
-    // Paginate
-    const total = products.length;
-    const paginatedProducts = products.slice(
-      (pageNum - 1) * limitNum,
-      pageNum * limitNum
-    );
-
     res.json({
-      data: paginatedProducts,
+      data: products,
       pagination: {
         page: pageNum,
         limit: limitNum,
