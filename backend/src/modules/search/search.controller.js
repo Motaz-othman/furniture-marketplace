@@ -1,9 +1,9 @@
 import prisma from '../../shared/config/db.js';
-import { searchProducts } from '../../shared/services/meilisearch.service.js';
+import { Prisma } from '../../generated/prisma/index.js';
+import { buildFuzzyConditions } from '../../shared/utils/fuzzySearch.js';
+import { CURATED_SEARCH_KEYWORDS } from '../../shared/constants/searchKeywords.js';
 
-const isMeilisearchConfigured = () => !!process.env.MEILISEARCH_HOST && !!process.env.MEILISEARCH_ADMIN_KEY;
-
-// Search products
+// Search products — uses Postgres trigram similarity for typo-tolerant matching
 export const search = async (req, res) => {
   try {
     const {
@@ -20,42 +20,65 @@ export const search = async (req, res) => {
     const limitNum = parseInt(limit);
     const offset = (pageNum - 1) * limitNum;
 
-    if (isMeilisearchConfigured()) {
-      try {
-        const results = await searchProducts(q || '', {
-          limit: limitNum,
-          offset,
-          categoryId,
-          minPrice: minPrice ? parseFloat(minPrice) : null,
-          maxPrice: maxPrice ? parseFloat(maxPrice) : null,
-          sort
-        });
+    const term = q ? q.trim() : '';
 
-        return res.json({
-          query: q || '',
-          hits: results.hits,
-          totalHits: results.estimatedTotalHits,
-          page: pageNum,
-          limit: limitNum,
-          totalPages: Math.ceil(results.estimatedTotalHits / limitNum),
-          processingTimeMs: results.processingTimeMs
-        });
-      } catch (error) {
-        console.error('Meilisearch failed, falling back to database search:', error);
-      }
+    if (term) {
+      // Every word must match somewhere (substring) or be a close trigram match (typo tolerance)
+      const conditions = [Prisma.sql`p."isActive" = true`, ...buildFuzzyConditions(term)];
+
+      if (categoryId) conditions.push(Prisma.sql`p."categoryId" = ${categoryId}`);
+      if (minPrice) conditions.push(Prisma.sql`p."minPrice" >= ${parseFloat(minPrice)}`);
+      if (maxPrice) conditions.push(Prisma.sql`p."minPrice" <= ${parseFloat(maxPrice)}`);
+
+      const whereClause = Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`;
+
+      const orderByClause = sort === 'price:asc' ? Prisma.sql`p."minPrice" ASC`
+        : sort === 'price:desc' ? Prisma.sql`p."minPrice" DESC`
+        : sort === 'name:asc' ? Prisma.sql`p.name ASC`
+        : sort === 'rating:desc' ? Prisma.sql`p.rating DESC`
+        : Prisma.sql`
+          (CASE WHEN p.name ILIKE ${`%${term}%`} THEN 0 ELSE 1 END) ASC,
+          similarity(p.name, ${term}) DESC
+        `;
+
+      const rows = await prisma.$queryRaw`
+        SELECT
+          p.id, p.name, p.slug, p.description, p.brand,
+          p."minPrice", p."maxPrice", p."compareAtPrice", p."mainImage",
+          p."totalStock", p.rating, p."totalReviews", p."categoryId",
+          c.id AS "categoryId_", c.name AS "categoryName_", c.slug AS "categorySlug_"
+        FROM "Product" p
+        LEFT JOIN "Category" c ON c.id = p."categoryId"
+        ${whereClause}
+        ORDER BY ${orderByClause}
+        LIMIT ${limitNum} OFFSET ${offset}
+      `;
+
+      const [{ count: total }] = await prisma.$queryRaw`
+        SELECT COUNT(*)::int AS count
+        FROM "Product" p
+        ${whereClause}
+      `;
+
+      const hits = rows.map(({ categoryId_, categoryName_, categorySlug_, ...p }) => ({
+        ...p,
+        category: categoryId_ ? { id: categoryId_, name: categoryName_, slug: categorySlug_ } : null,
+      }));
+
+      return res.json({
+        query: term,
+        hits,
+        totalHits: total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+        processingTimeMs: 0
+      });
     }
 
-    // ── Fallback: database search via Prisma ──
+    // ── No query: plain filtered/sorted listing ──
     const where = { isActive: true };
 
-    if (q) {
-      where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-        { brand: { contains: q, mode: 'insensitive' } },
-        { collection: { contains: q, mode: 'insensitive' } },
-      ];
-    }
     if (categoryId) where.categoryId = categoryId;
     if (minPrice || maxPrice) {
       where.minPrice = {};
@@ -86,7 +109,7 @@ export const search = async (req, res) => {
     ]);
 
     res.json({
-      query: q || '',
+      query: '',
       hits: products,
       totalHits: total,
       page: pageNum,
@@ -98,5 +121,40 @@ export const search = async (req, res) => {
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ error: 'Search failed' });
+  }
+};
+
+// Generic keyword vocabulary for search autocomplete: category names
+// (compound names like "Chairs & Recliners" are split into atomic terms)
+// plus a curated list of common furniture search phrases. Cached in memory
+// since the category list rarely changes — the storefront fetches this once
+// and matches against it client-side for instant suggestions with no
+// per-keystroke request.
+let keywordsCache = null;
+
+export const getKeywords = async (req, res) => {
+  try {
+    if (!keywordsCache) {
+      const categories = await prisma.category.findMany({ select: { name: true } });
+
+      const keywords = new Set();
+      for (const { name } of categories) {
+        for (const part of name.split(/\s*&\s*|\s+and\s+/i)) {
+          const trimmed = part.trim();
+          if (trimmed) keywords.add(trimmed);
+        }
+      }
+
+      for (const term of CURATED_SEARCH_KEYWORDS) {
+        keywords.add(term);
+      }
+
+      keywordsCache = Array.from(keywords).sort();
+    }
+
+    res.json({ keywords: keywordsCache });
+  } catch (error) {
+    console.error('Get keywords error:', error);
+    res.status(500).json({ error: 'Failed to load keywords' });
   }
 };

@@ -22,6 +22,9 @@ export {
   // Export classname utility
   export { cn } from './cn.js';
 
+  // Export search autocomplete keyword matching
+  export { matchKeywords } from './keywordSuggestions.js';
+
   // Export product transformation utilities
   export {
     transformApiProductToFrontend,

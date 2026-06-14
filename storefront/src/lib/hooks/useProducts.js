@@ -12,6 +12,7 @@ import {
   getNewProducts,
   getSaleProducts,
   searchProducts,
+  getSearchKeywords,
 } from '@/lib/api';
 
 // Stale time constants for consistency
@@ -140,6 +141,22 @@ export function useSearchProducts(query, filters = {}, options = {}) {
     queryFn: () => searchProducts(query, filters),
     enabled: !!query && query.length > 2,
     staleTime: STALE_TIME.SHORT,
+    ...options,
+  });
+}
+
+/**
+ * Generic keyword vocabulary for the search box autocomplete.
+ * Fetched once and kept in cache indefinitely — matching against the
+ * typed term happens client-side, so suggestions appear instantly.
+ * @param {Object} options - React Query options
+ */
+export function useSearchKeywords(options = {}) {
+  return useQuery({
+    queryKey: ['search', 'keywords'],
+    queryFn: getSearchKeywords,
+    staleTime: Infinity,
+    gcTime: Infinity,
     ...options,
   });
 }

@@ -15,6 +15,7 @@ export {
   getNewProducts,
   getSaleProducts,
   searchProducts,
+  getSearchKeywords,
 } from './products';
 
 // Export categories API

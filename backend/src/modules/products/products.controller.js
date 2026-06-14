@@ -1,6 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { transformProductForStorefront } from '../../shared/utils/storefront.transforms.js';
-import { indexProduct, removeProductFromIndex } from '../../shared/services/meilisearch.service.js';
+import { findMatchingProductIds } from '../../shared/utils/fuzzySearch.js';
 
 // ─── Shared includes for storefront queries ─────────────────────────
 
@@ -64,13 +64,11 @@ export const getAllProducts = async (req, res) => {
     if (sale === 'true') {
       products = products.filter(p => p.isOnSale);
     }
-    if (search) {
-      const q = search.toLowerCase();
-      products = products.filter(
-        p =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
-      );
+    if (search && search.trim()) {
+      const matchedIds = await findMatchingProductIds(prisma, search.trim());
+      const rank = new Map(matchedIds.map((id, i) => [id, i]));
+      products = products.filter(p => rank.has(p.id));
+      products.sort((a, b) => rank.get(a.id) - rank.get(b.id));
     }
 
     // Sort
@@ -196,12 +194,6 @@ export const createProduct = async (req, res) => {
       },
     });
 
-    try {
-      await indexProduct(product);
-    } catch (searchError) {
-      console.error('Failed to index product in search:', searchError);
-    }
-
     res.status(201).json({ message: 'Product created successfully', product });
   } catch (error) {
     console.error('Create product error:', error);
@@ -242,12 +234,6 @@ export const deleteProduct = async (req, res) => {
 
     await prisma.orderItem.deleteMany({ where: { productId: id } });
     await prisma.product.delete({ where: { id } });
-
-    try {
-      await removeProductFromIndex(id);
-    } catch (searchError) {
-      console.error('Failed to remove product from search:', searchError);
-    }
 
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {

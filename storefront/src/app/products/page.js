@@ -27,8 +27,9 @@ function parseFiltersFromParams(params) {
   };
 }
 
-function filtersToParams(filters, sort, page) {
+function filtersToParams(filters, sort, page, search) {
   const p = new URLSearchParams();
+  if (search) p.set('search', search);
   if (filters.categories.length) p.set('categories', filters.categories.join(','));
   if (filters.subcategories.length) p.set('subcategories', filters.subcategories.join(','));
   if (filters.priceRange[0] > 0) p.set('minPrice', filters.priceRange[0]);
@@ -49,12 +50,14 @@ function ProductsContent() {
   const filters = useMemo(() => parseFiltersFromParams(searchParams), [searchParams]);
   const sortBy = searchParams.get('sort') || 'newest';
   const currentPage = parseInt(searchParams.get('page') || '1');
+  const searchQuery = searchParams.get('search') || '';
 
   // Fetch products and categories
   const { data, isLoading } = useProducts({
     page: currentPage,
     limit: 12,
     sortBy: sortBy,
+    search: searchQuery || undefined,
   });
   const { data: categoriesData } = useCategories();
 
@@ -118,9 +121,9 @@ function ProductsContent() {
   }, [products, filters, subcategoryMap]);
 
   const pushParams = useCallback((newFilters, newSort, newPage) => {
-    const qs = filtersToParams(newFilters, newSort, newPage);
+    const qs = filtersToParams(newFilters, newSort, newPage, searchQuery);
     router.push(`/products${qs ? `?${qs}` : ''}`, { scroll: false });
-  }, [router]);
+  }, [router, searchQuery]);
 
   const handleFilterChange = useCallback((newFilters) => {
     pushParams(newFilters, sortBy, 1);
@@ -156,8 +159,12 @@ function ProductsContent() {
           {/* Page Header */}
           <div className="products-header">
             <div className="products-header-left">
-              <h1 className="products-title">Our Collection</h1>
-              <p className="products-subtitle">Handpicked furniture for every room</p>
+              <h1 className="products-title">{searchQuery ? `Results for "${searchQuery}"` : 'Our Collection'}</h1>
+              <p className="products-subtitle">
+                {searchQuery
+                  ? `${data?.pagination?.total ?? 0} product${data?.pagination?.total === 1 ? '' : 's'} found`
+                  : 'Handpicked furniture for every room'}
+              </p>
             </div>
 
             <div className="products-header-right">

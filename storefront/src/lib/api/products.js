@@ -215,3 +215,21 @@ export async function searchProducts(query, filters = {}) {
     }
   );
 }
+
+/**
+ * Get the generic keyword vocabulary used for search autocomplete.
+ * Fetched once and cached — matching against the typed term happens
+ * client-side for instant suggestions.
+ * @returns {Promise<Object>} { keywords: string[] }
+ */
+export async function getSearchKeywords() {
+  return handleApiCall(
+    // Real API call
+    async () => {
+      const response = await get('/search/keywords');
+      return response;
+    },
+    // Fake data — no keyword vocabulary in fake-data mode
+    () => ({ keywords: [] })
+  );
+}

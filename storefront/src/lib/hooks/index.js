@@ -12,6 +12,7 @@ export {
     useNewProducts,
     useSaleProducts,
     useSearchProducts,
+    useSearchKeywords,
   } from './useProducts.js';
   
   // Export category hooks

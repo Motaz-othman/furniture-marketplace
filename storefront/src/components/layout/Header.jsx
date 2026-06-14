@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { User, Heart, ShoppingCart, ArrowLeft, Menu, X, Search, Flame, Sparkles, Package, Sofa, BedDouble, UtensilsCrossed, Briefcase, TreeDeciduous, Lamp } from '@/components/ui/Icons';
-import { useParentCategories, useAuth, useCart, useWishlist } from '@/lib/hooks';
+import { useParentCategories, useAuth, useCart, useWishlist, useSearchKeywords } from '@/lib/hooks';
+import { matchKeywords } from '@/lib/utils';
 import MegaMenu from './MegaMenu';
 import MobileCategoryAccordion from './MobileCategoryAccordion';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -45,12 +47,64 @@ export default function Header() {
     'lighting': <Lamp size={22} strokeWidth={1.5} />
   };
 
+  // Generic keyword vocabulary, fetched once and matched client-side for
+  // instant suggestions with no per-keystroke request
+  const { data: keywordsData } = useSearchKeywords();
+  const keywords = keywordsData?.keywords || [];
+  const suggestions = useMemo(
+    () => matchKeywords(searchQuery, keywords),
+    [searchQuery, keywords]
+  );
+
   // Handle search
-  const handleSearch = (e) => {
+  const handleSearch = (e, term = searchQuery) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
+    if (term.trim()) {
+      setShowSuggestions(false);
+      router.push(`/products?search=${encodeURIComponent(term.trim())}`);
     }
+  };
+
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setShowSuggestions(value.trim().length >= 1);
+  };
+
+  const handleSearchFocus = () => {
+    if (searchQuery.trim().length >= 1) setShowSuggestions(true);
+  };
+
+  const handleSearchBlur = () => {
+    // Delay so a click on a suggestion can register first
+    setTimeout(() => setShowSuggestions(false), 150);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    router.push(`/products?search=${encodeURIComponent(suggestion)}`);
+  };
+
+  const renderSuggestions = () => {
+    if (!showSuggestions || suggestions.length === 0) return null;
+
+    return (
+      <div className="search-suggestions">
+        {suggestions.map((suggestion) => (
+          <button
+            key={suggestion}
+            type="button"
+            className="search-suggestion-item"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleSuggestionClick(suggestion)}
+          >
+            <Search size={14} strokeWidth={1.5} className="search-suggestion-icon" />
+            <span className="search-suggestion-text">{suggestion}</span>
+          </button>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -79,8 +133,11 @@ export default function Header() {
             type="text"
             placeholder="Search..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchInputChange}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
           />
+          {renderSuggestions()}
         </form>
 
         {/* Mobile Cart Icon - Visible only on mobile */}
@@ -95,7 +152,9 @@ export default function Header() {
             type="text"
             placeholder="Find your perfect furniture..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchInputChange}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
           />
           <button type="submit" aria-label="Search">
             <svg
@@ -112,6 +171,7 @@ export default function Header() {
               <path d="m21 21-4.35-4.35"></path>
             </svg>
           </button>
+          {renderSuggestions()}
         </form>
 
         {/* Desktop Header Actions - Hidden on mobile */}
