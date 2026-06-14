@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { User, Heart, ShoppingCart, ArrowLeft, Menu, X, Search, Flame, Sparkles, Package, Sofa, BedDouble, UtensilsCrossed, Briefcase, TreeDeciduous, Lamp } from '@/components/ui/Icons';
@@ -23,6 +23,14 @@ export default function Header() {
 
   // Check if we're on a subpage (not homepage)
   const isSubpage = pathname !== '/';
+
+  // Keep the search box in sync with the URL's search param.
+  // Header remounts on page navigation (it's rendered inside each page's
+  // MainLayout), which resets local state - restore it from the URL here.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setSearchQuery(params.get('search') || '');
+  }, [pathname]);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
