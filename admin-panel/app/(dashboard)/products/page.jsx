@@ -360,6 +360,7 @@ export default function ProductsPage() {
               <TableHead>Brand</TableHead>
               <TableHead>SKUs</TableHead>
               <TableHead>Price</TableHead>
+              <TableHead>Stock</TableHead>
               <TableHead>Variants</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-36">Action</TableHead>
@@ -368,13 +369,13 @@ export default function ProductsPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                   No products found
                 </TableCell>
               </TableRow>
@@ -420,6 +421,7 @@ export default function ProductsPage() {
                   <TableCell className="text-sm">
                     {formatPrice(product.variants?.[0]?.price?.retailPrice ?? product.minPrice)}
                   </TableCell>
+                  <TableCell className={`text-sm ${(product.totalStock ?? 0) <= 3 ? 'text-destructive font-medium' : ''}`}>{product.totalStock ?? 0}</TableCell>
                   <TableCell className="text-sm">{product._count?.variants ?? 0}</TableCell>
                   <TableCell>
                     {product.isOnStorefront ? (

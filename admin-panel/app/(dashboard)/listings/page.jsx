@@ -149,24 +149,21 @@ export default function ListingsPage() {
   const listings = listingsRes?.data || [];
   const pagination = listingsRes?.pagination;
 
+  const cacheKey = ['listings', debouncedSearch, page, activeFilters];
+
   const toggleMutation = useMutation({
     mutationFn: ({ id, field, value }) => updateListing(id, { [field]: value }),
     onMutate: async ({ id, field, value }) => {
-      await queryClient.cancelQueries({ queryKey: ['listings', debouncedSearch, page, activeFilters] });
-      const previous = queryClient.getQueryData(['listings', search, page, activeFilters]);
-      queryClient.setQueryData(['listings', search, page, activeFilters], (old) => {
+      await queryClient.cancelQueries({ queryKey: cacheKey });
+      const previous = queryClient.getQueryData(cacheKey);
+      queryClient.setQueryData(cacheKey, (old) => {
         if (!old) return old;
-        return {
-          ...old,
-          data: old.data.map((l) => (l.id === id ? { ...l, [field]: value } : l)),
-        };
+        return { ...old, data: old.data.map((l) => (l.id === id ? { ...l, [field]: value } : l)) };
       });
       return { previous };
     },
     onError: (err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(['listings', search, page, activeFilters], context.previous);
-      }
+      if (context?.previous) queryClient.setQueryData(cacheKey, context.previous);
       toast.error(err.response?.data?.error || 'Update failed');
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['listings'] }),
@@ -174,11 +171,20 @@ export default function ListingsPage() {
 
   const fieldMutation = useMutation({
     mutationFn: ({ id, data }) => updateListing(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['listings'] });
-      toast.success('Updated');
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: cacheKey });
+      const previous = queryClient.getQueryData(cacheKey);
+      queryClient.setQueryData(cacheKey, (old) => {
+        if (!old) return old;
+        return { ...old, data: old.data.map((l) => (l.id === id ? { ...l, ...data } : l)) };
+      });
+      return { previous };
     },
-    onError: (err) => toast.error(err.response?.data?.error || 'Update failed'),
+    onError: (err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(cacheKey, context.previous);
+      toast.error(err.response?.data?.error || 'Update failed');
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['listings'] }),
   });
 
   const deleteMutation = useMutation({
