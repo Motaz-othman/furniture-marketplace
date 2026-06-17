@@ -50,6 +50,16 @@ export async function deleteListing(id) {
   return data;
 }
 
+export async function bulkUpdateListings(listingIds, updateData) {
+  const { data } = await api.patch('/admin/storefront/bulk', { listingIds, data: updateData });
+  return data;
+}
+
+export async function bulkDeleteListings(listingIds) {
+  const { data } = await api.delete('/admin/storefront/bulk', { data: { listingIds } });
+  return data;
+}
+
 export async function getCategories() {
   const { data } = await api.get('/categories');
   return data;

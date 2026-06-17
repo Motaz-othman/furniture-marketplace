@@ -266,6 +266,50 @@ export const deleteListing = async (req, res) => {
   }
 };
 
+// ─── Bulk update listings ────────────────────────────────────────────
+
+export const bulkUpdateListings = async (req, res) => {
+  try {
+    const { listingIds, data } = req.body;
+    if (!Array.isArray(listingIds) || listingIds.length === 0) {
+      return res.status(400).json({ error: 'listingIds array is required' });
+    }
+    const allowed = ['isPublished', 'isTrending', 'isNewArrival', 'categoryId'];
+    const updateData = Object.fromEntries(
+      Object.entries(data || {}).filter(([k]) => allowed.includes(k))
+    );
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+    const result = await prisma.storefrontListing.updateMany({
+      where: { id: { in: listingIds } },
+      data: updateData,
+    });
+    res.json({ message: `${result.count} listings updated`, count: result.count });
+  } catch (error) {
+    console.error('Bulk update listings error:', error);
+    res.status(500).json({ error: 'Failed to bulk update listings' });
+  }
+};
+
+// ─── Bulk delete listings ────────────────────────────────────────────
+
+export const bulkDeleteListings = async (req, res) => {
+  try {
+    const { listingIds } = req.body;
+    if (!Array.isArray(listingIds) || listingIds.length === 0) {
+      return res.status(400).json({ error: 'listingIds array is required' });
+    }
+    const result = await prisma.storefrontListing.deleteMany({
+      where: { id: { in: listingIds } },
+    });
+    res.json({ message: `${result.count} listings removed`, count: result.count });
+  } catch (error) {
+    console.error('Bulk delete listings error:', error);
+    res.status(500).json({ error: 'Failed to bulk delete listings' });
+  }
+};
+
 // ─── Bulk create listings ────────────────────────────────────────────
 
 export const bulkCreateListings = async (req, res) => {

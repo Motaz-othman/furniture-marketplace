@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { getListings, updateListing, deleteListing, getCategories, getRawProductFilters } from '@/lib/services/storefront';
+import { getListings, updateListing, deleteListing, bulkUpdateListings, bulkDeleteListings, getCategories, getRawProductFilters } from '@/lib/services/storefront';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -98,6 +99,10 @@ export default function ListingsPage() {
   }, [search]);
   const [filters, setFilters] = useState({ status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' });
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [selected, setSelected] = useState(new Set());
+  const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false);
+  const [bulkCategoryDialog, setBulkCategoryDialog] = useState(false);
+  const [bulkCategoryId, setBulkCategoryId] = useState('');
 
   const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
   const hasActiveFilters = Object.values(filters).some(Boolean);
@@ -187,6 +192,47 @@ export default function ListingsPage() {
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Delete failed'),
   });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({ ids, data }) => bulkUpdateListings(ids, data),
+    onSuccess: (_, { data }) => {
+      queryClient.invalidateQueries({ queryKey: ['listings'] });
+      setSelected(new Set());
+      setBulkCategoryDialog(false);
+      setBulkCategoryId('');
+      const label = data.isPublished === true ? 'Published' : data.isPublished === false ? 'Unpublished' : 'Updated';
+      toast.success(`${label} ${[...selected].length} listings`);
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Bulk update failed'),
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => bulkDeleteListings(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listings'] });
+      queryClient.invalidateQueries({ queryKey: ['raw-products'] });
+      setSelected(new Set());
+      setBulkDeleteDialog(false);
+      toast.success(`Removed ${[...selected].length} listings`);
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Bulk delete failed'),
+  });
+
+  function toggleSelect(id) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (listings.every((l) => selected.has(l.id))) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(listings.map((l) => l.id)));
+    }
+  }
 
   function handleToggle(listing, field) {
     toggleMutation.mutate({ id: listing.id, field, value: !listing[field] });
@@ -321,10 +367,38 @@ export default function ListingsPage() {
         </div>
       </div>
 
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-lg border">
+          <span className="text-sm font-medium mr-2">{selected.size} selected</span>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateMutation.mutate({ ids: [...selected], data: { isPublished: true } })} disabled={bulkUpdateMutation.isPending}>
+            Publish
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateMutation.mutate({ ids: [...selected], data: { isPublished: false } })} disabled={bulkUpdateMutation.isPending}>
+            Unpublish
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setBulkCategoryDialog(true)}>
+            Set Category
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => setBulkDeleteDialog(true)}>
+            Delete
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+            Clear
+          </Button>
+        </div>
+      )}
+
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={listings.length > 0 && listings.every((l) => selected.has(l.id))}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
               <TableHead className="w-16">Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Brand</TableHead>
@@ -343,19 +417,25 @@ export default function ListingsPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : listings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
                   No listings found. Add products from the Wondersign Products page.
                 </TableCell>
               </TableRow>
             ) : (
               listings.map((listing) => (
-                <TableRow key={listing.id}>
+                <TableRow key={listing.id} data-state={selected.has(listing.id) ? 'selected' : undefined}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(listing.id)}
+                      onCheckedChange={() => toggleSelect(listing.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     {listing.product?.mainImage ? (
                       <img
@@ -538,6 +618,56 @@ export default function ListingsPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Delete Confirmation */}
+      <Dialog open={bulkDeleteDialog} onOpenChange={(open) => !open && setBulkDeleteDialog(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {selected.size} listings</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This will permanently remove {selected.size} listing{selected.size !== 1 ? 's' : ''} from the storefront. The raw products will still be available to re-add later.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteDialog(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => bulkDeleteMutation.mutate([...selected])}
+              disabled={bulkDeleteMutation.isPending}
+            >
+              {bulkDeleteMutation.isPending ? 'Removing...' : `Remove ${selected.size}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Category Assignment */}
+      <Dialog open={bulkCategoryDialog} onOpenChange={(open) => { if (!open) { setBulkCategoryDialog(false); setBulkCategoryId(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Category for {selected.size} listings</DialogTitle>
+          </DialogHeader>
+          <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setBulkCategoryDialog(false); setBulkCategoryId(''); }}>Cancel</Button>
+            <Button
+              onClick={() => bulkUpdateMutation.mutate({ ids: [...selected], data: { categoryId: bulkCategoryId } })}
+              disabled={!bulkCategoryId || bulkUpdateMutation.isPending}
+            >
+              {bulkUpdateMutation.isPending ? 'Saving...' : 'Apply'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

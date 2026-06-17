@@ -6,6 +6,8 @@ import {
   updateListing,
   deleteListing,
   bulkCreateListings,
+  bulkUpdateListings,
+  bulkDeleteListings,
   getRawProducts,
   getRawProductById,
   getRawProductFilters,
@@ -29,6 +31,8 @@ router.get('/', getAllListings);
 router.get('/:id', getListingById);
 router.post('/', createListing);
 router.post('/bulk', bulkCreateListings);
+router.patch('/bulk', bulkUpdateListings);
+router.delete('/bulk', bulkDeleteListings);
 router.patch('/:id', updateListing);
 router.delete('/:id', deleteListing);
 
