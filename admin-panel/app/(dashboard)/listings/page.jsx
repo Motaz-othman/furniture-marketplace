@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { getListings, updateListing, deleteListing, bulkUpdateListings, bulkDeleteListings, getCategories, getRawProductFilters } from '@/lib/services/storefront';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -403,9 +402,9 @@ export default function ListingsPage() {
               <TableHead>Name</TableHead>
               <TableHead>Brand</TableHead>
               <TableHead>SKU</TableHead>
-              <TableHead>Original Price</TableHead>
-              <TableHead>Discounted</TableHead>
               <TableHead>Cost</TableHead>
+              <TableHead>Display Price</TableHead>
+              <TableHead>Discounted Price</TableHead>
               <TableHead>Available Stock</TableHead>
               <TableHead>My Stock</TableHead>
               <TableHead className="text-center w-16 px-1">Published</TableHead>
@@ -476,14 +475,30 @@ export default function ListingsPage() {
                       </div>
                     ) : '—'}
                   </TableCell>
-                  {/* Original Price (editable selling price) */}
+                  {/* Cost (read-only supplier cost) */}
+                  <TableCell>
+                    {listing.product?.variants?.length > 0 ? (
+                      <div className="space-y-0.5">
+                        {listing.product.variants.map((v) => (
+                          <div key={v.id} className="text-xs text-muted-foreground whitespace-nowrap h-7 flex items-center">
+                            {formatPrice(v.price?.cost)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        {formatPrice(listing.product?.variants?.[0]?.price?.cost)}
+                      </span>
+                    )}
+                  </TableCell>
+                  {/* Display Price (editable selling price with margin) */}
                   <TableCell>
                     {listing.product?.variants?.length > 0 ? (
                       <div className="space-y-1">
                         {listing.product.variants.map((v) => (
                           <InlineEdit
                             key={v.id}
-                            value={listing.variantPrices?.[v.id] ?? null}
+                            value={listing.variantPrices?.[v.id] ?? listing.displayPrice ?? null}
                             placeholder={formatPrice(v.price?.retailPrice)}
                             prefix="$"
                             onSave={(val) => saveVariantPrice(listing, v.id, val)}
@@ -507,22 +522,6 @@ export default function ListingsPage() {
                       prefix="$"
                       onSave={(val) => fieldMutation.mutate({ id: listing.id, data: { discountedPrice: val } })}
                     />
-                  </TableCell>
-                  {/* Cost (read-only supplier cost) */}
-                  <TableCell>
-                    {listing.product?.variants?.length > 0 ? (
-                      <div className="space-y-0.5">
-                        {listing.product.variants.map((v) => (
-                          <div key={v.id} className="text-xs text-muted-foreground whitespace-nowrap h-7 flex items-center">
-                            {formatPrice(v.price?.cost)}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">
-                        {formatPrice(listing.product?.variants?.[0]?.price?.cost)}
-                      </span>
-                    )}
                   </TableCell>
                   <TableCell>
                     {listing.product?.variants?.length > 0 ? (

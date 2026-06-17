@@ -461,7 +461,7 @@ export const getRawProducts = async (req, res) => {
         acmeStatus: true,
         source: true,
         externalId: true,
-        category: { select: { id: true, name: true, slug: true } },
+        category: { select: { id: true, name: true, slug: true, parentId: true } },
         variants: { select: { sku: true, price: true }, orderBy: { rank: 'asc' }, take: 1 },
         _count: { select: { variants: true } },
         storefront: { select: { id: true, isPublished: true } },

@@ -60,7 +60,7 @@ export default function ProductsPage() {
   const [selected, setSelected] = useState(new Set());
   const [addDialog, setAddDialog] = useState(null);
   const [bulkDialog, setBulkDialog] = useState(false);
-  const [formData, setFormData] = useState({ displayPrice: '', categoryId: '', isPublished: true });
+  const [formData, setFormData] = useState({ mainCategoryId: '', subCategoryId: '', marginPercent: '50', displayPrice: '', isPublished: true });
   const [bulkData, setBulkData] = useState({ markupPercent: '30', isPublished: false });
 
   // Sync state to URL
@@ -91,8 +91,8 @@ export default function ProductsPage() {
   });
 
   const { data: categoriesRes } = useQuery({
-    queryKey: ['categories'],
-    queryFn: getCategories,
+    queryKey: ['categories', 'hierarchy'],
+    queryFn: () => getCategories({ parentOnly: 'true' }),
   });
 
   const { data: filtersRes } = useQuery({
@@ -132,7 +132,7 @@ export default function ProductsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['raw-products'] });
       setAddDialog(null);
-      setFormData({ displayPrice: '', categoryId: '', isPublished: true });
+      setFormData({ mainCategoryId: '', subCategoryId: '', marginPercent: '50', displayPrice: '', isPublished: true });
       toast.success('Product added to storefront');
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to add'),
@@ -168,10 +168,40 @@ export default function ProductsPage() {
     }
   }
 
+  function calcDisplayPrice(product, marginPct) {
+    const pct = parseFloat(marginPct);
+    if (!product || isNaN(pct) || pct < 0) return '';
+    const cost = product.variants?.[0]?.price?.cost;
+    const retail = product.variants?.[0]?.price?.retailPrice ?? product.minPrice;
+    const base = cost ?? retail;
+    if (!base) return '';
+    return (base * (1 + pct / 100)).toFixed(2);
+  }
+
   function handleAdd(e, product) {
     e.stopPropagation();
-    setFormData({ displayPrice: '', categoryId: product.category?.id || '', isPublished: true });
+    // Determine main/sub from product category
+    let mainCategoryId = '';
+    let subCategoryId = '';
+    if (product.category) {
+      if (product.category.parentId) {
+        mainCategoryId = product.category.parentId;
+        subCategoryId = product.category.id;
+      } else {
+        mainCategoryId = product.category.id;
+      }
+    }
+    const displayPrice = calcDisplayPrice(product, 50);
+    setFormData({ mainCategoryId, subCategoryId, marginPercent: '50', displayPrice, isPublished: true });
     setAddDialog(product);
+  }
+
+  function handleMarginChange(value) {
+    setFormData((f) => ({ ...f, marginPercent: value, displayPrice: calcDisplayPrice(addDialog, value) }));
+  }
+
+  function handleMainCategoryChange(value) {
+    setFormData((f) => ({ ...f, mainCategoryId: value, subCategoryId: '' }));
   }
 
   function submitAdd() {
@@ -180,7 +210,8 @@ export default function ProductsPage() {
       isPublished: formData.isPublished,
     };
     if (formData.displayPrice) body.displayPrice = parseFloat(formData.displayPrice);
-    if (formData.categoryId) body.categoryId = formData.categoryId;
+    const categoryId = formData.subCategoryId || formData.mainCategoryId;
+    if (categoryId) body.categoryId = categoryId;
     createMutation.mutate(body);
   }
 
@@ -223,10 +254,7 @@ export default function ProductsPage() {
           <Input
             placeholder="Search by name, SKU, brand..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -458,49 +486,102 @@ export default function ProductsPage() {
           <DialogHeader>
             <DialogTitle>Add to Storefront</DialogTitle>
           </DialogHeader>
-          {addDialog && (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Adding <strong>{addDialog.name}</strong> (raw price: {formatPrice(addDialog.minPrice)})
-              </p>
-              <div className="space-y-2">
-                <Label>Display Price (leave empty to use raw price)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder={addDialog.minPrice?.toString()}
-                  value={formData.displayPrice}
-                  onChange={(e) => setFormData((f) => ({ ...f, displayPrice: e.target.value }))}
-                />
+          {addDialog && (() => {
+            const cost = addDialog.variants?.[0]?.price?.cost;
+            const retail = addDialog.variants?.[0]?.price?.retailPrice ?? addDialog.minPrice;
+            const basePrice = cost ?? retail;
+            const subCategories = categories.find((c) => c.id === formData.mainCategoryId)?.children || [];
+            return (
+              <div className="space-y-4">
+                <p className="text-sm font-medium">{addDialog.name}</p>
+                {basePrice != null && (
+                  <p className="text-xs text-muted-foreground">
+                    {cost != null ? `Cost: ${formatPrice(cost)}` : `Retail: ${formatPrice(retail)}`}
+                  </p>
+                )}
+
+                {/* Margin % + Display Price on same row */}
+                <div className="space-y-1.5">
+                  <div className="flex gap-3">
+                    <div className="space-y-1.5 w-28">
+                      <Label>Markup %</Label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          className="pr-6"
+                          value={formData.marginPercent}
+                          onChange={(e) => handleMarginChange(e.target.value)}
+                        />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 flex-1">
+                      <Label>Display Price</Label>
+                      <div className="relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Auto-calculated"
+                          className="pl-6"
+                          value={formData.displayPrice}
+                          onChange={(e) => setFormData((f) => ({ ...f, displayPrice: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {formData.displayPrice && basePrice != null && (
+                    <p className="text-xs text-muted-foreground">
+                      Effective markup: {(((parseFloat(formData.displayPrice) - basePrice) / basePrice) * 100).toFixed(1)}%
+                    </p>
+                  )}
+                </div>
+
+                {/* Main Category */}
+                <div className="space-y-2">
+                  <Label>Main Category</Label>
+                  <Select value={formData.mainCategoryId} onValueChange={handleMainCategoryChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select main category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sub Category */}
+                {subCategories.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Sub Category</Label>
+                    <Select value={formData.subCategoryId} onValueChange={(val) => setFormData((f) => ({ ...f, subCategoryId: val }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select sub category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subCategories.map((sub) => (
+                          <SelectItem key={sub.id} value={sub.id}>{sub.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="publish"
+                    checked={formData.isPublished}
+                    onCheckedChange={(v) => setFormData((f) => ({ ...f, isPublished: v }))}
+                  />
+                  <Label htmlFor="publish">Publish immediately</Label>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select
-                  value={formData.categoryId}
-                  onValueChange={(val) => setFormData((f) => ({ ...f, categoryId: val }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="publish"
-                  checked={formData.isPublished}
-                  onCheckedChange={(v) => setFormData((f) => ({ ...f, isPublished: v }))}
-                />
-                <Label htmlFor="publish">Publish immediately</Label>
-              </div>
-            </div>
-          )}
+            );
+          })()}
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialog(null)}>Cancel</Button>
             <Button onClick={submitAdd} disabled={createMutation.isPending}>

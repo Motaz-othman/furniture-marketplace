@@ -60,8 +60,8 @@ export async function bulkDeleteListings(listingIds) {
   return data;
 }
 
-export async function getCategories() {
-  const { data } = await api.get('/categories');
+export async function getCategories(params = {}) {
+  const { data } = await api.get('/categories', { params });
   return data;
 }
 
