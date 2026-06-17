@@ -20,6 +20,7 @@ import addressesRoutes from './modules/addresses/addresses.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
 import storefrontListingsRoutes from './modules/storefront/listings.routes.js';
 import syncRoutes from './modules/sync/sync.routes.js';
+import vendorImportRoutes from './modules/vendor-import/vendor-import.routes.js';
 import checkoutRoutes from './modules/checkout/guest.routes.js';
 import settingsRoutes from './modules/settings/settings.routes.js';
 import newsletterRoutes from './modules/newsletter/newsletter.routes.js';
@@ -143,6 +144,7 @@ app.use('/api/addresses', createLimiter, addressesRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/storefront', storefrontListingsRoutes);
 app.use('/api/admin/sync', syncRoutes);
+app.use('/api/admin/vendor-import', vendorImportRoutes);
 app.use('/api/integrations', integrationsRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 

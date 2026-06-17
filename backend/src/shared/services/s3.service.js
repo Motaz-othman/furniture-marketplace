@@ -22,8 +22,8 @@ export const uploadToS3 = async (file, folder = 'products') => {
       Bucket: process.env.AWS_S3_BUCKET,
       Key: key,
       Body: file.buffer,
-      ContentType: file.mimetype
-      // ✅ ACL LINE REMOVED
+      ContentType: file.mimetype,
+      CacheControl: 'public, max-age=31536000',
     });
 
     await s3Client.send(command);
@@ -85,6 +85,42 @@ async function existsInS3(key) {
 }
 
 /**
+ * Upload an in-memory image buffer to S3, keyed by SHA-256 of `identifier`
+ * (not the buffer itself) so the same source — e.g. a path inside a vendor
+ * asset zip — is never uploaded twice across runs. Returns the S3 URL, or
+ * null if image sync is disabled or the upload fails.
+ */
+export async function uploadBufferIfNew(identifier, buffer, ext = '.jpg', contentType = 'image/jpeg') {
+  if (process.env.SYNC_IMAGES_TO_S3 !== 'true') return null;
+
+  if (syncCache.has(identifier)) {
+    return syncCache.get(identifier);
+  }
+
+  try {
+    const hash = crypto.createHash('sha256').update(identifier).digest('hex').substring(0, 32);
+    const key = `media/${hash}${ext}`;
+
+    if (!(await existsInS3(key))) {
+      await s3Client.send(new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+        CacheControl: 'public, max-age=31536000, immutable',
+      }));
+    }
+
+    const s3Url = buildS3Url(key);
+    syncCache.set(identifier, s3Url);
+    return s3Url;
+  } catch (err) {
+    console.warn(`[ImageSync] Error uploading buffer for ${identifier}: ${err.message}`);
+    return null;
+  }
+}
+
+/**
  * Download an image from an external URL and upload it to S3.
  * Uses a deterministic key (SHA-256 of the URL) so the same URL is never uploaded twice.
  * Returns the S3 URL, or the original URL on failure (graceful fallback).
@@ -125,6 +161,7 @@ export async function downloadAndUploadImage(externalUrl) {
       Key: key,
       Body: buffer,
       ContentType: contentType,
+      CacheControl: 'public, max-age=31536000, immutable',
     }));
 
     const s3Url = buildS3Url(key);

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getRawProduct, createListing, getCategories } from '@/lib/services/storefront';
+import { getRawProduct, createListing, getCategories, setMainImage } from '@/lib/services/storefront';
 import { triggerProductSync } from '@/lib/services/sync';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCw, Flag } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
@@ -146,6 +146,45 @@ export default function ProductDetailPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to trigger re-sync'),
   });
 
+  const mainImageMutation = useMutation({
+    mutationFn: (imageUrl) => setMainImage(id, imageUrl),
+    onMutate: async (imageUrl) => {
+      await queryClient.cancelQueries({ queryKey: ['raw-product', id] });
+      const previous = queryClient.getQueryData(['raw-product', id]);
+
+      queryClient.setQueryData(['raw-product', id], (old) => {
+        if (!old?.data) return old;
+        const media = old.data.media || {};
+        const allImages = [...(media.mainImages || []), ...(media.additionalImages || [])];
+        const seen = new Set();
+        const reordered = [
+          { url: imageUrl },
+          ...allImages.filter((img) => {
+            if (img.url === imageUrl || seen.has(img.url)) return false;
+            seen.add(img.url);
+            return true;
+          }),
+        ];
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            mainImage: imageUrl,
+            media: { ...media, mainImages: [reordered[0]], additionalImages: reordered.slice(1) },
+          },
+        };
+      });
+
+      return { previous };
+    },
+    onError: (err, _imageUrl, context) => {
+      queryClient.setQueryData(['raw-product', id], context.previous);
+      toast.error(err.response?.data?.error || 'Failed to update main image');
+    },
+    onSuccess: () => toast.success('Main image updated'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['raw-product', id] }),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => createListing(data),
     onSuccess: () => {
@@ -173,7 +212,7 @@ export default function ProductDetailPage() {
   const colSpan = multiVariant ? variants.length + 1 : 2; // label + variants or label + value
   const v0 = singleVariant ? variants[0] : null; // shorthand for the single variant
   const media = product.media || {};
-  const mainImages = media.mainImages || [];
+
 
   // For rows with both product and variant data
   function sv(prodVal, variantFn) {
@@ -193,7 +232,7 @@ export default function ProductDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/products')}>
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-xl font-semibold">
@@ -216,10 +255,15 @@ export default function ProductDetailPage() {
             {resyncMutation.isPending ? 'Syncing...' : 'Re-sync'}
           </Button>
           {!product.hasListing && (
-            <Button size="sm" onClick={() => {
-              setFormData({ displayPrice: '', categoryId: product.categoryId || '', isPublished: true });
-              setAddDialog(true);
-            }}>
+            <Button
+              size="sm"
+              onClick={() => {
+                setFormData({ displayPrice: '', categoryId: product.categoryId || '', isPublished: true });
+                setAddDialog(true);
+              }}
+              disabled={!product.isActive}
+              title={!product.isActive ? 'Product is inactive and cannot be listed on the storefront' : undefined}
+            >
               <Plus className="h-4 w-4 mr-1" /> Add to Storefront
             </Button>
           )}
@@ -364,38 +408,55 @@ export default function ProductDetailPage() {
               </>
             )}
 
-            {/* ─── Image ─── */}
-            {variants.length > 0 && (
-              <>
-                <SectionHeader label="Image" colSpan={colSpan} />
-                <tr className="border-b">
-                  <td className="py-2.5 px-4 text-sm text-muted-foreground whitespace-nowrap border-r bg-muted/10 font-medium min-w-[170px]">
-                    Image
-                  </td>
-                  {multiVariant ? (
-                    variants.map((v, i) => {
-                      const img = mainImages.find((m) => m.variantProductIds?.includes(v.externalProductId));
-                      return (
-                        <td key={i} className="py-2.5 px-4 text-sm border-r last:border-r-0">
-                          {img?.url ? (
-                            <img src={img.url} alt={v.name || `Variant ${i + 1}`} className="w-20 h-20 rounded object-cover border" />
-                          ) : '—'}
-                        </td>
-                      );
-                    })
-                  ) : (
-                    <td className="py-2.5 px-4 text-sm">
-                      {(() => {
-                        const img = mainImages.find((m) => m.variantProductIds?.includes(v0?.externalProductId));
-                        return (img?.url || product.mainImage) ? (
-                          <img src={img?.url || product.mainImage} alt={product.name} className="w-20 h-20 rounded object-cover border" />
-                        ) : '—';
-                      })()}
+            {/* ─── Images ─── */}
+            {(() => {
+              const allImages = [
+                ...(media.mainImages || []),
+                ...(media.additionalImages || []),
+              ].filter((img) => img?.url);
+              if (!allImages.length) return null;
+              return (
+                <>
+                  <SectionHeader label="Images" colSpan={colSpan} />
+                  <tr className="border-b">
+                    <td className="py-2.5 px-4 text-sm text-muted-foreground whitespace-nowrap border-r bg-muted/10 font-medium min-w-[170px]">
+                      Gallery
+                      <p className="text-xs font-normal mt-0.5">Click to set main</p>
                     </td>
-                  )}
-                </tr>
-              </>
-            )}
+                    <td colSpan={colSpan - 1} className="py-3 px-4">
+                      <div className="flex gap-2 flex-wrap">
+                        {allImages.map((img, i) => {
+                          const isMain = img.url === product.mainImage;
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => !isMain && mainImageMutation.mutate(img.url)}
+                              disabled={mainImageMutation.isPending}
+                              className={`relative group rounded overflow-hidden border-2 transition-all focus:outline-none ${isMain ? 'border-primary' : 'border-transparent hover:border-muted-foreground'}`}
+                            >
+                              <img
+                                src={img.url}
+                                alt={`${product.name} ${i + 1}`}
+                                className="w-20 h-20 object-cover"
+                              />
+                              {isMain ? (
+                                <span className="absolute top-1 left-1 bg-primary text-primary-foreground rounded p-0.5">
+                                  <Flag className="h-3 w-3 fill-current" />
+                                </span>
+                              ) : (
+                                <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                                  <Flag className="h-4 w-4" />
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  </tr>
+                </>
+              );
+            })()}
           </tbody>
         </table>
       </div>

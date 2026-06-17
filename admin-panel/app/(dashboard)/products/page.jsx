@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getRawProducts, getRawProductFilters, createListing, bulkCreateListings, getCategories } from '@/lib/services/storefront';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -36,27 +36,58 @@ import { toast } from 'sonner';
 
 export default function ProductsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ status: '', brand: '', categoryId: '', collection: '', minPrice: '', maxPrice: '' });
+
+  // Read initial state from URL
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || '');
+  const [filters, setFilters] = useState(() => ({
+    status: searchParams.get('status') || '',
+    brand: searchParams.get('brand') || '',
+    categoryId: searchParams.get('categoryId') || '',
+    collection: searchParams.get('collection') || '',
+    minPrice: searchParams.get('minPrice') || '',
+    maxPrice: searchParams.get('maxPrice') || '',
+    acmeStatus: searchParams.get('acmeStatus') || '',
+  }));
+  // Cursor stack for back navigation: [null, cursor1, cursor2, ...]
+  const [cursorStack, setCursorStack] = useState([null]);
+  const [stackIndex, setStackIndex] = useState(0);
+  const currentCursor = cursorStack[stackIndex];
+
   const [selected, setSelected] = useState(new Set());
   const [addDialog, setAddDialog] = useState(null);
   const [bulkDialog, setBulkDialog] = useState(false);
   const [formData, setFormData] = useState({ displayPrice: '', categoryId: '', isPublished: true });
   const [bulkData, setBulkData] = useState({ markupPercent: '30', isPublished: false });
 
+  // Sync state to URL
+  const updateUrl = useCallback((newSearch, newFilters) => {
+    const params = new URLSearchParams();
+    if (newSearch) params.set('search', newSearch);
+    Object.entries(newFilters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+  }, [pathname, router]);
+
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    const t = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCursorStack([null]);
+      setStackIndex(0);
+      updateUrl(search, filters);
+    }, 300);
     return () => clearTimeout(t);
-  }, [search]);
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
 
-  const { data: productsRes, isLoading } = useQuery({
-    queryKey: ['raw-products', debouncedSearch, page, activeFilters],
-    queryFn: () => getRawProducts({ search: debouncedSearch, page, limit: 20, ...activeFilters }),
+  const { data: productsRes, isLoading, isFetching } = useQuery({
+    queryKey: ['raw-products', debouncedSearch, currentCursor, activeFilters],
+    queryFn: () => getRawProducts({ search: debouncedSearch, cursor: currentCursor || undefined, limit: 20, ...activeFilters }),
+    placeholderData: keepPreviousData,
   });
 
   const { data: categoriesRes } = useQuery({
@@ -70,23 +101,31 @@ export default function ProductsPage() {
   });
 
   const products = productsRes?.data || [];
-  const pagination = productsRes?.pagination;
   const categories = categoriesRes?.data || [];
   const filterOptions = filtersRes?.data || {};
   const brands = filterOptions.brands || [];
   const collections = filterOptions.collections || [];
+  const categoryOptions = filterOptions.categories || [];
 
   function setFilter(key, value) {
-    setFilters((f) => ({ ...f, [key]: value }));
-    setPage(1);
+    const next = { ...filters, [key]: value };
+    setFilters(next);
+    setCursorStack([null]);
+    setStackIndex(0);
+    updateUrl(debouncedSearch, next);
   }
 
   function clearFilters() {
-    setFilters({ status: '', brand: '', categoryId: '', collection: '', minPrice: '', maxPrice: '' });
-    setPage(1);
+    const empty = { status: '', brand: '', categoryId: '', collection: '', minPrice: '', maxPrice: '', acmeStatus: '' };
+    setFilters(empty);
+    setSearch('');
+    setDebouncedSearch('');
+    setCursorStack([null]);
+    setStackIndex(0);
+    router.replace(pathname, { scroll: false });
   }
 
-  const hasActiveFilters = Object.values(filters).some(Boolean);
+  const hasActiveFilters = Object.values(filters).some(Boolean) || !!search;
 
   const createMutation = useMutation({
     mutationFn: (data) => createListing(data),
@@ -121,11 +160,11 @@ export default function ProductsPage() {
   }
 
   function toggleSelectAll() {
-    const unlistedIds = products.filter((p) => !p.hasListing).map((p) => p.id);
-    if (unlistedIds.every((id) => selected.has(id))) {
+    const selectableIds = products.filter((p) => !p.hasListing && p.isActive).map((p) => p.id);
+    if (selectableIds.every((id) => selected.has(id))) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(unlistedIds));
+      setSelected(new Set(selectableIds));
     }
   }
 
@@ -165,7 +204,7 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Wondersign Products</h1>
+          <h1 className="text-2xl font-semibold">Raw Products</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Browse raw products and add them to your storefront. Click a row to view full details.
           </p>
@@ -220,9 +259,10 @@ export default function ProductsPage() {
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((c) => (
+              {categoryOptions.map((c) => (
                 <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
               ))}
+              <SelectItem value="uncategorized">Uncategorized</SelectItem>
             </SelectContent>
           </Select>
 
@@ -234,6 +274,17 @@ export default function ProductsPage() {
               {collections.map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.acmeStatus} onValueChange={(v) => setFilter('acmeStatus', v)}>
+            <SelectTrigger className="w-[160px] h-8 text-xs">
+              <SelectValue placeholder="ACME Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="DISABLED">Disconnected</SelectItem>
+              <SelectItem value="REMOVED">Deleted</SelectItem>
             </SelectContent>
           </Select>
 
@@ -263,7 +314,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      <div className={`border rounded-lg transition-opacity duration-150 ${isFetching && !isLoading ? 'opacity-60' : ''}`}>
         <Table>
           <TableHeader>
             <TableRow>
@@ -283,7 +334,7 @@ export default function ProductsPage() {
               <TableHead>Price</TableHead>
               <TableHead>Variants</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-32">Action</TableHead>
+              <TableHead className="w-36">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -307,7 +358,7 @@ export default function ProductsPage() {
                   onClick={() => router.push(`/products/${product.id}`)}
                 >
                   <TableCell onClick={(e) => e.stopPropagation()}>
-                    {!product.hasListing && (
+                    {!product.hasListing && product.isActive && (
                       <Checkbox
                         checked={selected.has(product.id)}
                         onCheckedChange={() => toggleSelect(product.id)}
@@ -334,26 +385,12 @@ export default function ProductsPage() {
                     {product.brand || '—'}
                   </TableCell>
                   <TableCell className="text-sm font-mono text-muted-foreground">
-                    {product.variants?.length > 0 ? (
-                      <div className="space-y-0.5">
-                        {product.variants.map((v, i) => (
-                          <div key={i} className="truncate max-w-[140px]" title={v.sku}>
-                            {v.sku || '—'}
-                          </div>
-                        ))}
-                      </div>
-                    ) : '—'}
+                    <div className="truncate max-w-[140px]" title={product.variants?.[0]?.sku}>
+                      {product.variants?.[0]?.sku || '—'}
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm">
-                    {product.variants?.length > 0 ? (
-                      <div className="space-y-0.5">
-                        {product.variants.map((v, i) => (
-                          <div key={i} className="whitespace-nowrap">
-                            {formatPrice(v.price?.retailPrice)}
-                          </div>
-                        ))}
-                      </div>
-                    ) : formatPrice(product.minPrice)}
+                    {formatPrice(product.variants?.[0]?.price?.retailPrice ?? product.minPrice)}
                   </TableCell>
                   <TableCell className="text-sm">{product._count?.variants ?? 0}</TableCell>
                   <TableCell>
@@ -365,14 +402,18 @@ export default function ProductsPage() {
                       <Badge variant="outline">Not Listed</Badge>
                     )}
                   </TableCell>
-                  <TableCell>
-                    {!product.hasListing ? (
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {product.hasListing ? (
+                      <span className="text-xs text-muted-foreground">On storefront</span>
+                    ) : product.isActive ? (
                       <Button size="sm" variant="outline" onClick={(e) => handleAdd(e, product)}>
                         <Plus className="h-3 w-3 mr-1" />
                         Add
                       </Button>
+                    ) : product.acmeStatus === 'REMOVED' ? (
+                      <Badge variant="destructive" className="text-xs">Omitted</Badge>
                     ) : (
-                      <span className="text-xs text-muted-foreground">On storefront</span>
+                      <Badge variant="secondary" className="text-xs">Disconnected</Badge>
                     )}
                   </TableCell>
                 </TableRow>
@@ -382,30 +423,32 @@ export default function ProductsPage() {
         </Table>
       </div>
 
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {(pagination.page - 1) * pagination.limit + 1}-
-            {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </Button>
-          </div>
+      {(stackIndex > 0 || productsRes?.pagination?.hasMore) && (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={stackIndex === 0}
+            onClick={() => setStackIndex((i) => i - 1)}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!productsRes?.pagination?.hasMore}
+            onClick={() => {
+              const nextCursor = productsRes.pagination.nextCursor;
+              setCursorStack((s) => {
+                const next = s.slice(0, stackIndex + 1);
+                next.push(nextCursor);
+                return next;
+              });
+              setStackIndex((i) => i + 1);
+            }}
+          >
+            Next
+          </Button>
         </div>
       )}
 

@@ -9,6 +9,7 @@ import {
   getRawProducts,
   getRawProductById,
   getRawProductFilters,
+  setMainImage,
 } from './listings.controller.js';
 import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware.js';
 
@@ -21,6 +22,7 @@ router.use(authenticate, adminOnly);
 router.get('/products/filters', getRawProductFilters);
 router.get('/products', getRawProducts);
 router.get('/products/:id', getRawProductById);
+router.patch('/products/:id/main-image', setMainImage);
 
 // Storefront listings CRUD
 router.get('/', getAllListings);

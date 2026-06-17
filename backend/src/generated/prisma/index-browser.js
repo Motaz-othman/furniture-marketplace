@@ -196,6 +196,7 @@ exports.Prisma.ProductScalarFieldEnum = {
   externalId: 'externalId',
   externalData: 'externalData',
   lastSyncAt: 'lastSyncAt',
+  acmeStatus: 'acmeStatus',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

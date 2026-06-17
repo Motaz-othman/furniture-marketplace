@@ -165,6 +165,7 @@ model Product {
   externalId   String?
   externalData Json?
   lastSyncAt   DateTime?
+  acmeStatus   String? // 'ACTIVE' | 'DISABLED' | 'REMOVED' — populated for source='ACME' only
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -185,6 +186,10 @@ model Product {
   @@index([isFeatured])
   @@index([isNew])
   @@index([isOnSale])
+  @@index([brand])
+  @@index([collection])
+  @@index([isActive])
+  @@index([acmeStatus])
   @@index([source])
 }
 

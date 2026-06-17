@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth';
-import { Package, ShoppingBag, RefreshCw, Users, LogOut, Calculator, Cloud, ClipboardList, Settings, LayoutGrid } from 'lucide-react';
+import { Package, ShoppingBag, RefreshCw, Users, LogOut, Calculator, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/products', label: 'Wondersign Products', icon: Package },
+  { href: '/products', label: 'Raw Products', icon: Package },
+  { href: '/vendor-import', label: 'Vendor Import', icon: UploadCloud },
   { href: '/listings', label: 'Storefront Listings', icon: ShoppingBag },
   { href: '/categories', label: 'Categories', icon: LayoutGrid },
   { href: '/orders', label: 'Orders', icon: ClipboardList },

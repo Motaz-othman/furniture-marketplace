@@ -7766,6 +7766,7 @@ export namespace Prisma {
     source: string | null
     externalId: string | null
     lastSyncAt: Date | null
+    acmeStatus: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7794,6 +7795,7 @@ export namespace Prisma {
     source: string | null
     externalId: string | null
     lastSyncAt: Date | null
+    acmeStatus: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7826,6 +7828,7 @@ export namespace Prisma {
     externalId: number
     externalData: number
     lastSyncAt: number
+    acmeStatus: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -7874,6 +7877,7 @@ export namespace Prisma {
     source?: true
     externalId?: true
     lastSyncAt?: true
+    acmeStatus?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7902,6 +7906,7 @@ export namespace Prisma {
     source?: true
     externalId?: true
     lastSyncAt?: true
+    acmeStatus?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7934,6 +7939,7 @@ export namespace Prisma {
     externalId?: true
     externalData?: true
     lastSyncAt?: true
+    acmeStatus?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -8053,6 +8059,7 @@ export namespace Prisma {
     externalId: string | null
     externalData: JsonValue | null
     lastSyncAt: Date | null
+    acmeStatus: string | null
     createdAt: Date
     updatedAt: Date
     _count: ProductCountAggregateOutputType | null
@@ -8104,6 +8111,7 @@ export namespace Prisma {
     externalId?: boolean
     externalData?: boolean
     lastSyncAt?: boolean
+    acmeStatus?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     category?: boolean | Product$categoryArgs<ExtArgs>
@@ -8144,6 +8152,7 @@ export namespace Prisma {
     externalId?: boolean
     externalData?: boolean
     lastSyncAt?: boolean
+    acmeStatus?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     category?: boolean | Product$categoryArgs<ExtArgs>
@@ -8177,6 +8186,7 @@ export namespace Prisma {
     externalId?: boolean
     externalData?: boolean
     lastSyncAt?: boolean
+    acmeStatus?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     category?: boolean | Product$categoryArgs<ExtArgs>
@@ -8210,11 +8220,12 @@ export namespace Prisma {
     externalId?: boolean
     externalData?: boolean
     lastSyncAt?: boolean
+    acmeStatus?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ProductOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "categoryId" | "name" | "slug" | "description" | "brand" | "collection" | "provider" | "categories" | "media" | "relatedProducts" | "variantKey" | "minPrice" | "maxPrice" | "compareAtPrice" | "totalStock" | "mainImage" | "isFeatured" | "isNew" | "isOnSale" | "isActive" | "rating" | "totalReviews" | "source" | "externalId" | "externalData" | "lastSyncAt" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
+  export type ProductOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "categoryId" | "name" | "slug" | "description" | "brand" | "collection" | "provider" | "categories" | "media" | "relatedProducts" | "variantKey" | "minPrice" | "maxPrice" | "compareAtPrice" | "totalStock" | "mainImage" | "isFeatured" | "isNew" | "isOnSale" | "isActive" | "rating" | "totalReviews" | "source" | "externalId" | "externalData" | "lastSyncAt" | "acmeStatus" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
   export type ProductInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     category?: boolean | Product$categoryArgs<ExtArgs>
     cartItems?: boolean | Product$cartItemsArgs<ExtArgs>
@@ -8271,6 +8282,7 @@ export namespace Prisma {
       externalId: string | null
       externalData: Prisma.JsonValue | null
       lastSyncAt: Date | null
+      acmeStatus: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["product"]>
@@ -8730,6 +8742,7 @@ export namespace Prisma {
     readonly externalId: FieldRef<"Product", 'String'>
     readonly externalData: FieldRef<"Product", 'Json'>
     readonly lastSyncAt: FieldRef<"Product", 'DateTime'>
+    readonly acmeStatus: FieldRef<"Product", 'String'>
     readonly createdAt: FieldRef<"Product", 'DateTime'>
     readonly updatedAt: FieldRef<"Product", 'DateTime'>
   }
@@ -24691,6 +24704,7 @@ export namespace Prisma {
     externalId: 'externalId',
     externalData: 'externalData',
     lastSyncAt: 'lastSyncAt',
+    acmeStatus: 'acmeStatus',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -25500,6 +25514,7 @@ export namespace Prisma {
     externalId?: StringNullableFilter<"Product"> | string | null
     externalData?: JsonNullableFilter<"Product">
     lastSyncAt?: DateTimeNullableFilter<"Product"> | Date | string | null
+    acmeStatus?: StringNullableFilter<"Product"> | string | null
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
@@ -25539,6 +25554,7 @@ export namespace Prisma {
     externalId?: SortOrderInput | SortOrder
     externalData?: SortOrderInput | SortOrder
     lastSyncAt?: SortOrderInput | SortOrder
+    acmeStatus?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     category?: CategoryOrderByWithRelationInput
@@ -25582,6 +25598,7 @@ export namespace Prisma {
     externalId?: StringNullableFilter<"Product"> | string | null
     externalData?: JsonNullableFilter<"Product">
     lastSyncAt?: DateTimeNullableFilter<"Product"> | Date | string | null
+    acmeStatus?: StringNullableFilter<"Product"> | string | null
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
@@ -25621,6 +25638,7 @@ export namespace Prisma {
     externalId?: SortOrderInput | SortOrder
     externalData?: SortOrderInput | SortOrder
     lastSyncAt?: SortOrderInput | SortOrder
+    acmeStatus?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ProductCountOrderByAggregateInput
@@ -25661,6 +25679,7 @@ export namespace Prisma {
     externalId?: StringNullableWithAggregatesFilter<"Product"> | string | null
     externalData?: JsonNullableWithAggregatesFilter<"Product">
     lastSyncAt?: DateTimeNullableWithAggregatesFilter<"Product"> | Date | string | null
+    acmeStatus?: StringNullableWithAggregatesFilter<"Product"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
   }
@@ -27242,6 +27261,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     category?: CategoryCreateNestedOneWithoutProductsInput
@@ -27281,6 +27301,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -27318,6 +27339,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutProductsNestedInput
@@ -27357,6 +27379,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -27395,6 +27418,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -27426,6 +27450,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -27458,6 +27483,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -29301,6 +29327,7 @@ export namespace Prisma {
     externalId?: SortOrder
     externalData?: SortOrder
     lastSyncAt?: SortOrder
+    acmeStatus?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -29338,6 +29365,7 @@ export namespace Prisma {
     source?: SortOrder
     externalId?: SortOrder
     lastSyncAt?: SortOrder
+    acmeStatus?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -29366,6 +29394,7 @@ export namespace Prisma {
     source?: SortOrder
     externalId?: SortOrder
     lastSyncAt?: SortOrder
+    acmeStatus?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -32805,6 +32834,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     cartItems?: CartItemCreateNestedManyWithoutProductInput
@@ -32842,6 +32872,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -33030,6 +33061,7 @@ export namespace Prisma {
     externalId?: StringNullableFilter<"Product"> | string | null
     externalData?: JsonNullableFilter<"Product">
     lastSyncAt?: DateTimeNullableFilter<"Product"> | Date | string | null
+    acmeStatus?: StringNullableFilter<"Product"> | string | null
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
   }
@@ -33615,6 +33647,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     category?: CategoryCreateNestedOneWithoutProductsInput
@@ -33653,6 +33686,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
@@ -33813,6 +33847,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutProductsNestedInput
@@ -33851,6 +33886,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
@@ -34308,6 +34344,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     category?: CategoryCreateNestedOneWithoutProductsInput
@@ -34346,6 +34383,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -34583,6 +34621,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutProductsNestedInput
@@ -34621,6 +34660,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -34912,6 +34952,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     category?: CategoryCreateNestedOneWithoutProductsInput
@@ -34950,6 +34991,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -35027,6 +35069,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutProductsNestedInput
@@ -35065,6 +35108,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -35157,6 +35201,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     category?: CategoryCreateNestedOneWithoutProductsInput
@@ -35195,6 +35240,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -35278,6 +35324,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutProductsNestedInput
@@ -35316,6 +35363,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -35440,6 +35488,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     category?: CategoryCreateNestedOneWithoutProductsInput
@@ -35478,6 +35527,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -35584,6 +35634,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutProductsNestedInput
@@ -35622,6 +35673,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -35690,6 +35742,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     category?: CategoryCreateNestedOneWithoutProductsInput
@@ -35728,6 +35781,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
@@ -35811,6 +35865,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutProductsNestedInput
@@ -35849,6 +35904,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -36467,6 +36523,7 @@ export namespace Prisma {
     externalId?: string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: Date | string | null
+    acmeStatus?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -36556,6 +36613,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
@@ -36593,6 +36651,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
@@ -36630,6 +36689,7 @@ export namespace Prisma {
     externalId?: NullableStringFieldUpdateOperationsInput | string | null
     externalData?: NullableJsonNullValueInput | InputJsonValue
     lastSyncAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    acmeStatus?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

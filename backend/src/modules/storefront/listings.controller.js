@@ -343,23 +343,16 @@ export const getRawProductById = async (req, res) => {
 
 export const getRawProducts = async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, status, brand, categoryId, collection, minPrice, maxPrice } = req.query;
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
+    const { cursor, limit = 20, search, status, brand, categoryId, collection, minPrice, maxPrice, acmeStatus } = req.query;
+    const limitNum = Math.min(parseInt(limit), 100);
 
     const where = {};
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { brand: { contains: search, mode: 'insensitive' } },
-        { collection: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
         { externalId: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } },
         { variants: { some: { sku: { contains: search, mode: 'insensitive' } } } },
-        { variants: { some: { name: { contains: search, mode: 'insensitive' } } } },
-        { variants: { some: { customerSku: { contains: search, mode: 'insensitive' } } } },
-        { variants: { some: { upc: { contains: search, mode: 'insensitive' } } } },
       ];
     }
 
@@ -372,19 +365,33 @@ export const getRawProducts = async (req, res) => {
       where.storefront = null;
     }
 
-    // Brand filter
+    // Brand filter — exact match (values come from DB via filter dropdown)
     if (brand) {
-      where.brand = { equals: brand, mode: 'insensitive' };
+      where.brand = brand;
     }
 
-    // Category filter
-    if (categoryId) {
-      where.categoryId = categoryId;
+    // Category filter — matches direct category OR any of its children; 'uncategorized' = null
+    if (categoryId === 'uncategorized') {
+      where.categoryId = null;
+    } else if (categoryId) {
+      const cat = await prisma.category.findUnique({
+        where: { id: categoryId },
+        select: { id: true, children: { select: { id: true } } },
+      });
+      if (cat) {
+        const ids = [cat.id, ...cat.children.map(c => c.id)];
+        where.categoryId = { in: ids };
+      }
     }
 
-    // Collection filter
+    // Collection filter — exact match (values come from DB via filter dropdown)
     if (collection) {
-      where.collection = { equals: collection, mode: 'insensitive' };
+      where.collection = collection;
+    }
+
+    // ACME vendor status filter — uses dedicated indexed column now
+    if (acmeStatus) {
+      where.acmeStatus = acmeStatus;
     }
 
     // Price range filter (uses product minPrice)
@@ -394,39 +401,37 @@ export const getRawProducts = async (req, res) => {
       if (maxPrice) where.minPrice.lte = parseFloat(maxPrice);
     }
 
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          brand: true,
-          collection: true,
-          minPrice: true,
-          maxPrice: true,
-          compareAtPrice: true,
-          mainImage: true,
-          totalStock: true,
-          isFeatured: true,
-          isNew: true,
-          isOnSale: true,
-          source: true,
-          externalId: true,
-          category: { select: { id: true, name: true, slug: true } },
-          variants: { select: { sku: true, name: true, price: true }, orderBy: { rank: 'asc' } },
-          _count: { select: { variants: true } },
-          storefront: { select: { id: true, isPublished: true } },
-        },
-        orderBy: { name: 'asc' },
-        skip: (pageNum - 1) * limitNum,
-        take: limitNum,
-      }),
-      prisma.product.count({ where }),
-    ]);
+    const products = await prisma.product.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        brand: true,
+        collection: true,
+        minPrice: true,
+        maxPrice: true,
+        mainImage: true,
+        totalStock: true,
+        isActive: true,
+        acmeStatus: true,
+        source: true,
+        externalId: true,
+        category: { select: { id: true, name: true, slug: true } },
+        variants: { select: { sku: true, price: true }, orderBy: { rank: 'asc' }, take: 1 },
+        _count: { select: { variants: true } },
+        storefront: { select: { id: true, isPublished: true } },
+      },
+      orderBy: { name: 'asc' },
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      take: limitNum + 1, // fetch one extra to know if there's a next page
+    });
 
-    // Add a flag to indicate if product already has a storefront listing
-    const enriched = products.map(p => ({
+    const hasMore = products.length > limitNum;
+    const page = hasMore ? products.slice(0, limitNum) : products;
+    const nextCursor = hasMore ? page[page.length - 1].id : null;
+
+    const enriched = page.map(p => ({
       ...p,
       hasListing: !!p.storefront,
       isOnStorefront: p.storefront?.isPublished ?? false,
@@ -435,10 +440,9 @@ export const getRawProducts = async (req, res) => {
     res.json({
       data: enriched,
       pagination: {
-        page: pageNum,
         limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
+        nextCursor,
+        hasMore,
       },
     });
   } catch (error) {
@@ -447,19 +451,84 @@ export const getRawProducts = async (req, res) => {
   }
 };
 
+// ─── Set main image for a raw product ────────────────────
+
+export const setMainImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { imageUrl } = req.body;
+    if (!imageUrl) return res.status(400).json({ error: 'imageUrl is required' });
+
+    const product = await prisma.product.findUnique({ where: { id }, select: { media: true } });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const media = product.media || {};
+    const allImages = [
+      ...(media.mainImages || []),
+      ...(media.additionalImages || []),
+    ];
+
+    // Deduplicate and put selected URL first
+    const seen = new Set();
+    const reordered = [
+      { url: imageUrl },
+      ...allImages.filter((img) => {
+        if (img.url === imageUrl || seen.has(img.url)) return false;
+        seen.add(img.url);
+        return true;
+      }),
+    ];
+
+    const newMedia = {
+      ...media,
+      mainImages: [reordered[0]],
+      additionalImages: reordered.slice(1),
+    };
+
+    await prisma.product.update({
+      where: { id },
+      data: { mainImage: imageUrl, media: newMedia },
+    });
+
+    res.json({ message: 'Main image updated' });
+  } catch (error) {
+    console.error('Set main image error:', error);
+    res.status(500).json({ error: 'Failed to update main image' });
+  }
+};
+
 // ─── Get filter options for raw products ────────────────
 
 export const getRawProductFilters = async (req, res) => {
   try {
-    const [brands, collections] = await Promise.all([
+    const [brands, collections, topLevelCats] = await Promise.all([
       prisma.product.findMany({ where: { brand: { not: null } }, select: { brand: true }, distinct: ['brand'], orderBy: { brand: 'asc' } }),
       prisma.product.findMany({ where: { collection: { not: null } }, select: { collection: true }, distinct: ['collection'], orderBy: { collection: 'asc' } }),
+      prisma.category.findMany({
+        where: { parentId: null },
+        select: { id: true, name: true, children: { select: { id: true } } },
+        orderBy: { name: 'asc' },
+      }),
     ]);
+
+    // Only return top-level categories that have at least one product (direct or via child)
+    const categories = (
+      await Promise.all(
+        topLevelCats.map(async (cat) => {
+          const childIds = cat.children.map((c) => c.id);
+          const count = await prisma.product.count({
+            where: { categoryId: { in: [cat.id, ...childIds] } },
+          });
+          return count > 0 ? { id: cat.id, name: cat.name, childIds } : null;
+        })
+      )
+    ).filter(Boolean);
 
     res.json({
       data: {
         brands: brands.map(b => b.brand).filter(Boolean),
         collections: collections.map(c => c.collection).filter(Boolean),
+        categories,
       },
     });
   } catch (error) {

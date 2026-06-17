@@ -15,6 +15,11 @@ export async function getRawProduct(id) {
   return data;
 }
 
+export async function setMainImage(id, imageUrl) {
+  const { data } = await api.patch(`/admin/storefront/products/${id}/main-image`, { imageUrl });
+  return data;
+}
+
 export async function getListings(params = {}) {
   const { data } = await api.get('/admin/storefront/', { params });
   return data;

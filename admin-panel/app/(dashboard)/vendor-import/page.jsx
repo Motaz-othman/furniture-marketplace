@@ -1,0 +1,355 @@
+'use client';
+
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  getVendorImportStatus,
+  getVendorImportLogs,
+  importAcme,
+  refreshAcme,
+  importGlobalFurniture,
+} from '@/lib/services/vendorImport';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Loader2, Upload, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleString();
+}
+
+function typeLabel(type) {
+  switch (type) {
+    case 'FULL_SYNC': return 'Full Import';
+    case 'PRICE_REFRESH': return 'Price/Stock Refresh';
+    default: return type;
+  }
+}
+
+function sourceLabel(source) {
+  return source === 'GFW' ? 'Global Furniture' : source;
+}
+
+// ─── File picker row ────────────────────────────────────────────
+
+function FileField({ id, label, file, onChange, accept = '.csv' }) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        type="file"
+        accept={accept}
+        onChange={(e) => onChange(e.target.files?.[0] || null)}
+      />
+      {file && <p className="text-xs text-muted-foreground">{file.name}</p>}
+    </div>
+  );
+}
+
+export default function VendorImportPage() {
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+
+  // ACME full import
+  const [acmeSpec, setAcmeSpec] = useState(null);
+  const [acmeImages, setAcmeImages] = useState(null);
+  const [acmePrice, setAcmePrice] = useState(null);
+  const [acmeInventory, setAcmeInventory] = useState(null);
+
+  // ACME refresh
+  const [refreshPrice, setRefreshPrice] = useState(null);
+  const [refreshInventory, setRefreshInventory] = useState(null);
+
+  // GFW import
+  const [gfwCsv, setGfwCsv] = useState(null);
+
+  const { data: statusRes } = useQuery({
+    queryKey: ['vendor-import-status'],
+    queryFn: getVendorImportStatus,
+    refetchInterval: (query) => (query.state.data?.data?.running ? 2000 : 10000),
+  });
+
+  const { data: logsRes, isLoading: logsLoading } = useQuery({
+    queryKey: ['vendor-import-logs', page],
+    queryFn: () => getVendorImportLogs({ page, limit: 15 }),
+  });
+
+  const status = statusRes?.data;
+  const isRunning = status?.running;
+  const logs = logsRes?.data || [];
+  const pagination = logsRes?.pagination;
+
+  function invalidate() {
+    queryClient.invalidateQueries({ queryKey: ['vendor-import-status'] });
+    queryClient.invalidateQueries({ queryKey: ['vendor-import-logs'] });
+  }
+
+  const acmeImportMutation = useMutation({
+    mutationFn: () => importAcme({ specCsv: acmeSpec, imagesCsv: acmeImages, priceCsv: acmePrice, inventoryCsv: acmeInventory }),
+    onSuccess: (data) => {
+      toast.success(data.message || 'ACME import started');
+      setAcmeSpec(null); setAcmeImages(null); setAcmePrice(null); setAcmeInventory(null);
+      invalidate();
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to start ACME import'),
+  });
+
+  const acmeRefreshMutation = useMutation({
+    mutationFn: () => refreshAcme({ priceCsv: refreshPrice, inventoryCsv: refreshInventory }),
+    onSuccess: (data) => {
+      toast.success(data.message || 'ACME refresh started');
+      setRefreshPrice(null); setRefreshInventory(null);
+      invalidate();
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to start ACME refresh'),
+  });
+
+  const gfwImportMutation = useMutation({
+    mutationFn: () => importGlobalFurniture({ csv: gfwCsv }),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Global Furniture import started');
+      setGfwCsv(null);
+      invalidate();
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to start Global Furniture import'),
+  });
+
+  const acmeImportDisabled = isRunning || acmeImportMutation.isPending || !acmeSpec || !acmeImages || !acmePrice || !acmeInventory;
+  const acmeRefreshDisabled = isRunning || acmeRefreshMutation.isPending || !refreshPrice || !refreshInventory;
+  const gfwImportDisabled = isRunning || gfwImportMutation.isPending || !gfwCsv;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-xl font-semibold">Vendor Import</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Upload ACME and Global Furniture catalog spreadsheets to create or update products.
+          Imports run in the background and migrate images to S3, which can take a while for large catalogs.
+        </p>
+      </div>
+
+      {/* Status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isRunning ? (
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                  <span className="font-semibold text-blue-600">Running</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{status?.type} — {status?.progress}</p>
+                <p className="text-xs text-muted-foreground">Started: {formatDate(status?.startedAt)}</p>
+              </div>
+            ) : (
+              <span className="font-semibold text-green-600">Idle</span>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Last Imports</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {status?.lastSyncs?.length ? (
+              <div className="space-y-1.5">
+                {status.lastSyncs.map((s, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <span>
+                      <Badge variant="outline" className="mr-1.5 text-xs">{sourceLabel(s.source)}</Badge>
+                      {typeLabel(s.type)}
+                    </span>
+                    <span className="text-muted-foreground">{formatDate(s.completedAt)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <span className="text-muted-foreground text-sm">No imports yet</span>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Upload forms */}
+      <Tabs defaultValue="acme-import">
+        <TabsList>
+          <TabsTrigger value="acme-import">ACME — Full Import</TabsTrigger>
+          <TabsTrigger value="acme-refresh">ACME — Price/Stock Refresh</TabsTrigger>
+          <TabsTrigger value="gfw-import">Global Furniture — Import</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="acme-import">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">ACME Full Catalog Import</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Upload all 4 ACME sheets. Creates new products and updates existing ones (matched by SKU).
+                Rows marked "Disabled" are skipped.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FileField id="acme-spec" label="Spec sheet" file={acmeSpec} onChange={setAcmeSpec} />
+                <FileField id="acme-images" label="Image links" file={acmeImages} onChange={setAcmeImages} />
+                <FileField id="acme-price" label="Price sheet" file={acmePrice} onChange={setAcmePrice} />
+                <FileField id="acme-inventory" label="Live inventory" file={acmeInventory} onChange={setAcmeInventory} />
+              </div>
+              <Button onClick={() => acmeImportMutation.mutate()} disabled={acmeImportDisabled}>
+                <Upload className="h-4 w-4 mr-1" />
+                {acmeImportMutation.isPending ? 'Starting...' : 'Start Import'}
+              </Button>
+              {isRunning && (
+                <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="acme-refresh">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">ACME Price &amp; Stock Refresh</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Upload just the price and inventory sheets to update cost and stock on existing ACME products.
+                Does not create new products — SKUs not already imported are skipped.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FileField id="refresh-price" label="Price sheet" file={refreshPrice} onChange={setRefreshPrice} />
+                <FileField id="refresh-inventory" label="Live inventory" file={refreshInventory} onChange={setRefreshInventory} />
+              </div>
+              <Button onClick={() => acmeRefreshMutation.mutate()} disabled={acmeRefreshDisabled}>
+                <RefreshCw className="h-4 w-4 mr-1" />
+                {acmeRefreshMutation.isPending ? 'Starting...' : 'Start Refresh'}
+              </Button>
+              {isRunning && (
+                <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="gfw-import">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Global Furniture Catalog Import</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Upload the Global Furniture catalog CSV. Creates new products and updates existing ones (matched by Internal ID).
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="max-w-sm">
+                <FileField id="gfw-csv" label="Catalog sheet" file={gfwCsv} onChange={setGfwCsv} />
+              </div>
+              <Button onClick={() => gfwImportMutation.mutate()} disabled={gfwImportDisabled}>
+                <Upload className="h-4 w-4 mr-1" />
+                {gfwImportMutation.isPending ? 'Starting...' : 'Start Import'}
+              </Button>
+              {isRunning && (
+                <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Import history */}
+      <div>
+        <h2 className="text-lg font-semibold mb-3">Import History</h2>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Vendor</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-right">Synced</TableHead>
+                <TableHead className="text-right">Failed</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {logsLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : logs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    No imports yet
+                  </TableCell>
+                </TableRow>
+              ) : (
+                logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="text-sm">{formatDate(log.createdAt)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">{sourceLabel(log.source)}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">{typeLabel(log.type)}</TableCell>
+                    <TableCell>
+                      <Badge variant={log.status === 'SUCCESS' ? 'default' : 'destructive'} className="text-xs">
+                        {log.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right text-sm">{log.itemsTotal}</TableCell>
+                    <TableCell className="text-right text-sm">{log.itemsSynced}</TableCell>
+                    <TableCell className="text-right text-sm">{log.itemsFailed}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between mt-3">
+            <p className="text-sm text-muted-foreground">
+              Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= pagination.totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -345,6 +345,14 @@ async function syncProducts(products, inventoryMap) {
         variantCount++;
       }
 
+      // If every variant is inactive the product is disconnected — deactivate it
+      // and remove any storefront listing so it stops appearing on the live store.
+      const anyActive = apiProduct.variants.some((v) => v.status === 'Active');
+      if (!anyActive && existing) {
+        await prisma.storefrontListing.deleteMany({ where: { productId: product.id } });
+        await prisma.product.update({ where: { id: product.id }, data: { isActive: false } });
+      }
+
       if (product.createdAt.getTime() === product.updatedAt.getTime()) {
         created++;
       } else {
