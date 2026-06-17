@@ -92,16 +92,24 @@ app.use(helmet({
   frameguard: { action: 'deny' },
 }));
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : ['http://localhost:3001'];
+// Suffix patterns (e.g. "-mutaz-othmans-projects.vercel.app") cover all
+// Vercel preview/branch URLs for the team without hardcoding per-deployment hashes.
+const allowedSuffixes = process.env.ALLOWED_ORIGIN_SUFFIXES
+  ? process.env.ALLOWED_ORIGIN_SUFFIXES.split(',').map(s => s.trim())
+  : [];
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
     // In development, allow all origins
     if (process.env.NODE_ENV !== 'production') return callback(null, true);
-    // In production, check against allowed list
-    if (allowedOrigins.includes(origin)) {
+    // In production, check exact list or team-scoped suffix patterns
+    if (
+      allowedOrigins.includes(origin) ||
+      allowedSuffixes.some(suffix => origin.endsWith(suffix))
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
