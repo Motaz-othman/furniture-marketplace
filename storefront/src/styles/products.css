@@ -1250,34 +1250,9 @@
       margin: 2px;
     }
 
-    /* Image dots - larger touch targets */
+    /* Image dots hidden on mobile — switch photos from inside the product page */
     .image-dots {
-      opacity: 1;
-      gap: 8px;
-      padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 20px;
-      backdrop-filter: blur(4px);
-    }
-
-    .image-dot {
-      width: 10px;
-      height: 10px;
-      /* Increase touch target without visual size change */
-      position: relative;
-    }
-
-    .image-dot::before {
-      content: '';
-      position: absolute;
-      top: -10px;
-      left: -10px;
-      right: -10px;
-      bottom: -10px;
-    }
-
-    .image-dot.active {
-      width: 24px;
+      display: none;
     }
 
     /* Price range sliders - larger thumb for touch */
