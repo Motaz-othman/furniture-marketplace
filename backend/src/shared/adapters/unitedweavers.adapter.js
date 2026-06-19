@@ -154,28 +154,34 @@ function buildProductMedia(groupRows) {
     };
   }
 
-  // Multiple colors: first color's headshot becomes the product main image.
-  // Each color group's images are tagged with the SKUs of ALL variants in that group
-  // so the storefront can switch the gallery when a different-color variant is selected.
+  // Multiple colors: every image (including the first color's headshot) must be
+  // tagged with its color group's SKUs so the storefront gallery switches correctly
+  // when a different-color variant is selected.
+  // The first color's headshot still goes into mainImages (display order) but carries
+  // variantSkus so it is included when filtering by a first-color variant ID.
+  const mainImages = [];
   const additionalImages = [];
   let isFirstColor = true;
 
   for (const [, rows] of colorGroups) {
     const colorSkus = rows.map(r => r['Style Number']?.trim().replace(/\s+/g, '-'));
     const urls = rowImageUrls(rows[0]); // representative row for this color
-    const startIdx = isFirstColor ? 1 : 0; // skip headshot for first color (already mainImage)
 
-    for (const url of urls.slice(startIdx)) {
-      additionalImages.push({ url, variantSkus: colorSkus });
-    }
+    urls.forEach((url, i) => {
+      const img = { url, variantSkus: colorSkus };
+      if (isFirstColor && i === 0) {
+        mainImages.push(img); // first headshot → mainImages, still tagged
+      } else {
+        additionalImages.push(img);
+      }
+    });
+
     isFirstColor = false;
   }
 
   return {
     mainImage: mainUrl,
-    media: mainUrl
-      ? { mainImages: [{ url: mainUrl }], additionalImages }
-      : null,
+    media: mainUrl ? { mainImages, additionalImages } : null,
   };
 }
 
@@ -259,7 +265,7 @@ export function parseUnitedWeaversRugs({ catalogCsv, inventoryCsv }) {
     const externalId = groupCode;
     // Version suffix forces a re-process when the adapter's output format changes.
     // Bump _v when structural changes need to propagate to already-imported products.
-    const specHash = computeHash({ rows: groupRows, _v: 2 });
+    const specHash = computeHash({ rows: groupRows, _v: 3 });
 
     // Resolve category from Rug Type (e.g. "Indoor" → "rugs")
     const rugType = firstRow['Rug Type']?.trim() || 'Indoor';
