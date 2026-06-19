@@ -47,6 +47,7 @@ export default function ProductsPage() {
   const [filters, setFilters] = useState(() => ({
     status: searchParams.get('status') || '',
     source: searchParams.get('source') || '',
+    stock: searchParams.get('stock') || '',
     brand: searchParams.get('brand') || '',
     categoryId: searchParams.get('categoryId') || '',
     collection: searchParams.get('collection') || '',
@@ -118,7 +119,7 @@ export default function ProductsPage() {
   }
 
   function clearFilters() {
-    const empty = { status: '', source: '', brand: '', categoryId: '', collection: '', minPrice: '', maxPrice: '', acmeStatus: '' };
+    const empty = { status: '', source: '', stock: '', brand: '', categoryId: '', collection: '', minPrice: '', maxPrice: '', acmeStatus: '' };
     setFilters(empty);
     setSearch('');
     setDebouncedSearch('');
@@ -285,6 +286,18 @@ export default function ProductsPage() {
               <SelectItem value="MANUAL">Manual</SelectItem>
             </SelectContent>
           </Select>
+
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              min="0"
+              placeholder="Min stock"
+              value={filters.stock}
+              onChange={(e) => setFilter('stock', e.target.value)}
+              className="w-[100px] h-8 text-xs"
+            />
+            <span className="text-xs text-muted-foreground">+</span>
+          </div>
 
           <Select value={filters.brand} onValueChange={(v) => setFilter('brand', v)}>
             <SelectTrigger className="w-[160px] h-8 text-xs">

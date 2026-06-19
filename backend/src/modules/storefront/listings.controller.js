@@ -387,7 +387,7 @@ export const getRawProductById = async (req, res) => {
 
 export const getRawProducts = async (req, res) => {
   try {
-    const { cursor, limit = 20, search, status, source, brand, categoryId, collection, minPrice, maxPrice, acmeStatus } = req.query;
+    const { cursor, limit = 20, search, status, source, brand, categoryId, collection, minPrice, maxPrice, acmeStatus, stock } = req.query;
     const limitNum = Math.min(parseInt(limit), 100);
 
     const where = {};
@@ -441,6 +441,11 @@ export const getRawProducts = async (req, res) => {
     // ACME vendor status filter — uses dedicated indexed column now
     if (acmeStatus) {
       where.acmeStatus = acmeStatus;
+    }
+
+    // Stock filter — show products with totalStock >= minStock
+    if (stock !== undefined && stock !== '') {
+      where.totalStock = { gte: parseInt(stock, 10) };
     }
 
     // Price range filter (uses product minPrice)
