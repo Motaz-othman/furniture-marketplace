@@ -9,19 +9,6 @@ import MainLayout from '@/components/layout/MainLayout';
 import ProductCard from '@/components/products/ProductCard';
 import { useFeaturedProducts, useNewProducts, useParentCategories } from '@/lib/hooks';
 
-const CATEGORY_IMAGES = {
-  'bedroom':               'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80',
-  'living-room':           'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
-  'dining-kitchen':        'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80',
-  'dining-room':           'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80',
-  'office':                'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80',
-  'outdoor':               'https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=800&q=80',
-  'decor':                 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
-  'rugs':                  'https://images.unsplash.com/photo-1558997519-83ea9252edc8?w=800&q=80',
-  'lighting':              'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&q=80',
-  'mattresses-and-bedding':'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
-  'mattresses':            'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
-};
 
 const DEFAULT_HERO_SLIDES = [
   {
@@ -315,27 +302,23 @@ export default function HomePage() {
             <div className="shop-by-room-grid">
               {categoriesData.data
                 .filter((cat) => cat.slug !== 'clearance')
-                .map((cat) => {
-                  const imageUrl = CATEGORY_IMAGES[cat.slug];
-                  const href = `/categories/${cat.slug}`;
-                  return (
-                    <Link key={cat.id} href={href} className="room-tile">
-                      <div className="room-tile-image">
-                        {imageUrl && (
-                          <Image
-                            src={imageUrl}
-                            alt={cat.name}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            style={{ objectFit: 'cover' }}
-                          />
-                        )}
-                        <div className="room-tile-overlay" />
-                      </div>
-                      <span className="room-tile-name">{cat.name}</span>
-                    </Link>
-                  );
-                })}
+                .map((cat) => (
+                  <Link key={cat.id} href={`/categories/${cat.slug}`} className="room-tile">
+                    <div className="room-tile-image">
+                      {cat.imageUrl && (
+                        <Image
+                          src={cat.imageUrl}
+                          alt={cat.name}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      )}
+                      <div className="room-tile-overlay" />
+                    </div>
+                    <span className="room-tile-name">{cat.name}</span>
+                  </Link>
+                ))}
             </div>
           </div>
         </section>
