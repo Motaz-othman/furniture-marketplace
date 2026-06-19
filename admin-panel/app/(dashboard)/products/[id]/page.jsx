@@ -55,6 +55,7 @@ function fmtPkg(pkg) {
   if (!pkg) return '—';
   const parts = [];
   if (pkg.type) parts.push(`Type: ${pkg.type}`);
+  if (pkg.pack) parts.push(`Pack: ${pkg.pack}`);
   const d = pkg.dimensions;
   if (d) {
     const dp = [];
@@ -64,6 +65,7 @@ function fmtPkg(pkg) {
     if (dp.length) parts.push(dp.join(', ') + (pkg.dimensionsUnitOfMeasure ? ` (${pkg.dimensionsUnitOfMeasure})` : ''));
   }
   if (pkg.weight) parts.push(`Weight: ${pkg.weight}${pkg.weightUnitOfMeasure ? ` ${pkg.weightUnitOfMeasure}` : ''}`);
+  if (pkg.cubicFeet) parts.push(`Cubic Feet: ${pkg.cubicFeet}`);
   return parts.length > 0 ? parts.join('\n') : '—';
 }
 
@@ -364,6 +366,7 @@ export default function ProductDetailPage() {
 
                 <SectionHeader label="Packaging" colSpan={colSpan} />
                 <Row label="Package Details" {...sv('—', (v) => fmtPkg(v.packaging))} />
+                <Row label="Ship Type" {...sv('—', (v) => fmt(v.packaging?.shipType))} />
 
                 <SectionHeader label="Options & Attributes" colSpan={colSpan} />
                 <Row label="Options" {...sv('—', (v) => fmtOpts(v.options))} />
