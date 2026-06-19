@@ -2,6 +2,32 @@ import prisma from '../../shared/config/db.js';
 import { transformProductForStorefront, transformProductForListing } from '../../shared/utils/storefront.transforms.js';
 import { findMatchingProductIds } from '../../shared/utils/fuzzySearch.js';
 
+// ─── In-memory listing cache ─────────────────────────────────────────
+// Absorbs the repeated round-trips to the remote DB (5-6 Prisma queries
+// per request, each adding ~200ms network latency to Supabase us-west-2).
+// TTL = 60s; stale entries are pruned lazily on each write.
+
+const listingCache = new Map();
+const CACHE_TTL = 60_000;
+
+function cacheGet(key) {
+  const entry = listingCache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  return null;
+}
+
+function cacheSet(key, data) {
+  listingCache.set(key, { data, ts: Date.now() });
+  // Lazy eviction — prune anything older than 2× TTL
+  for (const [k, v] of listingCache) {
+    if (Date.now() - v.ts > CACHE_TTL * 2) listingCache.delete(k);
+  }
+}
+
+export function invalidateListingCache() {
+  listingCache.clear();
+}
+
 // ─── Shared includes for storefront queries ─────────────────────────
 
 const storefrontProductInclude = {
@@ -43,6 +69,15 @@ const storefrontListingInclude = {
 
 export const getAllProducts = async (req, res) => {
   try {
+    // Serve from cache if available — the remote Supabase DB adds ~200ms per
+    // round-trip; each Prisma request fires 5-6 queries, so caching is critical.
+    const cacheKey = JSON.stringify(req.query);
+    const cached = cacheGet(cacheKey);
+    if (cached) {
+      res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+      return res.json(cached);
+    }
+
     const {
       categoryId,
       featured,
@@ -95,7 +130,9 @@ export const getAllProducts = async (req, res) => {
         : sortBy === 'price-desc' ? [{ product: { minPrice: 'desc' } }, { id: 'asc' }]
         : sortBy === 'name' ? [{ product: { name: 'asc' } }, { id: 'asc' }]
         : sortBy === 'newest' ? [{ product: { createdAt: 'desc' } }, { id: 'asc' }]
-        : [{ sortOrder: 'asc' }, { product: { createdAt: 'desc' } }, { id: 'asc' }];
+        // Default: sortOrder (indexed, same-table) + id to break ties without
+        // a cross-table join on product.createdAt which forces sort of all rows.
+        : [{ sortOrder: 'asc' }, { id: 'asc' }];
 
       [total, listings] = await Promise.all([
         prisma.storefrontListing.count({ where }),
@@ -113,10 +150,7 @@ export const getAllProducts = async (req, res) => {
       transformProductForListing(listing.product, listing)
     );
 
-    // Public listing — safe to cache; products change infrequently
-    res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
-
-    res.json({
+    const result = {
       data: products,
       pagination: {
         page: pageNum,
@@ -124,7 +158,12 @@ export const getAllProducts = async (req, res) => {
         total,
         totalPages: Math.ceil(total / limitNum),
       },
-    });
+    };
+
+    cacheSet(cacheKey, result);
+
+    res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+    res.json(result);
   } catch (error) {
     console.error('Get products error:', error);
     res.status(500).json({ error: 'Failed to get products' });

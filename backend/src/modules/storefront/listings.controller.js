@@ -1,4 +1,5 @@
 import prisma from '../../shared/config/db.js';
+import { invalidateListingCache } from '../products/products.controller.js';
 
 // ─── Get all storefront listings (admin) ─────────────────────────────
 
@@ -182,6 +183,7 @@ export const createListing = async (req, res) => {
       },
     });
 
+    invalidateListingCache();
     res.status(201).json({ message: 'Listing created successfully', data: listing });
   } catch (error) {
     console.error('Create listing error:', error);
@@ -238,6 +240,7 @@ export const updateListing = async (req, res) => {
       },
     });
 
+    invalidateListingCache();
     res.json({ message: 'Listing updated successfully', data: listing });
   } catch (error) {
     console.error('Update listing error:', error);
@@ -256,6 +259,7 @@ export const deleteListing = async (req, res) => {
 
     await prisma.storefrontListing.delete({ where: { id } });
 
+    invalidateListingCache();
     res.json({ message: 'Listing removed from storefront' });
   } catch (error) {
     console.error('Delete listing error:', error);
@@ -285,6 +289,7 @@ export const bulkUpdateListings = async (req, res) => {
       where: { id: { in: listingIds } },
       data: updateData,
     });
+    invalidateListingCache();
     res.json({ message: `${result.count} listings updated`, count: result.count });
   } catch (error) {
     console.error('Bulk update listings error:', error);
@@ -303,6 +308,7 @@ export const bulkDeleteListings = async (req, res) => {
     const result = await prisma.storefrontListing.deleteMany({
       where: { id: { in: listingIds } },
     });
+    invalidateListingCache();
     res.json({ message: `${result.count} listings removed`, count: result.count });
   } catch (error) {
     console.error('Bulk delete listings error:', error);
@@ -340,6 +346,7 @@ export const bulkCreateListings = async (req, res) => {
       })),
     });
 
+    invalidateListingCache();
     res.status(201).json({
       message: `${result.count} listings created`,
       created: result.count,

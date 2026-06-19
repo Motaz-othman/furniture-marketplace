@@ -145,6 +145,8 @@ async function upsertRecord({ product: p, variant: v }, source, extraImagesMap) 
   // disappears from the live store immediately.
   if (!p.isActive && existing) {
     await prisma.storefrontListing.deleteMany({ where: { productId: product.id } });
+    const { invalidateListingCache } = await import('../../../modules/products/products.controller.js');
+    invalidateListingCache();
   }
 
   const variantData = {
