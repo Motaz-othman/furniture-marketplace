@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import Image from 'next/image';
 import { Search, Plus, Package, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -410,11 +411,17 @@ export default function ProductsPage() {
                   </TableCell>
                   <TableCell>
                     {product.mainImage ? (
-                      <img
-                        src={product.mainImage}
-                        alt={product.name}
-                        className="w-10 h-10 rounded object-cover"
-                      />
+                      <div className="relative w-10 h-10 rounded overflow-hidden">
+                        <Image
+                          src={product.mainImage}
+                          alt={product.name}
+                          fill
+                          sizes="40px"
+                          className="object-cover"
+                          loading="lazy"
+                          unoptimized={!product.mainImage.includes('amazonaws.com')}
+                        />
+                      </div>
                     ) : (
                       <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
                         <Package className="h-4 w-4 text-muted-foreground" />
