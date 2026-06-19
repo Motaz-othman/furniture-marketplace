@@ -130,18 +130,22 @@ export function transformProductForListing(product, listing = null) {
 
   const category = sf?.category ?? product.category;
 
-  const variants = (product.variants || []).map(v => ({
-    id: v.externalProductId || v.id,
-    name: extractVariantName(v),
-    sku: v.sku,
-    variantName: extractVariantName(v),
-    productId: v.externalProductId || v.id,
-    price: v.price?.retailPrice || 0,
-    compareAtPrice: v.price?.listPrice !== v.price?.retailPrice ? v.price?.listPrice : null,
-    stockQuantity: v.stockQuantity ?? 0,
-    attributes: v.attributes || [],
-    options: v.options || [],
-  }));
+  // For listing cards, only the color attribute is used (swatch hex + name).
+  // The other 11 UW attributes (size, material, construction, etc.) are unused
+  // and account for ~565 bytes per variant — strip them here.
+  const variants = (product.variants || []).map(v => {
+    const colorAttr = Array.isArray(v.attributes)
+      ? v.attributes.find(a => a.attribute === 'color')
+      : null;
+    return {
+      id: v.externalProductId || v.id,
+      name: extractVariantName(v),
+      price: v.price?.retailPrice || 0,
+      stockQuantity: v.stockQuantity ?? 0,
+      attributes: colorAttr ? [colorAttr] : [],
+      options: v.options || [],
+    };
+  });
 
   return {
     id: product.id,

@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
@@ -78,6 +79,9 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), asy
   const { handleStripeWebhook } = await import('./modules/payments/webhook.controller.js');
   return handleStripeWebhook(req, res, next);
 });
+
+// Gzip compression for all responses
+app.use(compression());
 
 // Security middleware
 app.use(helmet({
