@@ -48,7 +48,7 @@ function sourceLabel(source) {
 
 // ─── File picker row ────────────────────────────────────────────
 
-function FileField({ id, label, file, onChange, accept = '.csv' }) {
+function FileField({ id, label, file, onChange, accept = '.csv,.xlsx,.xls' }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>

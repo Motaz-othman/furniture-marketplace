@@ -5,10 +5,25 @@ import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware
 
 const router = Router();
 
-// CSV uploads only need memory, not the 100MB image limit
+const ALLOWED_MIMETYPES = new Set([
+  'text/csv',
+  'application/csv',
+  'text/plain',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-excel', // .xls
+  'application/octet-stream', // some browsers send this for xlsx
+]);
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 }, // 25MB per file
+  fileFilter: (_req, file, cb) => {
+    const ext = file.originalname.split('.').pop().toLowerCase();
+    if (['csv', 'xlsx', 'xls'].includes(ext) || ALLOWED_MIMETYPES.has(file.mimetype)) {
+      return cb(null, true);
+    }
+    cb(new Error(`Unsupported file type: ${file.originalname}. Upload a .csv or .xlsx file.`));
+  },
 });
 
 router.use(authenticate, adminOnly);

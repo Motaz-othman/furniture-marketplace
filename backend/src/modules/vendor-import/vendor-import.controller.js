@@ -3,6 +3,11 @@ import { parseAcmeCatalog } from '../../shared/adapters/acme.adapter.js';
 import { parseGlobalFurnitureCatalog } from '../../shared/adapters/globalFurniture.adapter.js';
 import { parseUnitedWeaversRugs } from '../../shared/adapters/unitedweavers.adapter.js';
 import { runVendorImport, refreshAcmePricing, getImportStatus } from '../../shared/services/vendorImport.service.js';
+import { toCSVBuffer } from '../../shared/adapters/excelToCSV.js';
+
+function buf(file) {
+  return toCSVBuffer(file.buffer, file.originalname);
+}
 
 // ─── GET /status ────────────────────────────────────────────────
 
@@ -82,10 +87,10 @@ export const importAcme = async (req, res) => {
     }
 
     const records = parseAcmeCatalog({
-      specCsv: files.specCsv[0].buffer,
-      imagesCsv: files.imagesCsv[0].buffer,
-      priceCsv: files.priceCsv[0].buffer,
-      inventoryCsv: files.inventoryCsv[0].buffer,
+      specCsv: buf(files.specCsv[0]),
+      imagesCsv: buf(files.imagesCsv[0]),
+      priceCsv: buf(files.priceCsv[0]),
+      inventoryCsv: buf(files.inventoryCsv[0]),
     });
 
     if (!records.length) {
@@ -116,8 +121,8 @@ export const refreshAcme = async (req, res) => {
     res.json({ message: 'ACME price/inventory refresh started' });
 
     refreshAcmePricing({
-      priceCsv: files.priceCsv[0].buffer,
-      inventoryCsv: files.inventoryCsv[0].buffer,
+      priceCsv: buf(files.priceCsv[0]),
+      inventoryCsv: buf(files.inventoryCsv[0]),
     }).catch(err => console.error('Background ACME refresh failed:', err.message));
   } catch (error) {
     console.error('ACME refresh error:', error);
@@ -133,7 +138,7 @@ export const importGlobalFurniture = async (req, res) => {
       return res.status(400).json({ error: 'Missing required file: csv' });
     }
 
-    const records = parseGlobalFurnitureCatalog(req.file.buffer);
+    const records = parseGlobalFurnitureCatalog(buf(req.file));
 
     if (!records.length) {
       return res.status(400).json({ error: 'No rows found in the uploaded sheet' });
@@ -159,8 +164,8 @@ export const importUnitedWeavers = async (req, res) => {
     }
 
     const records = parseUnitedWeaversRugs({
-      catalogCsv: files.catalogCsv[0].buffer,
-      inventoryCsv: files.inventoryCsv[0].buffer,
+      catalogCsv: buf(files.catalogCsv[0]),
+      inventoryCsv: buf(files.inventoryCsv[0]),
     });
 
     if (!records.length) {
