@@ -99,11 +99,83 @@ function applyPricingRule(basePrice, rule) {
 // ─── Main Transform ───────────────────────────────────────────────────
 
 /**
- * Transform a DB Product (with variants and optional StorefrontListing)
- * into the shape the storefront expects.
+ * Lightweight transform for the listing/grid page. Only includes fields
+ * the ProductCard actually renders. Trims images to 6 to reduce payload.
+ */
+export function transformProductForListing(product, listing = null) {
+  const sf = listing || product.storefront;
+  const mainVariant = product.variants?.[0];
+
+  let originalPrice = product.minPrice ?? mainVariant?.price?.retailPrice ?? 0;
+  if (sf?.displayPrice != null) {
+    originalPrice = sf.displayPrice;
+  } else if (sf?.pricingRule) {
+    originalPrice = applyPricingRule(originalPrice, sf.pricingRule);
+  }
+
+  const discountedPrice = sf?.discountedPrice ?? null;
+  const price = (discountedPrice != null && discountedPrice < originalPrice)
+    ? discountedPrice
+    : originalPrice;
+  const compareAtPrice = (discountedPrice != null && discountedPrice < originalPrice)
+    ? originalPrice
+    : null;
+
+  const skuToId = Object.fromEntries(
+    (product.variants || []).map(v => [v.sku, v.externalProductId || v.id])
+  );
+
+  const allImages = buildImages(product.media, sf?.displayImages, skuToId);
+  const images = allImages.slice(0, 6);
+
+  const category = sf?.category ?? product.category;
+
+  const variants = (product.variants || []).map(v => ({
+    id: v.externalProductId || v.id,
+    name: extractVariantName(v),
+    sku: v.sku,
+    variantName: extractVariantName(v),
+    productId: v.externalProductId || v.id,
+    price: v.price?.retailPrice || 0,
+    compareAtPrice: v.price?.listPrice !== v.price?.retailPrice ? v.price?.listPrice : null,
+    stockQuantity: v.stockQuantity ?? 0,
+    attributes: v.attributes || [],
+    options: v.options || [],
+  }));
+
+  return {
+    id: product.id,
+    name: sf?.displayName ?? product.name,
+    slug: product.slug,
+    price,
+    originalPrice,
+    discountedPrice,
+    compareAtPrice,
+    categoryId: category?.id ?? null,
+    category: category
+      ? { id: category.id, name: category.name, slug: category.slug, parentId: category.parentId ?? null }
+      : null,
+    stockQuantity: product.totalStock,
+    images,
+    isNew: sf?.isNewArrival ?? false,
+    isOnSale: discountedPrice != null && discountedPrice < originalPrice,
+    isFeatured: sf?.isTrending ?? product.isFeatured ?? false,
+    isTrending: sf?.isTrending ?? false,
+    isNewArrival: sf?.isNewArrival ?? false,
+    variants,
+    brand: product.brand,
+    collection: product.collection,
+    rating: product.rating,
+    totalReviews: product.totalReviews,
+    createdAt: product.createdAt,
+  };
+}
+
+/**
+ * Full transform for product detail page.
  *
  * @param {Object} product - Prisma Product with variants, vendor, category, storefront relations
- * @param {Object|null} listing - StorefrontListing override (if provided separately; otherwise reads from product.storefront)
+ * @param {Object|null} listing - StorefrontListing override
  * @returns {Object} Frontend-ready product
  */
 export function transformProductForStorefront(product, listing = null) {

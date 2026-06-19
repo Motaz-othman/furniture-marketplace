@@ -1,5 +1,5 @@
 import prisma from '../../shared/config/db.js';
-import { transformProductForStorefront } from '../../shared/utils/storefront.transforms.js';
+import { transformProductForStorefront, transformProductForListing } from '../../shared/utils/storefront.transforms.js';
 import { findMatchingProductIds } from '../../shared/utils/fuzzySearch.js';
 
 // ─── Shared includes for storefront queries ─────────────────────────
@@ -14,11 +14,26 @@ const storefrontProductInclude = {
   },
 };
 
+// Lean include for listing/grid — only fields ProductCard actually renders.
+// Omits heavy per-variant JSON (packaging, dimensions, custom, upc, status, etc.)
+// to cut ~70-100 KB off a 20-product page response.
 const storefrontListingInclude = {
   product: {
     include: {
       category: { select: { id: true, name: true, slug: true, parentId: true } },
-      variants: true,
+      variants: {
+        select: {
+          id: true,
+          sku: true,
+          externalProductId: true,
+          name: true,
+          price: true,
+          stockQuantity: true,
+          attributes: true,
+          options: true,
+        },
+        orderBy: { rank: 'asc' },
+      },
     },
   },
   category: { select: { id: true, name: true, slug: true, parentId: true } },
@@ -95,8 +110,11 @@ export const getAllProducts = async (req, res) => {
     }
 
     const products = listings.map(listing =>
-      transformProductForStorefront(listing.product, listing)
+      transformProductForListing(listing.product, listing)
     );
+
+    // Public listing — safe to cache; products change infrequently
+    res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
 
     res.json({
       data: products,
