@@ -72,8 +72,32 @@ async function upsertRecord({ product: p, variant: v }, source, extraImagesMap) 
   if (!p.isActive && !existing) return 'skipped';
 
   // Skip if nothing changed since last import.
+  // For multi-variant products (e.g. UW rugs) the same product appears once per variant
+  // in the records list. If the product hash matches we skip the expensive product update,
+  // but still create the variant if it doesn't exist yet so all variants are imported.
   if (existing && p.specHash && existing.externalData?.specHash === p.specHash) {
-    return 'skipped';
+    const existingVariant = await prisma.productVariant.findUnique({ where: { sku: v.sku } });
+    if (existingVariant) return 'skipped';
+
+    await prisma.productVariant.create({
+      data: {
+        productId: existing.id,
+        sku: v.sku,
+        upc: v.upc || null,
+        status: v.status,
+        isActive: v.isActive,
+        price: v.price,
+        dimensions: v.dimensions,
+        packaging: v.packaging,
+        attributes: v.attributes,
+        packageProducts: v.packageProducts || null,
+        packageProductType: v.packageProductType || null,
+        isPackage: v.isPackage || false,
+        stockQuantity: v.stockQuantity || 0,
+        custom: v.custom || null,
+      },
+    });
+    return 'updated';
   }
 
   const categoryId = resolveCategoryId(p.categoryPath);
