@@ -1,6 +1,7 @@
 import prisma from '../../shared/config/db.js';
 import { parseAcmeCatalog } from '../../shared/adapters/acme.adapter.js';
 import { parseGlobalFurnitureCatalog } from '../../shared/adapters/globalFurniture.adapter.js';
+import { parseUnitedWeaversRugs } from '../../shared/adapters/unitedweavers.adapter.js';
 import { runVendorImport, refreshAcmePricing, getImportStatus } from '../../shared/services/vendorImport.service.js';
 
 // ─── GET /status ────────────────────────────────────────────────
@@ -10,7 +11,7 @@ export const getStatus = async (req, res) => {
     const status = getImportStatus();
 
     const lastLogs = await prisma.syncLog.findMany({
-      where: { source: { in: ['ACME', 'GFW'] }, status: 'SUCCESS' },
+      where: { source: { in: ['ACME', 'GFW', 'UW'] }, status: 'SUCCESS' },
       orderBy: { createdAt: 'desc' },
       distinct: ['source', 'type'],
       take: 10,
@@ -42,7 +43,7 @@ export const getLogs = async (req, res) => {
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
 
-    const where = { source: source ? source : { in: ['ACME', 'GFW'] } };
+    const where = { source: source ? source : { in: ['ACME', 'GFW', 'UW'] } };
 
     const [logs, total] = await Promise.all([
       prisma.syncLog.findMany({
@@ -144,5 +145,33 @@ export const importGlobalFurniture = async (req, res) => {
   } catch (error) {
     console.error('GFW import error:', error);
     res.status(400).json({ error: error.message || 'Failed to start Global Furniture import' });
+  }
+};
+
+// ─── POST /uw/import ─────────────────────────────────────────────────────────
+
+export const importUnitedWeavers = async (req, res) => {
+  try {
+    const files = req.files || {};
+    const missing = ['catalogCsv', 'inventoryCsv'].filter(f => !files[f]?.[0]);
+    if (missing.length) {
+      return res.status(400).json({ error: `Missing required file(s): ${missing.join(', ')}` });
+    }
+
+    const records = parseUnitedWeaversRugs({
+      catalogCsv: files.catalogCsv[0].buffer,
+      inventoryCsv: files.inventoryCsv[0].buffer,
+    });
+
+    if (!records.length) {
+      return res.status(400).json({ error: 'No product rows found in the uploaded catalog' });
+    }
+
+    res.json({ message: `United Weavers import started for ${records.length} variants` });
+
+    runVendorImport('UW', records).catch(err => console.error('Background UW import failed:', err.message));
+  } catch (error) {
+    console.error('UW import error:', error);
+    res.status(400).json({ error: error.message || 'Failed to start United Weavers import' });
   }
 };

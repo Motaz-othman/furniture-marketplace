@@ -34,3 +34,11 @@ export async function importGlobalFurniture({ csv }) {
   const { data } = await api.post('/admin/vendor-import/gfw/import', formData);
   return data;
 }
+
+export async function importUnitedWeavers({ catalogCsv, inventoryCsv }) {
+  const formData = new FormData();
+  formData.append('catalogCsv', catalogCsv);
+  formData.append('inventoryCsv', inventoryCsv);
+  const { data } = await api.post('/admin/vendor-import/uw/import', formData);
+  return data;
+}

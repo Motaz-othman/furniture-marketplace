@@ -8,6 +8,7 @@ import {
   importAcme,
   refreshAcme,
   importGlobalFurniture,
+  importUnitedWeavers,
 } from '@/lib/services/vendorImport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,7 +41,9 @@ function typeLabel(type) {
 }
 
 function sourceLabel(source) {
-  return source === 'GFW' ? 'Global Furniture' : source;
+  if (source === 'GFW') return 'Global Furniture';
+  if (source === 'UW') return 'United Weavers';
+  return source;
 }
 
 // ─── File picker row ────────────────────────────────────────────
@@ -76,6 +79,10 @@ export default function VendorImportPage() {
 
   // GFW import
   const [gfwCsv, setGfwCsv] = useState(null);
+
+  // UW import
+  const [uwCatalog, setUwCatalog] = useState(null);
+  const [uwInventory, setUwInventory] = useState(null);
 
   const { data: statusRes } = useQuery({
     queryKey: ['vendor-import-status'],
@@ -128,9 +135,20 @@ export default function VendorImportPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to start Global Furniture import'),
   });
 
+  const uwImportMutation = useMutation({
+    mutationFn: () => importUnitedWeavers({ catalogCsv: uwCatalog, inventoryCsv: uwInventory }),
+    onSuccess: (data) => {
+      toast.success(data.message || 'United Weavers import started');
+      setUwCatalog(null); setUwInventory(null);
+      invalidate();
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to start United Weavers import'),
+  });
+
   const acmeImportDisabled = isRunning || acmeImportMutation.isPending || !acmeSpec || !acmeImages || !acmePrice || !acmeInventory;
   const acmeRefreshDisabled = isRunning || acmeRefreshMutation.isPending || !refreshPrice || !refreshInventory;
   const gfwImportDisabled = isRunning || gfwImportMutation.isPending || !gfwCsv;
+  const uwImportDisabled = isRunning || uwImportMutation.isPending || !uwCatalog || !uwInventory;
 
   return (
     <div className="space-y-6">
@@ -194,6 +212,7 @@ export default function VendorImportPage() {
           <TabsTrigger value="acme-import">ACME — Full Import</TabsTrigger>
           <TabsTrigger value="acme-refresh">ACME — Price/Stock Refresh</TabsTrigger>
           <TabsTrigger value="gfw-import">Global Furniture — Import</TabsTrigger>
+          <TabsTrigger value="uw-import">United Weavers — Import</TabsTrigger>
         </TabsList>
 
         <TabsContent value="acme-import">
@@ -263,6 +282,31 @@ export default function VendorImportPage() {
               <Button onClick={() => gfwImportMutation.mutate()} disabled={gfwImportDisabled}>
                 <Upload className="h-4 w-4 mr-1" />
                 {gfwImportMutation.isPending ? 'Starting...' : 'Start Import'}
+              </Button>
+              {isRunning && (
+                <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="uw-import">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">United Weavers Rug Import</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Upload the UW MasterFile (catalog) and the Inventory file. Size variants are grouped into one product per
+                Variation Group Code. All three price tiers (Cost / MAP / MSRP) are stored per variant.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FileField id="uw-catalog" label="Catalog (MasterFile)" file={uwCatalog} onChange={setUwCatalog} />
+                <FileField id="uw-inventory" label="Inventory file" file={uwInventory} onChange={setUwInventory} />
+              </div>
+              <Button onClick={() => uwImportMutation.mutate()} disabled={uwImportDisabled}>
+                <Upload className="h-4 w-4 mr-1" />
+                {uwImportMutation.isPending ? 'Starting...' : 'Start Import'}
               </Button>
               {isRunning && (
                 <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
