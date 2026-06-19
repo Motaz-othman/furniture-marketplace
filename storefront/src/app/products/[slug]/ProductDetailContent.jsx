@@ -189,6 +189,11 @@ export default function ProductDetailContent({ slug }) {
     return variantImages.length > 0 ? variantImages : product.images;
   })();
 
+  // Derived: the URL that is actually displayed in the main image slot.
+  // Only reset the loading shimmer when this URL changes — not on every variant click —
+  // so same-color size variants (which share the same gallery) don't get stuck loading.
+  const mainImageUrl = currentImages[selectedImage]?.imageUrl ?? currentImages[0]?.imageUrl;
+
   const handleBack = useCallback(() => {
     if (window.history.length > 1) {
       router.back();
@@ -247,7 +252,6 @@ export default function ProductDetailContent({ slug }) {
           prev > 0 ? prev - 1 : currentImages.length - 1
         );
       }
-      setMainImageLoaded(false);
     }
   }, [currentImages.length]);
 
@@ -342,15 +346,17 @@ export default function ProductDetailContent({ slug }) {
   const currentStock = selectedVariant?.stockQuantity ?? product?.stockQuantity ?? 0;
   const currentInStock = currentStock > 0;
 
+  // Reset loading shimmer whenever the displayed image URL actually changes.
+  // Using the URL (not variant or selectedImage) prevents the shimmer from getting stuck
+  // when switching between variants that share the same gallery (e.g. same-color size variants).
+  useEffect(() => {
+    setMainImageLoaded(false);
+  }, [mainImageUrl]);
+
   const handleVariantSelect = (variant) => {
     setSelectedVariant(variant);
     setSelectedImage(0);
-    setMainImageLoaded(false);
   };
-
-  useEffect(() => {
-    setMainImageLoaded(false);
-  }, [selectedImage]);
 
   // Error state
   if (error) {
