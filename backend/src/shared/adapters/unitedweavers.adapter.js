@@ -257,7 +257,9 @@ export function parseUnitedWeaversRugs({ catalogCsv, inventoryCsv }) {
     const firstRow = groupRows[0];
     const productName = buildProductName(firstRow);
     const externalId = groupCode;
-    const specHash = computeHash(groupRows);
+    // Version suffix forces a re-process when the adapter's output format changes.
+    // Bump _v when structural changes need to propagate to already-imported products.
+    const specHash = computeHash({ rows: groupRows, _v: 2 });
 
     // Resolve category from Rug Type (e.g. "Indoor" → "rugs")
     const rugType = firstRow['Rug Type']?.trim() || 'Indoor';
