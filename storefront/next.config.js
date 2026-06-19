@@ -41,6 +41,9 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.s3.us-east-1.amazonaws.com',
       },
+      // Allow all HTTPS images in dev so vendor CDN URLs (not yet migrated to S3)
+      // don't block testing. Production always requires explicit allowlist above.
+      ...(!isProd ? [{ protocol: 'https', hostname: '**' }] : []),
     ],
   },
   async headers() {

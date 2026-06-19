@@ -479,6 +479,7 @@ export default function ProductDetailContent({ slug }) {
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className={`progressive-image-main ${mainImageLoaded ? 'loaded' : ''}`}
                   onLoad={() => setMainImageLoaded(true)}
+                  onError={() => setMainImageLoaded(true)}
                   placeholder={getThumbnailUrl(currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl) ? 'blur' : 'empty'}
                   blurDataURL={getThumbnailUrl(currentImages[selectedImage]?.imageUrl || currentImages[0]?.imageUrl) || undefined}
                   priority
