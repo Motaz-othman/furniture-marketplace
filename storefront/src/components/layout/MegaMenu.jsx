@@ -63,10 +63,13 @@ export default function MegaMenu({ category }) {
     };
   }, [isOpen]);
 
+  const isClearance = category.slug === 'clearance';
+  const categoryHref = isClearance ? '/clearance' : `/categories/${category.slug}`;
+
   // If no subcategories, just show link
   if (!subcategories || subcategories.length === 0) {
     return (
-      <Link href={`/categories/${category.slug}`} className="nav-link">
+      <Link href={categoryHref} className={`nav-link${isClearance ? ' sale-link' : ''}`}>
         {category.name}
       </Link>
     );
@@ -81,8 +84,8 @@ export default function MegaMenu({ category }) {
     >
       {/* Category Link/Trigger */}
       <Link
-        href={`/categories/${category.slug}`}
-        className="mega-menu-trigger"
+        href={categoryHref}
+        className={`mega-menu-trigger${isClearance ? ' sale-link' : ''}`}
       >
         {category.name}
       </Link>
@@ -95,28 +98,33 @@ export default function MegaMenu({ category }) {
         >
           <div className="mega-menu-container">
             <div className="mega-menu-content">
-              {/* Single column of subcategories */}
-              <div className="mega-menu-column">
-                <h4 className="mega-menu-title">{category.name}</h4>
-                <ul className="mega-menu-list">
-                  {subcategories.map((subcat) => (
-                    <li key={subcat.id}>
-                      <Link
-                        href={`/categories/${category.slug}/${subcat.slug}`}
-                        className="mega-menu-link"
-                      >
-                        {subcat.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href={`/categories/${category.slug}`}
-                  className="mega-menu-view-all"
-                >
-                  View All {category.name} →
-                </Link>
-              </div>
+              {Array.from({ length: Math.ceil(subcategories.length / 5) }, (_, colIdx) =>
+                subcategories.slice(colIdx * 5, colIdx * 5 + 5)
+              ).map((chunk, colIdx) => (
+                <div className="mega-menu-column" key={colIdx}>
+                  {colIdx === 0 && <h4 className="mega-menu-title">{category.name}</h4>}
+                  <ul className="mega-menu-list">
+                    {chunk.map((subcat) => (
+                      <li key={subcat.id}>
+                        <Link
+                          href={`/categories/${category.slug}/${subcat.slug}`}
+                          className="mega-menu-link"
+                        >
+                          {subcat.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="mega-menu-footer">
+              <Link
+                href={categoryHref}
+                className="mega-menu-view-all"
+              >
+                View All {category.name} →
+              </Link>
             </div>
           </div>
         </div>

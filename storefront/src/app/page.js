@@ -7,7 +7,21 @@ import Link from 'next/link';
 import Image from 'next/image';
 import MainLayout from '@/components/layout/MainLayout';
 import ProductCard from '@/components/products/ProductCard';
-import { useFeaturedProducts, useNewProducts } from '@/lib/hooks';
+import { useFeaturedProducts, useNewProducts, useParentCategories } from '@/lib/hooks';
+
+const CATEGORY_IMAGES = {
+  'bedroom':               'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80',
+  'living-room':           'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
+  'dining-kitchen':        'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80',
+  'dining-room':           'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80',
+  'office':                'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80',
+  'outdoor':               'https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=800&q=80',
+  'decor':                 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
+  'rugs':                  'https://images.unsplash.com/photo-1558997519-83ea9252edc8?w=800&q=80',
+  'lighting':              'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&q=80',
+  'mattresses-and-bedding':'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
+  'mattresses':            'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
+};
 
 const DEFAULT_HERO_SLIDES = [
   {
@@ -152,6 +166,7 @@ export default function HomePage() {
 
   const { data: featuredData, isLoading: featuredLoading, error: featuredError, refetch: refetchFeatured } = useFeaturedProducts();
   const { data: newData, isLoading: newLoading, error: newError, refetch: refetchNew } = useNewProducts();
+  const { data: categoriesData } = useParentCategories();
 
   const featuredProducts = featuredData?.data || [];
   const newProducts = newData?.data || [];
@@ -175,17 +190,6 @@ export default function HomePage() {
       { emoji: '🏆', text: 'Award-Winning Service' },
     ],
   });
-  const [shopByRoom, setShopByRoom] = useState({
-    enabled: true,
-    items: [
-      { id: '1', name: 'Living Room',           link: '/categories/living-room',  imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80' },
-      { id: '2', name: 'Outdoor',               link: '/categories/outdoor',      imageUrl: 'https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=800&q=80' },
-      { id: '3', name: 'Bedroom',               link: '/categories/bedroom',      imageUrl: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&q=80' },
-      { id: '4', name: 'Dining Room & Kitchen', link: '/categories/dining-room',  imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800&q=80' },
-      { id: '5', name: 'Home Office',           link: '/categories/office',       imageUrl: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80' },
-      { id: '6', name: 'Decor',                 link: '/categories/decor',        imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80' },
-    ],
-  });
   const [brandStory, setBrandStory] = useState({
     enabled: true,
     title: 'Our Story',
@@ -202,7 +206,6 @@ export default function HomePage() {
         if (s?.heroSlides?.items?.length > 0) setHeroSlides(s.heroSlides.items);
         if (s?.offerBar) setOfferBar(s.offerBar);
         if (s?.socialBar) setSocialBar(s.socialBar);
-        if (s?.shopByRoom) setShopByRoom(s.shopByRoom);
         if (s?.brandStory) setBrandStory(s.brandStory);
       })
       .catch(err => logger.error('Settings fetch failed:', err));
@@ -305,32 +308,34 @@ export default function HomePage() {
       </section>
 
       {/* SHOP BY ROOM */}
-      {shopByRoom.enabled && shopByRoom.items.length > 0 && (
+      {categoriesData?.data?.length > 0 && (
         <section className="shop-by-room-section">
           <div className="container">
-            <h2 className="section-title shop-by-room-title">Shop by Room</h2>
+            <h2 className="section-title shop-by-room-title">Shop by Category</h2>
             <div className="shop-by-room-grid">
-              {shopByRoom.items.map((room) => (
-                <Link
-                  key={room.id}
-                  href={room.link || '/products'}
-                  className="room-tile"
-                >
-                  <div className="room-tile-image">
-                    {room.imageUrl && (
-                      <Image
-                        src={room.imageUrl}
-                        alt={room.name}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    )}
-                    <div className="room-tile-overlay" />
-                  </div>
-                  <span className="room-tile-name">{room.name}</span>
-                </Link>
-              ))}
+              {categoriesData.data
+                .filter((cat) => cat.slug !== 'clearance')
+                .map((cat) => {
+                  const imageUrl = CATEGORY_IMAGES[cat.slug];
+                  const href = `/categories/${cat.slug}`;
+                  return (
+                    <Link key={cat.id} href={href} className="room-tile">
+                      <div className="room-tile-image">
+                        {imageUrl && (
+                          <Image
+                            src={imageUrl}
+                            alt={cat.name}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        )}
+                        <div className="room-tile-overlay" />
+                      </div>
+                      <span className="room-tile-name">{cat.name}</span>
+                    </Link>
+                  );
+                })}
             </div>
           </div>
         </section>

@@ -9,13 +9,16 @@ export default function MobileCategoryAccordion({ category, subcategories, icon,
 
   const hasSubcategories = subcategories && subcategories.length > 0;
 
+  const isClearance = category.slug === 'clearance';
+  const categoryHref = isClearance ? '/clearance' : `/categories/${category.slug}`;
+
   if (!hasSubcategories) {
     // No subcategories - just a simple link
     return (
       <div className="mobile-category-item">
         <Link
-          href={`/categories/${category.slug}`}
-          className="mobile-category-link"
+          href={categoryHref}
+          className={`mobile-category-link${isClearance ? ' sale-link' : ''}`}
           onClick={onLinkClick}
         >
           <span className="mobile-category-icon">{icon}</span>

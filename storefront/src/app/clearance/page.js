@@ -6,7 +6,7 @@ import ProductCard from '@/components/products/ProductCard';
 import { ProductsGridSkeleton } from '@/components/products/ProductCardSkeleton';
 import { useSaleProducts } from '@/lib/hooks';
 
-export default function SalePage() {
+export default function ClearancePage() {
   const { data, isLoading, error, refetch } = useSaleProducts();
   const products = data?.data || [];
 
@@ -16,8 +16,8 @@ export default function SalePage() {
         <div className="products-container">
           <div className="products-header">
             <div className="products-header-left">
-              <h1 className="products-title">Sale</h1>
-              <p className="products-subtitle">Special offers on selected pieces</p>
+              <h1 className="products-title">Clearance</h1>
+              <p className="products-subtitle">Discounted pieces — updated automatically</p>
             </div>
           </div>
 
@@ -26,14 +26,14 @@ export default function SalePage() {
               <ProductsGridSkeleton count={8} />
             ) : error ? (
               <div className="products-empty">
-                <p>Unable to load sale products</p>
+                <p>Unable to load clearance products</p>
                 <button className="clear-filters-btn" onClick={() => refetch()}>
                   Try Again
                 </button>
               </div>
             ) : products.length === 0 ? (
               <div className="products-empty">
-                <p>No sale items right now. Check back soon!</p>
+                <p>No clearance items right now. Check back soon!</p>
                 <Link href="/products" className="clear-filters-btn">
                   Browse All Products
                 </Link>

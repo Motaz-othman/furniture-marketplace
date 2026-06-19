@@ -218,18 +218,13 @@ export default function Header() {
                   const subcategories = category.children || [];
                   return (
                     <li key={category.id}>
-                      <MegaMenu 
+                      <MegaMenu
                         category={category}
                         subcategories={subcategories}
                       />
                     </li>
                   );
                 })}
-                <li>
-                  <Link href="/sale" className="nav-link sale-link">
-                    Sale
-                  </Link>
-                </li>
               </>
             )}
           </ul>
@@ -295,15 +290,14 @@ export default function Header() {
             <div className="mobile-menu-section">
               <nav className="mobile-menu-nav">
                 <Link
-                  href="/sale"
+                  href="/clearance"
                   className="mobile-menu-link special"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <span className="mobile-menu-icon">
                     <Flame size={22} strokeWidth={1.5} />
                   </span>
-                  <span>Sale</span>
-                  <span className="mobile-menu-badge">New</span>
+                  <span>Clearance</span>
                 </Link>
                 <Link
                   href="/new-arrivals"

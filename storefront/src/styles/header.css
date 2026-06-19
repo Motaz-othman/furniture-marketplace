@@ -329,16 +329,17 @@
   }
   
   .nav-link {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     padding: 8px 0;
     display: block;
     transition: color 0.2s;
     color: var(--text-main);
     text-decoration: none;
     opacity: 1 !important;
+    font-family: var(--font-primary);
   }
   
   .nav-link:hover { 
@@ -375,6 +376,10 @@
   .mega-menu-trigger:hover {
     color: var(--accent-color);
     opacity: 1;
+  }
+
+  .mega-menu-trigger.sale-link {
+    color: var(--sale-color);
   }
   
   .nav-arrow {
@@ -421,13 +426,18 @@
   
   .mega-menu-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 60px;
-    padding: 40px 0;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 200px));
+    gap: 16px 40px;
+    padding: 32px 0 16px;
   }
-  
+
   .mega-menu-column {
-    min-width: 250px;
+    min-width: 0;
+  }
+
+  .mega-menu-footer {
+    padding: 12px 0 28px;
+    border-top: 1px solid #f0f0f0;
   }
   
   .mega-menu-title {
@@ -480,9 +490,6 @@
     letter-spacing: 1px;
     color: var(--text-main);
     text-decoration: none;
-    padding-top: 12px;
-    border-top: 1px solid #f0f0f0;
-    margin-top: 8px;
     transition: all 0.2s;
     font-family: var(--font-primary);
   }
