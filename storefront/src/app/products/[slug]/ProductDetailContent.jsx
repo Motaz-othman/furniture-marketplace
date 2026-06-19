@@ -63,24 +63,75 @@ function RelatedProductCard({ product }) {
   );
 }
 
-// Helper function to get clean variant label
-function getVariantLabel(variant, productName) {
-  if (variant.attributes && variant.attributes.length > 0) {
-    const mainAttribute = variant.attributes[0];
-    if (mainAttribute.values && mainAttribute.values.length > 0) {
-      return mainAttribute.values[0];
+// Attribute keys that represent SIZE-type variation
+const SIZE_ATTR_KEYS = ['size', 'actual_size', 'dimensions', 'rug_size'];
+// Attribute keys that represent COLOR-type variation
+const COLOR_ATTR_KEYS = ['color', 'finish', 'fabric_color', 'fabric'];
+
+// Inspect all variants to find which attributes actually differ (more than 1 unique value).
+// Returns { sectionLabel, hasColor, hasSize } to drive the section header and button labels.
+function analyzeVariants(variants) {
+  const attrValues = {};
+
+  for (const v of variants) {
+    for (const a of (v.attributes || [])) {
+      const key = a.attribute?.toLowerCase();
+      const val = a.values?.[0] ?? a.normalizedValues?.[0]?.commonName;
+      if (key && val) {
+        if (!attrValues[key]) attrValues[key] = new Set();
+        attrValues[key].add(val);
+      }
     }
-    if (mainAttribute.normalizedValues && mainAttribute.normalizedValues.length > 0) {
-      return mainAttribute.normalizedValues[0].commonName || mainAttribute.normalizedValues[0].value;
+    for (const o of (v.options || [])) {
+      const key = o.option?.toLowerCase();
+      if (key && o.value) {
+        if (!attrValues[key]) attrValues[key] = new Set();
+        attrValues[key].add(o.value);
+      }
     }
   }
 
-  const variantName = variant.name || variant.variantName || '';
-  if (productName && variantName.includes(productName)) {
-    return variantName.replace(productName, '').replace(/^\s*[-:]\s*/, '').trim();
+  const distinguishing = Object.entries(attrValues)
+    .filter(([, s]) => s.size > 1)
+    .map(([k]) => k);
+
+  const hasColor = distinguishing.some(k => COLOR_ATTR_KEYS.includes(k));
+  const hasSize  = distinguishing.some(k => SIZE_ATTR_KEYS.includes(k));
+
+  let sectionLabel;
+  if (hasColor && hasSize)    sectionLabel = 'Color / Size';
+  else if (hasColor)          sectionLabel = 'Color';
+  else if (hasSize)           sectionLabel = 'Size';
+  else if (distinguishing.length) {
+    sectionLabel = distinguishing[0].charAt(0).toUpperCase() + distinguishing[0].slice(1);
+  } else {
+    sectionLabel = 'Options';
   }
 
-  return variantName;
+  return { distinguishing, hasColor, hasSize, sectionLabel };
+}
+
+// Build the button label for a single variant based on which attributes vary.
+function getVariantOptionLabel(variant, hasColor, hasSize) {
+  const getVal = (keys) => {
+    for (const key of keys) {
+      const attr = (variant.attributes || []).find(a => a.attribute?.toLowerCase() === key);
+      if (attr) return attr.values?.[0] ?? attr.normalizedValues?.[0]?.commonName;
+      const opt = (variant.options || []).find(o => o.option?.toLowerCase() === key);
+      if (opt?.value) return opt.value;
+    }
+    return null;
+  };
+
+  const parts = [];
+  if (hasColor) { const v = getVal(COLOR_ATTR_KEYS); if (v) parts.push(v); }
+  if (hasSize)  { const v = getVal(SIZE_ATTR_KEYS);  if (v) parts.push(v); }
+  if (parts.length) return parts.join(' / ');
+
+  // Fallback: first attribute or option value
+  const firstAttr = variant.attributes?.[0];
+  if (firstAttr) return firstAttr.values?.[0] ?? firstAttr.normalizedValues?.[0]?.commonName ?? '—';
+  return variant.options?.[0]?.value ?? variant.sku ?? '—';
 }
 
 export default function ProductDetailContent({ slug }) {
@@ -541,42 +592,39 @@ export default function ProductDetailContent({ slug }) {
             )}
 
             {product.variants && product.variants.length > 1 && (() => {
-              const optionName = product.variants[0]?.options?.[0]?.option;
-              const label = optionName
-                ? optionName.charAt(0).toUpperCase() + optionName.slice(1)
-                : 'Options';
+              const { hasColor, hasSize, sectionLabel } = analyzeVariants(product.variants);
               return (
-              <div className="product-variants">
-                <label>{label}:</label>
-                <div className="variant-options">
-                  {product.variants.map((variant) => {
-                    const colorHex = getColorFromVariant(variant);
-                    if (colorHex) {
-                      return (
-                        <button
-                          key={variant.id}
-                          className={`variant-color-swatch ${selectedVariant?.id === variant.id ? 'selected' : ''}`}
-                          onClick={() => handleVariantSelect(variant)}
-                          title={variant.name || variant.variantName}
-                          style={{ backgroundColor: colorHex }}
-                        >
-                          <span className="color-checkmark">✓</span>
-                        </button>
-                      );
-                    } else {
+                <div className="product-variants">
+                  <label>{sectionLabel}:</label>
+                  <div className="variant-options">
+                    {product.variants.map((variant) => {
+                      // Show color swatches only when color is the sole differentiator
+                      const colorHex = (hasColor && !hasSize) ? getColorFromVariant(variant) : null;
+                      if (colorHex) {
+                        return (
+                          <button
+                            key={variant.id}
+                            className={`variant-color-swatch ${selectedVariant?.id === variant.id ? 'selected' : ''}`}
+                            onClick={() => handleVariantSelect(variant)}
+                            title={getVariantOptionLabel(variant, hasColor, hasSize)}
+                            style={{ backgroundColor: colorHex }}
+                          >
+                            <span className="color-checkmark">✓</span>
+                          </button>
+                        );
+                      }
                       return (
                         <button
                           key={variant.id}
                           className={`variant-btn ${selectedVariant?.id === variant.id ? 'selected' : ''}`}
                           onClick={() => handleVariantSelect(variant)}
                         >
-                          {getVariantLabel(variant, product.name)}
+                          {getVariantOptionLabel(variant, hasColor, hasSize)}
                         </button>
                       );
-                    }
-                  })}
+                    })}
+                  </div>
                 </div>
-              </div>
               );
             })()}
 

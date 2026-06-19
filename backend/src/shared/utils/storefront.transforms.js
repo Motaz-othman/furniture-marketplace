@@ -37,11 +37,20 @@ function buildMeasurements(variant) {
   }];
 }
 
-function buildImages(media, listingImages) {
+// Build the images array from product media.
+// skuToId: { sku → variantId } map, used to resolve variantSkus tags written
+// by the UW adapter for multi-color products (preserved through S3 migration).
+function buildImages(media, listingImages, skuToId = {}) {
   if (listingImages) return listingImages;
 
   const images = [];
   let imageId = 1;
+
+  const resolveIds = (img) => {
+    if (img.variantProductIds) return img.variantProductIds;
+    if (img.variantSkus) return img.variantSkus.map(s => skuToId[s]).filter(Boolean);
+    return undefined;
+  };
 
   if (media?.mainImages) {
     for (const img of media.mainImages) {
@@ -49,7 +58,7 @@ function buildImages(media, listingImages) {
         id: imageId++,
         imageUrl: img.url,
         displayOrder: images.length + 1,
-        variantProductIds: img.variantProductIds,
+        variantProductIds: resolveIds(img),
       });
     }
   }
@@ -60,7 +69,7 @@ function buildImages(media, listingImages) {
         id: imageId++,
         imageUrl: img.url,
         displayOrder: images.length + 1,
-        variantProductIds: img.variantProductIds,
+        variantProductIds: resolveIds(img),
       });
     }
   }
@@ -122,8 +131,13 @@ export function transformProductForStorefront(product, listing = null) {
     ? originalPrice
     : null;
 
+  // Build SKU → variant ID map (needed to resolve variantSkus tags on images)
+  const skuToId = Object.fromEntries(
+    (product.variants || []).map(v => [v.sku, v.externalProductId || v.id])
+  );
+
   // Images
-  const images = buildImages(product.media, sf?.displayImages);
+  const images = buildImages(product.media, sf?.displayImages, skuToId);
 
   // Category: StorefrontListing category overrides Product category
   const category = sf?.category ?? product.category;

@@ -109,21 +109,78 @@ function buildProductName(row) {
 
 // ─── Per-row builders ─────────────────────────────────────────────────────────
 
-function buildMedia(row) {
-  const imageFields = [
-    'Image Link - Headshot',
-    'Image Link - Room Scene 1',
-    'Image Link - Room Scene 2',
-    'Image Link - Room Scene 3',
-    'Image Link - Angle Shot 1',
-    'Image Link - Angle Shot 2',
-    'Image Link - Close Up',
-    'Image Link - Side Close Up',
-    'Image Link - Backing',
-    'Image Link - Height/Thickness',
-  ];
+const IMAGE_FIELDS = [
+  'Image Link - Headshot',
+  'Image Link - Room Scene 1',
+  'Image Link - Room Scene 2',
+  'Image Link - Room Scene 3',
+  'Image Link - Angle Shot 1',
+  'Image Link - Angle Shot 2',
+  'Image Link - Close Up',
+  'Image Link - Side Close Up',
+  'Image Link - Backing',
+  'Image Link - Height/Thickness',
+];
 
-  const urls = imageFields.map(f => row[f]?.trim()).filter(Boolean);
+function rowImageUrls(row) {
+  return IMAGE_FIELDS.map(f => row[f]?.trim()).filter(Boolean);
+}
+
+// Build product-level media, handling single-color and multi-color variant groups.
+// When multiple Primary Colors exist in the group, each color's images are tagged
+// with variantSkus so the storefront can switch images on variant selection.
+// variantSkus are resolved to DB IDs at query time in storefront.transforms.js.
+function buildProductMedia(groupRows) {
+  // Group rows by Primary Color
+  const colorGroups = new Map();
+  for (const row of groupRows) {
+    const color = row['Primary Color']?.trim() || '__default__';
+    if (!colorGroups.has(color)) colorGroups.set(color, []);
+    colorGroups.get(color).push(row);
+  }
+
+  const firstRow = groupRows[0];
+  const firstUrls = rowImageUrls(firstRow);
+  const mainUrl = firstUrls[0] || null;
+
+  if (colorGroups.size <= 1) {
+    // All variants share the same color — single shared image set
+    const rest = firstUrls.slice(1);
+    return {
+      mainImage: mainUrl,
+      media: mainUrl
+        ? { mainImages: [{ url: mainUrl }], additionalImages: rest.map(url => ({ url })) }
+        : null,
+    };
+  }
+
+  // Multiple colors: first color's headshot becomes the product main image.
+  // Each color group's images are tagged with the SKUs of ALL variants in that group
+  // so the storefront can switch the gallery when a different-color variant is selected.
+  const additionalImages = [];
+  let isFirstColor = true;
+
+  for (const [, rows] of colorGroups) {
+    const colorSkus = rows.map(r => r['Style Number']?.trim().replace(/\s+/g, '-'));
+    const urls = rowImageUrls(rows[0]); // representative row for this color
+    const startIdx = isFirstColor ? 1 : 0; // skip headshot for first color (already mainImage)
+
+    for (const url of urls.slice(startIdx)) {
+      additionalImages.push({ url, variantSkus: colorSkus });
+    }
+    isFirstColor = false;
+  }
+
+  return {
+    mainImage: mainUrl,
+    media: mainUrl
+      ? { mainImages: [{ url: mainUrl }], additionalImages }
+      : null,
+  };
+}
+
+function buildMedia(row) {
+  const urls = rowImageUrls(row);
   if (!urls.length) return { mainImage: null, media: null };
 
   const [mainUrl, ...rest] = urls;
@@ -211,7 +268,7 @@ export function parseUnitedWeaversRugs({ catalogCsv, inventoryCsv }) {
                       'Key Features #4','Key Features #5','Key Features #6','Key Features #7'];
     const specifications = specKeys.map(k => firstRow[k]?.trim()).filter(Boolean);
 
-    const { mainImage, media } = buildMedia(firstRow);
+    const { mainImage, media } = buildProductMedia(groupRows);
 
     const product = {
       source: 'UW',
