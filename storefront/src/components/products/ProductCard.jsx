@@ -166,29 +166,54 @@ const ProductCard = memo(function ProductCard({ product, index }) {
           </div>
         )}
 
-        {product.variants && product.variants.length > 0 && (
-          <div className="color-swatches">
-            {product.variants.slice(0, 3).map((variant, idx) => {
-              const colorHex = getColorFromVariant(variant);
-              const isOutOfStock = variant.stockQuantity === 0;
+        {product.variants && product.variants.length > 0 && (() => {
+          const firstVariant = product.variants[0];
+          const isColorType = !!getColorFromVariant(firstVariant);
+          const optionLabel = firstVariant?.options?.[0]?.option || null;
+          const MAX = 3;
 
-              return colorHex ? (
-                <button
-                  key={variant.id}
-                  type="button"
-                  className={`color-swatch ${idx === selectedVariantIndex ? 'active' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`}
-                  style={{ background: colorHex }}
-                  title={`${variant.variantName || variant.name}${isOutOfStock ? ' — Out of Stock' : ''}`}
-                  aria-label={`Select ${variant.variantName || variant.name}${isOutOfStock ? ', out of stock' : ''}`}
-                  onClick={(e) => handleVariantSelect(e, idx)}
-                />
-              ) : null;
-            })}
-            {product.variants.length > 3 && (
-              <span className="swatch-more">+{product.variants.length - 3}</span>
-            )}
-          </div>
-        )}
+          return (
+            <div className="color-swatches">
+              {product.variants.slice(0, MAX).map((variant, idx) => {
+                const colorHex = getColorFromVariant(variant);
+                const isOutOfStock = variant.stockQuantity === 0;
+                const label = variant.options?.[0]?.value || variant.variantName || variant.name;
+
+                if (colorHex) {
+                  return (
+                    <button
+                      key={variant.id}
+                      type="button"
+                      className={`color-swatch ${idx === selectedVariantIndex ? 'active' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`}
+                      style={{ background: colorHex }}
+                      title={`${label}${isOutOfStock ? ' — Out of Stock' : ''}`}
+                      aria-label={`Select ${label}${isOutOfStock ? ', out of stock' : ''}`}
+                      onClick={(e) => handleVariantSelect(e, idx)}
+                    />
+                  );
+                }
+                if (!isColorType && label) {
+                  return (
+                    <button
+                      key={variant.id}
+                      type="button"
+                      className={`variant-option-pill ${idx === selectedVariantIndex ? 'active' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`}
+                      title={`${label}${isOutOfStock ? ' — Out of Stock' : ''}`}
+                      aria-label={`Select ${label}${isOutOfStock ? ', out of stock' : ''}`}
+                      onClick={(e) => handleVariantSelect(e, idx)}
+                    >
+                      {label}
+                    </button>
+                  );
+                }
+                return null;
+              })}
+              {product.variants.length > MAX && (
+                <span className="swatch-more">+{product.variants.length - MAX}</span>
+              )}
+            </div>
+          );
+        })()}
 
         <div className={`product-price ${product.compareAtPrice ? 'sale' : ''}`}>
           {product.compareAtPrice && (

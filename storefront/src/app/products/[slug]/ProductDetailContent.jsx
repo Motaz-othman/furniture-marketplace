@@ -540,9 +540,14 @@ export default function ProductDetailContent({ slug }) {
               <p className="product-description">{product.shortDescription}</p>
             )}
 
-            {product.variants && product.variants.length > 1 && (
+            {product.variants && product.variants.length > 1 && (() => {
+              const optionName = product.variants[0]?.options?.[0]?.option;
+              const label = optionName
+                ? optionName.charAt(0).toUpperCase() + optionName.slice(1)
+                : 'Options';
+              return (
               <div className="product-variants">
-                <label>Options:</label>
+                <label>{label}:</label>
                 <div className="variant-options">
                   {product.variants.map((variant) => {
                     const colorHex = getColorFromVariant(variant);
@@ -572,7 +577,8 @@ export default function ProductDetailContent({ slug }) {
                   })}
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             <div className="quantity-section">
               <label>Quantity:</label>
