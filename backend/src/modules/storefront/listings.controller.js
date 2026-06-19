@@ -387,7 +387,7 @@ export const getRawProductById = async (req, res) => {
 
 export const getRawProducts = async (req, res) => {
   try {
-    const { cursor, limit = 20, search, status, brand, categoryId, collection, minPrice, maxPrice, acmeStatus } = req.query;
+    const { cursor, limit = 20, search, status, source, brand, categoryId, collection, minPrice, maxPrice, acmeStatus } = req.query;
     const limitNum = Math.min(parseInt(limit), 100);
 
     const where = {};
@@ -398,6 +398,11 @@ export const getRawProducts = async (req, res) => {
         { externalId: { contains: search, mode: 'insensitive' } },
         { variants: { some: { sku: { contains: search, mode: 'insensitive' } } } },
       ];
+    }
+
+    // Source / vendor filter — uses the source index, very fast
+    if (source) {
+      where.source = source;
     }
 
     // Status filter: published, draft, unlisted

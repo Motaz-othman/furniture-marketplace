@@ -45,6 +45,7 @@ export default function ProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || '');
   const [filters, setFilters] = useState(() => ({
     status: searchParams.get('status') || '',
+    source: searchParams.get('source') || '',
     brand: searchParams.get('brand') || '',
     categoryId: searchParams.get('categoryId') || '',
     collection: searchParams.get('collection') || '',
@@ -116,7 +117,7 @@ export default function ProductsPage() {
   }
 
   function clearFilters() {
-    const empty = { status: '', brand: '', categoryId: '', collection: '', minPrice: '', maxPrice: '', acmeStatus: '' };
+    const empty = { status: '', source: '', brand: '', categoryId: '', collection: '', minPrice: '', maxPrice: '', acmeStatus: '' };
     setFilters(empty);
     setSearch('');
     setDebouncedSearch('');
@@ -268,6 +269,19 @@ export default function ProductsPage() {
               <SelectItem value="published">Published</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="unlisted">Not Listed</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.source} onValueChange={(v) => setFilter('source', v)}>
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Vendor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACME">ACME</SelectItem>
+              <SelectItem value="GFW">Global Furniture</SelectItem>
+              <SelectItem value="UW">United Weavers</SelectItem>
+              <SelectItem value="WONDERSIGN">Wondersign</SelectItem>
+              <SelectItem value="MANUAL">Manual</SelectItem>
             </SelectContent>
           </Select>
 
