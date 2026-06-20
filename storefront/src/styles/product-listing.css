@@ -163,6 +163,14 @@
     gap: 32px;
     margin-bottom: 60px;
   }
+
+  /* Subtle dim while a background page/sort fetch is in progress.
+     Previous data stays visible so there's no skeleton flash. */
+  .products-grid--loading {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
   
   /* List View */
   .products-grid.list-view {

@@ -108,9 +108,16 @@ function applyPricingRule(basePrice, rule) {
  */
 export function transformProductForListing(product, listing = null) {
   const sf = listing || product.storefront;
-  const mainVariant = product.variants?.[0];
 
-  let originalPrice = product.minPrice ?? mainVariant?.price?.retailPrice ?? 0;
+  // product.minPrice stores min(variant.cost), NOT min(variant.retailPrice).
+  // Compute retail price range directly from variant data.
+  const retailPrices = (product.variants || [])
+    .map(v => v.price?.retailPrice)
+    .filter(p => p != null && p > 0);
+  const minRetailPrice = retailPrices.length > 0 ? Math.min(...retailPrices) : 0;
+  const maxRetailPrice = retailPrices.length > 1 ? Math.max(...retailPrices) : null;
+
+  let originalPrice = minRetailPrice;
   if (sf?.displayPrice != null) {
     originalPrice = sf.displayPrice;
   } else if (sf?.pricingRule) {
@@ -163,9 +170,15 @@ export function transformProductForListing(product, listing = null) {
     });
   }
 
-  // maxPrice lets the card compute the price range without iterating all variants.
-  const allPrices = (product.variants || []).map(v => v.price?.retailPrice).filter(Boolean);
-  const maxPrice = allPrices.length > 1 ? Math.max(...allPrices) : null;
+  // Compute the upper bound of the price range. Apply the same pricing rule so
+  // both ends of the range are consistently transformed.
+  let maxPrice = null;
+  if (!sf?.displayPrice && maxRetailPrice && maxRetailPrice > minRetailPrice) {
+    const adjustedMax = sf?.pricingRule
+      ? applyPricingRule(maxRetailPrice, sf.pricingRule)
+      : maxRetailPrice;
+    if (adjustedMax > price) maxPrice = adjustedMax;
+  }
 
   return {
     id: product.id,
@@ -207,8 +220,9 @@ export function transformProductForStorefront(product, listing = null) {
   const sf = listing || product.storefront;
   const mainVariant = product.variants?.[0];
 
-  // Original price resolution (the regular selling price)
-  let originalPrice = product.minPrice ?? mainVariant?.price?.retailPrice ?? 0;
+  // Original price resolution — use the first (default) variant's retailPrice.
+  // product.minPrice stores min(cost), not min(retailPrice), so it is not used here.
+  let originalPrice = mainVariant?.price?.retailPrice ?? 0;
   if (sf?.displayPrice != null) {
     originalPrice = sf.displayPrice;
   } else if (sf?.pricingRule) {

@@ -8,7 +8,7 @@ import { findMatchingProductIds } from '../../shared/utils/fuzzySearch.js';
 // TTL = 60s; stale entries are pruned lazily on each write.
 
 const listingCache = new Map();
-const CACHE_TTL = 60_000;
+const CACHE_TTL = 5 * 60_000; // 5 minutes
 
 function cacheGet(key) {
   const entry = listingCache.get(key);

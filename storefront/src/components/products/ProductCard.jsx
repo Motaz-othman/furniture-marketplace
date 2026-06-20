@@ -1,12 +1,16 @@
 'use client';
 
-import { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import { useState, memo, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { formatPrice, getColorFromVariant, getThumbnailUrl } from '@/lib/utils';
+import { formatPrice, getColorFromVariant } from '@/lib/utils';
 import { useWishlist } from '@/lib/hooks';
 import { Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+// Static gray blur placeholder — shown instantly while the real image loads.
+// Eliminates the flash of blank space and the animated shimmer for ALL images.
+const BLUR_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
 
 // Isolated so only this component re-renders on wishlist changes,
 // not the entire ProductCard (which would cascade across all 20 cards).
@@ -40,7 +44,6 @@ const WishlistButton = memo(function WishlistButton({ product }) {
 const ProductCard = memo(function ProductCard({ product, index }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
   const currentImages = useMemo(() => {
@@ -53,7 +56,6 @@ const ProductCard = memo(function ProductCard({ product, index }) {
   }, [product.variants, product.images, selectedVariantIndex]);
 
   const currentImageUrl = currentImages?.[currentImageIndex]?.imageUrl || currentImages?.[0]?.imageUrl || null;
-  const thumbnailUrl = useMemo(() => getThumbnailUrl(currentImageUrl), [currentImageUrl]);
 
   // Use server-computed maxPrice when available to avoid iterating all variants.
   const priceDisplay = useMemo(() => {
@@ -64,12 +66,6 @@ const ProductCard = memo(function ProductCard({ product, index }) {
       : formatPrice(product.price);
   }, [product.price, product.maxPrice]);
 
-  useEffect(() => {
-    setImageLoaded(false);
-    setImageError(false);
-  }, [currentImageUrl]);
-
-  const handleImageLoad = useCallback(() => setImageLoaded(true), []);
   const handleImageError = useCallback(() => setImageError(true), []);
 
   const handleImageDotClick = useCallback((e, idx) => {
@@ -104,20 +100,17 @@ const ProductCard = memo(function ProductCard({ product, index }) {
 
         <WishlistButton product={product} />
 
-        <div className="product-image-wrapper progressive-image-wrapper">
-          <div className={`progressive-image-shimmer ${imageLoaded ? 'loaded' : ''}`} />
-
+        <div className="product-image-wrapper">
           {currentImageUrl && !imageError ? (
             <Image
               src={currentImageUrl}
               alt={product.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className={`product-img progressive-image-main ${imageLoaded ? 'loaded' : ''}`}
-              onLoad={handleImageLoad}
+              className="product-img"
               onError={handleImageError}
-              placeholder={thumbnailUrl ? 'blur' : 'empty'}
-              blurDataURL={thumbnailUrl || undefined}
+              placeholder="blur"
+              blurDataURL={BLUR_PLACEHOLDER}
               priority={index < 4}
             />
           ) : (

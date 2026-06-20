@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { keepPreviousData } from '@tanstack/react-query';
 import MainLayout from '@/components/layout/MainLayout';
 import FilterModal from '@/components/products/FilterModal';
 import ProductCard from '@/components/products/ProductCard';
@@ -53,12 +54,12 @@ function ProductsContent() {
   const searchQuery = searchParams.get('search') || '';
 
   // Fetch products and categories
-  const { data, isLoading } = useProducts({
+  const { data, isLoading, isFetching } = useProducts({
     page: currentPage,
     limit: 12,
     sortBy: sortBy,
     search: searchQuery || undefined,
-  });
+  }, { placeholderData: keepPreviousData });
   const { data: categoriesData } = useCategories();
 
   const products = data?.data || [];
@@ -235,7 +236,7 @@ function ProductsContent() {
               ) : filteredProducts.length === 0 ? (
                 <div className="products-empty">
                   <p>No products found matching your filters</p>
-                  <button 
+                  <button
                     className="clear-filters-btn"
                     onClick={handleClearFilters}
                   >
@@ -244,7 +245,7 @@ function ProductsContent() {
                 </div>
               ) : (
                 <>
-                  <div className={`products-grid ${viewMode === 'list' ? 'list-view' : ''}`}>
+                  <div className={`products-grid ${viewMode === 'list' ? 'list-view' : ''} ${isFetching ? 'products-grid--loading' : ''}`}>
                     {filteredProducts.map((product, index) => (
                       <ProductCard key={product.id} product={product} index={index} />
                     ))}
