@@ -55,10 +55,18 @@ export default function ProductsPage() {
     maxPrice: searchParams.get('maxPrice') || '',
     acmeStatus: searchParams.get('acmeStatus') || '',
   }));
+  const [activeTab, setActiveTab] = useState('all');
+
   // Cursor stack for back navigation: [null, cursor1, cursor2, ...]
   const [cursorStack, setCursorStack] = useState([null]);
   const [stackIndex, setStackIndex] = useState(0);
   const currentCursor = cursorStack[stackIndex];
+
+  function switchTab(tab) {
+    setActiveTab(tab);
+    setCursorStack([null]);
+    setStackIndex(0);
+  }
 
   const [selected, setSelected] = useState(new Set());
   const [addDialog, setAddDialog] = useState(null);
@@ -88,8 +96,14 @@ export default function ProductsPage() {
   const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
 
   const { data: productsRes, isLoading, isFetching } = useQuery({
-    queryKey: ['raw-products', debouncedSearch, currentCursor, activeFilters],
-    queryFn: () => getRawProducts({ search: debouncedSearch, cursor: currentCursor || undefined, limit: 20, ...activeFilters }),
+    queryKey: ['raw-products', debouncedSearch, currentCursor, activeFilters, activeTab],
+    queryFn: () => getRawProducts({
+      search: debouncedSearch,
+      cursor: currentCursor || undefined,
+      limit: 20,
+      ...activeFilters,
+      ...(activeTab !== 'all' ? { source: activeTab } : {}),
+    }),
     placeholderData: keepPreviousData,
   });
 
@@ -106,7 +120,6 @@ export default function ProductsPage() {
   const products = productsRes?.data || [];
   const categories = categoriesRes?.data || [];
   const filterOptions = filtersRes?.data || {};
-  const brands = filterOptions.brands || [];
   const collections = filterOptions.collections || [];
   const categoryOptions = filterOptions.categories || [];
 
@@ -125,10 +138,11 @@ export default function ProductsPage() {
     setDebouncedSearch('');
     setCursorStack([null]);
     setStackIndex(0);
+    setActiveTab('all');
     router.replace(pathname, { scroll: false });
   }
 
-  const hasActiveFilters = Object.values(filters).some(Boolean) || !!search;
+  const hasActiveFilters = Object.values(filters).some(Boolean) || !!search || activeTab !== 'all';
 
   const createMutation = useMutation({
     mutationFn: (data) => createListing(data),
@@ -251,6 +265,28 @@ export default function ProductsPage() {
         )}
       </div>
 
+      {/* Vendor Tabs */}
+      <div className="flex items-center border-b">
+        {[
+          { key: 'all', label: 'All' },
+          { key: 'UW', label: 'United Weavers' },
+          { key: 'ACME', label: 'ACME' },
+          { key: 'GFW', label: 'Global Furniture' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => switchTab(key)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              activeTab === key
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-3">
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -274,18 +310,20 @@ export default function ProductsPage() {
             </SelectContent>
           </Select>
 
-          <Select value={filters.source} onValueChange={(v) => setFilter('source', v)}>
-            <SelectTrigger className="w-[140px] h-8 text-xs">
-              <SelectValue placeholder="Vendor" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACME">ACME</SelectItem>
-              <SelectItem value="GFW">Global Furniture</SelectItem>
-              <SelectItem value="UW">United Weavers</SelectItem>
-              <SelectItem value="WONDERSIGN">Wondersign</SelectItem>
-              <SelectItem value="MANUAL">Manual</SelectItem>
-            </SelectContent>
-          </Select>
+          {activeTab === 'all' && (
+            <Select value={filters.source} onValueChange={(v) => setFilter('source', v)}>
+              <SelectTrigger className="w-[140px] h-8 text-xs">
+                <SelectValue placeholder="Vendor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACME">ACME</SelectItem>
+                <SelectItem value="GFW">Global Furniture</SelectItem>
+                <SelectItem value="UW">United Weavers</SelectItem>
+                <SelectItem value="WONDERSIGN">Wondersign</SelectItem>
+                <SelectItem value="MANUAL">Manual</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
 
           <div className="flex items-center gap-1">
             <Input
@@ -298,17 +336,6 @@ export default function ProductsPage() {
             />
             <span className="text-xs text-muted-foreground">+</span>
           </div>
-
-          <Select value={filters.brand} onValueChange={(v) => setFilter('brand', v)}>
-            <SelectTrigger className="w-[160px] h-8 text-xs">
-              <SelectValue placeholder="Brand" />
-            </SelectTrigger>
-            <SelectContent>
-              {brands.map((b) => (
-                <SelectItem key={b} value={b}>{b}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
 
           <Select value={filters.categoryId} onValueChange={(v) => setFilter('categoryId', v)}>
             <SelectTrigger className="w-[160px] h-8 text-xs">
@@ -333,16 +360,18 @@ export default function ProductsPage() {
             </SelectContent>
           </Select>
 
-          <Select value={filters.acmeStatus} onValueChange={(v) => setFilter('acmeStatus', v)}>
-            <SelectTrigger className="w-[160px] h-8 text-xs">
-              <SelectValue placeholder="ACME Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="DISABLED">Disconnected</SelectItem>
-              <SelectItem value="REMOVED">Deleted</SelectItem>
-            </SelectContent>
-          </Select>
+          {(activeTab === 'all' || activeTab === 'ACME') && (
+            <Select value={filters.acmeStatus} onValueChange={(v) => setFilter('acmeStatus', v)}>
+              <SelectTrigger className="w-[160px] h-8 text-xs">
+                <SelectValue placeholder="ACME Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="DISABLED">Disconnected</SelectItem>
+                <SelectItem value="REMOVED">Deleted</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
 
           <div className="flex items-center gap-1">
             <Input
