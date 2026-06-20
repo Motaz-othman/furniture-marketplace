@@ -113,8 +113,8 @@ export default function ProductsPage() {
   });
 
   const { data: filtersRes } = useQuery({
-    queryKey: ['raw-product-filters'],
-    queryFn: getRawProductFilters,
+    queryKey: ['raw-product-filters', activeTab],
+    queryFn: () => getRawProductFilters(activeTab !== 'all' ? { source: activeTab } : {}),
   });
 
   const products = productsRes?.data || [];

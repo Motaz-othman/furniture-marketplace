@@ -562,9 +562,12 @@ export const setMainImage = async (req, res) => {
 
 export const getRawProductFilters = async (req, res) => {
   try {
+    const { source } = req.query;
+    const vendorFilter = source ? { source } : {};
+
     const [brands, collections, topLevelCats] = await Promise.all([
-      prisma.product.findMany({ where: { brand: { not: null } }, select: { brand: true }, distinct: ['brand'], orderBy: { brand: 'asc' } }),
-      prisma.product.findMany({ where: { collection: { not: null } }, select: { collection: true }, distinct: ['collection'], orderBy: { collection: 'asc' } }),
+      prisma.product.findMany({ where: { brand: { not: null }, ...vendorFilter }, select: { brand: true }, distinct: ['brand'], orderBy: { brand: 'asc' } }),
+      prisma.product.findMany({ where: { collection: { not: null }, ...vendorFilter }, select: { collection: true }, distinct: ['collection'], orderBy: { collection: 'asc' } }),
       prisma.category.findMany({
         where: { parentId: null },
         select: { id: true, name: true, children: { select: { id: true } } },
@@ -572,13 +575,14 @@ export const getRawProductFilters = async (req, res) => {
       }),
     ]);
 
-    // Only return top-level categories that have at least one product (direct or via child)
+    // Only return top-level categories that have at least one product (direct or via child),
+    // scoped to the vendor when a source filter is active
     const categories = (
       await Promise.all(
         topLevelCats.map(async (cat) => {
           const childIds = cat.children.map((c) => c.id);
           const count = await prisma.product.count({
-            where: { categoryId: { in: [cat.id, ...childIds] } },
+            where: { categoryId: { in: [cat.id, ...childIds] }, ...vendorFilter },
           });
           return count > 0 ? { id: cat.id, name: cat.name, childIds } : null;
         })

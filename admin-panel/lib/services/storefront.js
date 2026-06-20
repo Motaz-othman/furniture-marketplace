@@ -5,8 +5,8 @@ export async function getRawProducts(params = {}) {
   return data;
 }
 
-export async function getRawProductFilters() {
-  const { data } = await api.get('/admin/storefront/products/filters');
+export async function getRawProductFilters(params = {}) {
+  const { data } = await api.get('/admin/storefront/products/filters', { params });
   return data;
 }
 
