@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { getListings, updateListing, deleteListing, bulkUpdateListings, bulkDeleteListings, getCategories, getRawProductFilters } from '@/lib/services/storefront';
 import { Button } from '@/components/ui/button';
@@ -131,6 +132,7 @@ export default function ListingsPage() {
   const { data: listingsRes, isLoading } = useQuery({
     queryKey: ['listings', debouncedSearch, page, activeFilters],
     queryFn: () => getListings(queryParams),
+    placeholderData: keepPreviousData,
   });
 
   const { data: categoriesRes } = useQuery({
@@ -443,11 +445,17 @@ export default function ListingsPage() {
                   </TableCell>
                   <TableCell>
                     {listing.product?.mainImage ? (
-                      <img
-                        src={listing.product.mainImage}
-                        alt={displayName(listing)}
-                        className="w-10 h-10 rounded object-cover"
-                      />
+                      <div className="relative w-10 h-10 rounded overflow-hidden">
+                        <Image
+                          src={listing.product.mainImage}
+                          alt={displayName(listing)}
+                          fill
+                          sizes="40px"
+                          className="object-cover"
+                          loading="lazy"
+                          unoptimized={!listing.product.mainImage.includes('amazonaws.com')}
+                        />
+                      </div>
                     ) : (
                       <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
                         <Package className="h-4 w-4 text-muted-foreground" />
