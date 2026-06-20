@@ -97,6 +97,7 @@ export default function ListingsPage() {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(t);
   }, [search]);
+  const [activeTab, setActiveTab] = useState('all');
   const [filters, setFilters] = useState({ status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [selected, setSelected] = useState(new Set());
@@ -105,21 +106,28 @@ export default function ListingsPage() {
   const [bulkCategoryId, setBulkCategoryId] = useState('');
 
   const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
-  const hasActiveFilters = Object.values(filters).some(Boolean);
+  const hasActiveFilters = Object.values(filters).some(Boolean) || activeTab !== 'all';
 
   function setFilter(key, value) {
     setFilters(f => ({ ...f, [key]: value }));
     setPage(1);
   }
 
+  function switchTab(tab) {
+    setActiveTab(tab);
+    setPage(1);
+  }
+
   function clearFilters() {
     setFilters({ status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' });
     setSearch('');
+    setActiveTab('all');
     setPage(1);
   }
 
   const queryParams = { page, limit: 20 };
   if (debouncedSearch) queryParams.search = debouncedSearch;
+  if (activeTab !== 'all') queryParams.source = activeTab;
   if (activeFilters.status === 'published') queryParams.isPublished = 'true';
   if (activeFilters.status === 'drafts') queryParams.isPublished = 'false';
   if (activeFilters.brand) queryParams.brand = activeFilters.brand;
@@ -130,7 +138,7 @@ export default function ListingsPage() {
   if (activeFilters.maxPrice) queryParams.maxPrice = activeFilters.maxPrice;
 
   const { data: listingsRes, isLoading } = useQuery({
-    queryKey: ['listings', debouncedSearch, page, activeFilters],
+    queryKey: ['listings', debouncedSearch, page, activeFilters, activeTab],
     queryFn: () => getListings(queryParams),
     placeholderData: keepPreviousData,
   });
@@ -141,8 +149,8 @@ export default function ListingsPage() {
   });
 
   const { data: filtersRes } = useQuery({
-    queryKey: ['raw-product-filters'],
-    queryFn: getRawProductFilters,
+    queryKey: ['raw-product-filters', activeTab],
+    queryFn: () => getRawProductFilters(activeTab !== 'all' ? { source: activeTab } : {}),
   });
 
   const categories = categoriesRes?.data || [];
@@ -284,6 +292,28 @@ export default function ListingsPage() {
         </p>
       </div>
 
+      {/* Vendor Tabs */}
+      <div className="flex items-center border-b">
+        {[
+          { key: 'all', label: 'All' },
+          { key: 'UW', label: 'United Weavers' },
+          { key: 'ACME', label: 'ACME' },
+          { key: 'GFW', label: 'Global Furniture' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => switchTab(key)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              activeTab === key
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-3">
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -306,16 +336,18 @@ export default function ListingsPage() {
             </SelectContent>
           </Select>
 
-          <Select value={filters.brand} onValueChange={(v) => setFilter('brand', v)}>
-            <SelectTrigger className="w-[160px] h-8 text-xs">
-              <SelectValue placeholder="Brand" />
-            </SelectTrigger>
-            <SelectContent>
-              {brands.map((b) => (
-                <SelectItem key={b} value={b}>{b}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {brands.length > 0 && (
+            <Select value={filters.brand} onValueChange={(v) => setFilter('brand', v)}>
+              <SelectTrigger className="w-[160px] h-8 text-xs">
+                <SelectValue placeholder="Brand" />
+              </SelectTrigger>
+              <SelectContent>
+                {brands.map((b) => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           <Select value={filters.categoryId} onValueChange={(v) => setFilter('categoryId', v)}>
             <SelectTrigger className="w-[160px] h-8 text-xs">

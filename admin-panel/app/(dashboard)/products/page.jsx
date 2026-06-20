@@ -71,7 +71,7 @@ export default function ProductsPage() {
   const [selected, setSelected] = useState(new Set());
   const [addDialog, setAddDialog] = useState(null);
   const [bulkDialog, setBulkDialog] = useState(false);
-  const [formData, setFormData] = useState({ mainCategoryId: '', subCategoryId: '', marginPercent: '50', displayPrice: '', isPublished: true });
+  const [formData, setFormData] = useState({ mainCategoryId: '', subCategoryId: '', marginPercent: '', variantPrices: {}, isPublished: true });
   const [bulkData, setBulkData] = useState({ markupPercent: '30', isPublished: false });
 
   // Sync state to URL
@@ -149,7 +149,7 @@ export default function ProductsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['raw-products'] });
       setAddDialog(null);
-      setFormData({ mainCategoryId: '', subCategoryId: '', marginPercent: '50', displayPrice: '', isPublished: true });
+      setFormData({ mainCategoryId: '', subCategoryId: '', marginPercent: '', variantPrices: {}, isPublished: true });
       toast.success('Product added to storefront');
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to add'),
@@ -185,19 +185,44 @@ export default function ProductsPage() {
     }
   }
 
-  function calcDisplayPrice(product, marginPct) {
+  // When a product has no variants, synthesize a single product-level row so the
+  // pricing table always appears with the same Cost | MAP | Display Price layout.
+  const PRODUCT_ROW_ID = '__product__';
+
+  function getDisplayVariants(product) {
+    const variants = product?.variants || [];
+    if (variants.length > 0) return variants;
+    return [{
+      id: PRODUCT_ROW_ID,
+      name: product?.name || 'Product',
+      sku: null,
+      price: { cost: null, mapPrice: null, retailPrice: product?.minPrice ?? null },
+    }];
+  }
+
+  function calcVariantPrice(variant, marginPct) {
     const pct = parseFloat(marginPct);
-    if (!product || isNaN(pct) || pct < 0) return '';
-    const cost = product.variants?.[0]?.price?.cost;
-    const retail = product.variants?.[0]?.price?.retailPrice ?? product.minPrice;
-    const base = cost ?? retail;
-    if (!base) return '';
-    return (base * (1 + pct / 100)).toFixed(2);
+    const cost = variant?.price?.cost;
+    const map = variant?.price?.mapPrice;
+    // Compute from cost when we have both cost and a valid margin
+    if (cost != null && !isNaN(pct) && pct >= 0) return (cost * (1 + pct / 100)).toFixed(2);
+    // Otherwise fall back to MAP, then retailPrice
+    if (map != null) return map.toFixed(2);
+    const retail = variant?.price?.retailPrice;
+    if (retail != null) return retail.toFixed(2);
+    return '';
+  }
+
+  function initVariantPrices(displayVariants, marginPct) {
+    const vp = {};
+    for (const v of displayVariants) {
+      vp[v.id] = calcVariantPrice(v, marginPct);
+    }
+    return vp;
   }
 
   function handleAdd(e, product) {
     e.stopPropagation();
-    // Determine main/sub from product category
     let mainCategoryId = '';
     let subCategoryId = '';
     if (product.category) {
@@ -208,13 +233,31 @@ export default function ProductsPage() {
         mainCategoryId = product.category.id;
       }
     }
-    const displayPrice = calcDisplayPrice(product, 50);
-    setFormData({ mainCategoryId, subCategoryId, marginPercent: '50', displayPrice, isPublished: true });
+    const displayVariants = getDisplayVariants(product);
+    // Derive initial markup % from the first row that has both cost and MAP.
+    // Default to 50% when no MAP is available.
+    const ref = displayVariants.find((v) => v.price?.cost && v.price?.mapPrice);
+    let marginPercent = '50';
+    if (ref) {
+      marginPercent = ((ref.price.mapPrice - ref.price.cost) / ref.price.cost * 100).toFixed(0);
+    }
+    setFormData({
+      mainCategoryId,
+      subCategoryId,
+      marginPercent,
+      variantPrices: initVariantPrices(displayVariants, marginPercent),
+      isPublished: true,
+    });
     setAddDialog(product);
   }
 
   function handleMarginChange(value) {
-    setFormData((f) => ({ ...f, marginPercent: value, displayPrice: calcDisplayPrice(addDialog, value) }));
+    const displayVariants = getDisplayVariants(addDialog);
+    setFormData((f) => ({
+      ...f,
+      marginPercent: value,
+      variantPrices: initVariantPrices(displayVariants, value),
+    }));
   }
 
   function handleMainCategoryChange(value) {
@@ -222,11 +265,22 @@ export default function ProductsPage() {
   }
 
   function submitAdd() {
+    const vp = {};
+    for (const [id, price] of Object.entries(formData.variantPrices)) {
+      if (price && id !== PRODUCT_ROW_ID) vp[id] = parseFloat(price);
+    }
+    // No-variant products: use the synthetic product row price as displayPrice directly
+    const productRowPrice = formData.variantPrices[PRODUCT_ROW_ID];
+    const variantPriceValues = Object.values(vp);
+    const displayPrice = productRowPrice
+      ? parseFloat(productRowPrice)
+      : variantPriceValues.length > 0 ? Math.min(...variantPriceValues) : undefined;
     const body = {
       productId: addDialog.id,
       isPublished: formData.isPublished,
+      ...(displayPrice != null && { displayPrice }),
+      ...(Object.keys(vp).length > 0 && { variantPrices: vp }),
     };
-    if (formData.displayPrice) body.displayPrice = parseFloat(formData.displayPrice);
     const categoryId = formData.subCategoryId || formData.mainCategoryId;
     if (categoryId) body.categoryId = categoryId;
     createMutation.mutate(body);
@@ -547,61 +601,87 @@ export default function ProductsPage() {
 
       {/* Add Single Product Dialog */}
       <Dialog open={!!addDialog} onOpenChange={(open) => !open && setAddDialog(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add to Storefront</DialogTitle>
           </DialogHeader>
           {addDialog && (() => {
-            const cost = addDialog.variants?.[0]?.price?.cost;
-            const retail = addDialog.variants?.[0]?.price?.retailPrice ?? addDialog.minPrice;
-            const basePrice = cost ?? retail;
+            const displayVariants = getDisplayVariants(addDialog);
             const subCategories = categories.find((c) => c.id === formData.mainCategoryId)?.children || [];
             return (
               <div className="space-y-4">
                 <p className="text-sm font-medium">{addDialog.name}</p>
-                {basePrice != null && (
-                  <p className="text-xs text-muted-foreground">
-                    {cost != null ? `Cost: ${formatPrice(cost)}` : `Retail: ${formatPrice(retail)}`}
-                  </p>
-                )}
 
-                {/* Margin % + Display Price on same row */}
-                <div className="space-y-1.5">
-                  <div className="flex gap-3">
-                    <div className="space-y-1.5 w-28">
-                      <Label>Markup %</Label>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          min="0"
-                          step="1"
-                          className="pr-6"
-                          value={formData.marginPercent}
-                          onChange={(e) => handleMarginChange(e.target.value)}
-                        />
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5 flex-1">
-                      <Label>Display Price</Label>
-                      <div className="relative">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="Auto-calculated"
-                          className="pl-6"
-                          value={formData.displayPrice}
-                          onChange={(e) => setFormData((f) => ({ ...f, displayPrice: e.target.value }))}
-                        />
-                      </div>
+                {/* Global Markup % */}
+                <div className="flex items-center gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Markup % (from cost — updates all variants)</Label>
+                    <div className="relative w-28">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="pr-7"
+                        value={formData.marginPercent}
+                        onChange={(e) => handleMarginChange(e.target.value)}
+                      />
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
                     </div>
                   </div>
-                  {formData.displayPrice && basePrice != null && (
-                    <p className="text-xs text-muted-foreground">
-                      Effective markup: {(((parseFloat(formData.displayPrice) - basePrice) / basePrice) * 100).toFixed(1)}%
-                    </p>
-                  )}
+                </div>
+
+                {/* Pricing table — always shown, uses a synthetic product row when no variants */}
+                <div className="border rounded-md overflow-auto max-h-56">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted sticky top-0 z-10">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-medium text-muted-foreground">Variant</th>
+                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">Cost</th>
+                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">MAP</th>
+                        <th className="px-3 py-2 text-right font-medium text-muted-foreground w-32">Display Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {displayVariants.map((v) => {
+                        const cost = v.price?.cost;
+                        const map = v.price?.mapPrice;
+                        const displayVal = formData.variantPrices[v.id] ?? '';
+                        return (
+                          <tr key={v.id} className="border-t">
+                            <td className="px-3 py-1.5">
+                              <div className="font-medium truncate max-w-[160px]" title={v.name || v.sku}>
+                                {v.name || v.sku || '—'}
+                              </div>
+                              {v.name && v.sku && (
+                                <div className="font-mono text-muted-foreground text-[10px]">{v.sku}</div>
+                              )}
+                            </td>
+                            <td className="px-3 py-1.5 text-right text-muted-foreground">
+                              {cost != null ? formatPrice(cost) : '—'}
+                            </td>
+                            <td className="px-3 py-1.5 text-right text-muted-foreground">
+                              {map != null ? formatPrice(map) : '—'}
+                            </td>
+                            <td className="px-3 py-1.5">
+                              <div className="relative">
+                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[11px]">$</span>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  className="pl-4 h-7 text-xs text-right"
+                                  value={displayVal}
+                                  onChange={(e) => setFormData((f) => ({
+                                    ...f,
+                                    variantPrices: { ...f.variantPrices, [v.id]: e.target.value },
+                                  }))}
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
 
                 {/* Main Category */}

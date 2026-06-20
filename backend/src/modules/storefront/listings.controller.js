@@ -5,7 +5,7 @@ import { invalidateListingCache } from '../products/products.controller.js';
 
 export const getAllListings = async (req, res) => {
   try {
-    const { page = 1, limit = 20, isPublished, isOnSale, isTrending, isNewArrival, search, brand, categoryId, minPrice, maxPrice } = req.query;
+    const { page = 1, limit = 20, isPublished, isOnSale, isTrending, isNewArrival, search, brand, categoryId, minPrice, maxPrice, source } = req.query;
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
 
@@ -32,6 +32,9 @@ export const getAllListings = async (req, res) => {
         { product: { brand: { contains: search, mode: 'insensitive' } } },
         { product: { variants: { some: { sku: { contains: search, mode: 'insensitive' } } } } },
       ];
+    }
+    if (source) {
+      where.product = { ...(where.product || {}), source };
     }
     if (brand) {
       where.product = { ...(where.product || {}), brand: { equals: brand, mode: 'insensitive' } };
@@ -132,6 +135,7 @@ export const createListing = async (req, res) => {
       discountedPrice,
       compareAtPrice,
       pricingRule,
+      variantPrices,
       categoryId,
       isPublished,
       isTrending,
@@ -170,6 +174,7 @@ export const createListing = async (req, res) => {
         discountedPrice: parsedDiscountedPrice,
         compareAtPrice: compareAtPrice != null ? parseFloat(compareAtPrice) : null,
         pricingRule: pricingRule || null,
+        variantPrices: variantPrices || null,
         categoryId: categoryId || null,
         isPublished: isPublished ?? false,
         isOnSale: parsedDiscountedPrice != null,
@@ -479,7 +484,7 @@ export const getRawProducts = async (req, res) => {
         source: true,
         externalId: true,
         category: { select: { id: true, name: true, slug: true, parentId: true } },
-        variants: { select: { sku: true, price: true }, orderBy: { rank: 'asc' }, take: 1 },
+        variants: { select: { id: true, sku: true, name: true, price: true }, orderBy: { rank: 'asc' } },
         _count: { select: { variants: true } },
         storefront: { select: { id: true, isPublished: true } },
       },
