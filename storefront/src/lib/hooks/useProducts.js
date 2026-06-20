@@ -51,6 +51,9 @@ export function useProducts(params = {}, options = {}) {
     queryKey: createProductsQueryKey(params),
     queryFn: () => getProducts(params),
     staleTime: STALE_TIME.SHORT,
+    // Don't refetch when the user navigates back from a product detail page —
+    // the listing data is cached and navigation focus should not trigger a reload.
+    refetchOnWindowFocus: false,
     ...options,
   });
 }

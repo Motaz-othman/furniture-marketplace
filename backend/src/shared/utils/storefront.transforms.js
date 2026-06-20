@@ -84,6 +84,10 @@ function extractVariantName(variant) {
     if (colorAttr?.normalizedValues?.[0]?.commonName) {
       return colorAttr.normalizedValues[0].commonName;
     }
+    // Fallback for vendors (e.g. UW) that store color name in values[] without normalizedValues
+    if (colorAttr?.values?.[0]) {
+      return colorAttr.values[0];
+    }
   }
   return variant.name || null;
 }
@@ -126,26 +130,42 @@ export function transformProductForListing(product, listing = null) {
   );
 
   const allImages = buildImages(product.media, sf?.displayImages, skuToId);
-  const images = allImages.slice(0, 6);
+  // 3 images is enough for listing cards (1 per color for dual-color products).
+  // Full gallery is loaded on the detail page.
+  const images = allImages.slice(0, 3);
 
   const category = sf?.category ?? product.category;
 
-  // For listing cards, only the color attribute is used (swatch hex + name).
-  // The other 11 UW attributes (size, material, construction, etc.) are unused
-  // and account for ~565 bytes per variant — strip them here.
-  const variants = (product.variants || []).map(v => {
+  // UW products have N variants per color (one per size). Deduplicate to ONE
+  // representative variant per unique color so the card shows distinct swatches,
+  // not 6 identical brown circles. Image filtering still works because images are
+  // tagged with all variant IDs for that color, including the representative one.
+  const seenColors = new Set();
+  const variants = [];
+  for (const v of (product.variants || [])) {
     const colorAttr = Array.isArray(v.attributes)
       ? v.attributes.find(a => a.attribute === 'color')
       : null;
-    return {
+    // Key by hex (if available) or color name — collapses same-color/different-size
+    // variants (UW pattern) into one representative entry per color.
+    // Non-color variants fall back to their own ID so nothing is accidentally merged.
+    const colorKey = colorAttr?.normalizedValues?.[0]?.hexValue
+      || (colorAttr?.values?.[0] ? `color:${colorAttr.values[0]}` : `__${v.id}`);
+    if (seenColors.has(colorKey)) continue;
+    seenColors.add(colorKey);
+    variants.push({
       id: v.externalProductId || v.id,
       name: extractVariantName(v),
       price: v.price?.retailPrice || 0,
       stockQuantity: v.stockQuantity ?? 0,
       attributes: colorAttr ? [colorAttr] : [],
       options: v.options || [],
-    };
-  });
+    });
+  }
+
+  // maxPrice lets the card compute the price range without iterating all variants.
+  const allPrices = (product.variants || []).map(v => v.price?.retailPrice).filter(Boolean);
+  const maxPrice = allPrices.length > 1 ? Math.max(...allPrices) : null;
 
   return {
     id: product.id,
@@ -155,6 +175,7 @@ export function transformProductForListing(product, listing = null) {
     originalPrice,
     discountedPrice,
     compareAtPrice,
+    maxPrice,
     categoryId: category?.id ?? null,
     category: category
       ? { id: category.id, name: category.name, slug: category.slug, parentId: category.parentId ?? null }

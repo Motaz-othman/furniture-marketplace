@@ -8,64 +8,69 @@ import { useWishlist } from '@/lib/hooks';
 import { Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+// Isolated so only this component re-renders on wishlist changes,
+// not the entire ProductCard (which would cascade across all 20 cards).
+const WishlistButton = memo(function WishlistButton({ product }) {
+  const { isWishlisted, toggle } = useWishlist();
+  const wishlisted = isWishlisted(product.id);
+
+  const handleClick = useCallback(async (e) => {
+    e.preventDefault();
+    const was = isWishlisted(product.id);
+    try {
+      await toggle(product);
+      toast.success(was ? 'Removed from wishlist' : 'Added to wishlist');
+    } catch {
+      toast.error('Failed to update wishlist');
+    }
+  }, [product, isWishlisted, toggle]);
+
+  return (
+    <button
+      className={`action-btn wishlist-btn ${wishlisted ? 'active' : ''}`}
+      onClick={handleClick}
+      aria-label="Add to wishlist"
+      title="Add to Wishlist"
+    >
+      <Heart size={18} strokeWidth={1.8} fill={wishlisted ? 'currentColor' : 'none'} />
+    </button>
+  );
+});
+
 const ProductCard = memo(function ProductCard({ product, index }) {
-  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  // Memoize variant images calculation
   const currentImages = useMemo(() => {
     if (!product.variants || !product.variants[selectedVariantIndex]) return product.images;
-
     const variant = product.variants[selectedVariantIndex];
     const variantImages = product.images.filter(img =>
       img.variantProductIds && img.variantProductIds.includes(variant.id)
     );
-
     return variantImages.length > 0 ? variantImages : product.images;
   }, [product.variants, product.images, selectedVariantIndex]);
 
   const currentImageUrl = currentImages?.[currentImageIndex]?.imageUrl || currentImages?.[0]?.imageUrl || null;
   const thumbnailUrl = useMemo(() => getThumbnailUrl(currentImageUrl), [currentImageUrl]);
 
-  // Price range memoized
+  // Use server-computed maxPrice when available to avoid iterating all variants.
   const priceDisplay = useMemo(() => {
-    const prices = product.variants
-      ?.map(v => v.price)
-      .filter(p => p != null && p > 0) || [];
-    const min = prices.length ? Math.min(...prices) : product.price;
-    const max = prices.length ? Math.max(...prices) : product.price;
+    const min = product.price;
+    const max = product.maxPrice ?? product.price;
     return min !== max
       ? `${formatPrice(min)} – ${formatPrice(max)}`
       : formatPrice(product.price);
-  }, [product.variants, product.price]);
+  }, [product.price, product.maxPrice]);
 
-  // Reset image loaded state when image changes
   useEffect(() => {
     setImageLoaded(false);
     setImageError(false);
   }, [currentImageUrl]);
 
-  const handleImageLoad = useCallback(() => {
-    setImageLoaded(true);
-  }, []);
-
-  const handleImageError = useCallback(() => {
-    setImageError(true);
-  }, []);
-
-  const handleWishlistToggle = useCallback(async (e) => {
-    e.preventDefault();
-    const wasWishlisted = isWishlisted(product.id);
-    try {
-      await toggleWishlist(product);
-      toast.success(wasWishlisted ? 'Removed from wishlist' : 'Added to wishlist');
-    } catch {
-      toast.error('Failed to update wishlist');
-    }
-  }, [product, isWishlisted, toggleWishlist]);
+  const handleImageLoad = useCallback(() => setImageLoaded(true), []);
+  const handleImageError = useCallback(() => setImageError(true), []);
 
   const handleImageDotClick = useCallback((e, idx) => {
     e.preventDefault();
@@ -97,22 +102,11 @@ const ProductCard = memo(function ProductCard({ product, index }) {
           </div>
         )}
 
-        {/* Wishlist button — top right */}
-        <button
-          className={`action-btn wishlist-btn ${isWishlisted(product.id) ? 'active' : ''}`}
-          onClick={handleWishlistToggle}
-          aria-label="Add to wishlist"
-          title="Add to Wishlist"
-        >
-          <Heart size={18} strokeWidth={1.8} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
-        </button>
-
+        <WishlistButton product={product} />
 
         <div className="product-image-wrapper progressive-image-wrapper">
-          {/* Shimmer placeholder - shown until image loads */}
           <div className={`progressive-image-shimmer ${imageLoaded ? 'loaded' : ''}`} />
 
-          {/* Main image using Next.js Image for optimization */}
           {currentImageUrl && !imageError ? (
             <Image
               src={currentImageUrl}
@@ -169,7 +163,6 @@ const ProductCard = memo(function ProductCard({ product, index }) {
         {product.variants && product.variants.length > 0 && (() => {
           const firstVariant = product.variants[0];
           const isColorType = !!getColorFromVariant(firstVariant);
-          const optionLabel = firstVariant?.options?.[0]?.option || null;
           const MAX = 3;
 
           return (
@@ -177,7 +170,7 @@ const ProductCard = memo(function ProductCard({ product, index }) {
               {product.variants.slice(0, MAX).map((variant, idx) => {
                 const colorHex = getColorFromVariant(variant);
                 const isOutOfStock = variant.stockQuantity === 0;
-                const label = variant.options?.[0]?.value || variant.variantName || variant.name;
+                const label = variant.options?.[0]?.value || variant.name;
 
                 if (colorHex) {
                   return (
