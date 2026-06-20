@@ -129,9 +129,11 @@ export const getAllProducts = async (req, res) => {
       const orderBy = sortBy === 'price-asc' ? [{ product: { minPrice: 'asc' } }, { id: 'asc' }]
         : sortBy === 'price-desc' ? [{ product: { minPrice: 'desc' } }, { id: 'asc' }]
         : sortBy === 'name' ? [{ product: { name: 'asc' } }, { id: 'asc' }]
-        : sortBy === 'newest' ? [{ product: { createdAt: 'desc' } }, { id: 'asc' }]
-        // Default: sortOrder (indexed, same-table) + id to break ties without
-        // a cross-table join on product.createdAt which forces sort of all rows.
+        // 'newest' = most recently added to the storefront.
+        // Uses StorefrontListing.id DESC (same-table, unique) — avoids a cross-table
+        // join on product.createdAt which is non-unique for batch-imported products
+        // and causes non-deterministic OFFSET pagination (duplicate/missing rows).
+        : sortBy === 'newest' ? [{ id: 'desc' }]
         : [{ sortOrder: 'asc' }, { id: 'asc' }];
 
       [total, listings] = await Promise.all([
