@@ -6,8 +6,8 @@
  * asset types are extracted per SKU, matched by filename prefix:
  *
  *   Product Images/JPEG/2000x2000/*.jpg  → extra storefront photos
- *   Line Drawing*/<prefix>*.pdf          → line drawing uploaded as PDF to S3
- *   Assembly*/<prefix>*.pdf              → assembly instructions uploaded as PDF to S3
+ *   Line Drawings/{prefix}.pdf           → line drawing uploaded as PDF to S3
+ *   Assembly/{prefix}.pdf               → assembly instructions uploaded as PDF to S3
  *
  * Raw TIFFs, carton photos, and any other files are skipped.
  * Best-effort throughout: failures never block the import.
