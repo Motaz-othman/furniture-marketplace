@@ -137,7 +137,7 @@ async function dropboxDownload(sharedLinkUrl, filePath) {
 
 // ─── Per-folder asset fetch ───────────────────────────────────────
 
-async function fetchFolderAssets(folderUrl, items) {
+async function fetchFolderAssets(folderUrl, items, logRoot = false) {
   // Discover the real structure: list immediate children of /Product Images.
   // GFW organizes images as /Product Images/{Variant Name}/*.jpg — one subfolder
   // per color/style variant (e.g. "Amelia Black", "Amelia White"), NOT by format
@@ -146,9 +146,16 @@ async function fetchFolderAssets(folderUrl, items) {
   const variantSubfolders = productImagesChildren.filter(e => e['.tag'] === 'folder');
   const flatImages        = productImagesChildren.filter(e => e['.tag'] === 'file' && /\.(jpe?g)$/i.test(e.name));
 
-  console.log(`[GFW Dropbox Debug] /Product Images: ${variantSubfolders.length} subfolders, ${flatImages.length} flat images`);
+  console.log(`[GFW Dropbox Debug] /Product Images: ${variantSubfolders.length} subfolders, ${flatImages.length} flat images (SKUs: ${items.map(i => i.sku).join(',')})`);
   if (variantSubfolders.length > 0) {
     console.log(`[GFW Dropbox Debug] Subfolders:`, variantSubfolders.slice(0, 8).map(f => f.name));
+  }
+
+  // Diagnostic: when /Product Images is empty OR for the first few folders, list the
+  // root so we can see the actual Dropbox structure and adjust accordingly.
+  if (logRoot || (variantSubfolders.length === 0 && flatImages.length === 0)) {
+    const rootEntries = await dropboxListAll(folderUrl, '', false);
+    console.log(`[GFW Dropbox Debug] Root of folder (${folderUrl.slice(-16)}):`, rootEntries.slice(0, 15).map(e => `[${e['.tag']}] ${e.name}`));
   }
 
   // List PDFs in parallel — Line Drawings and Assembly
@@ -277,10 +284,18 @@ export async function fetchCollectionImages(records, onProgress) {
       ...(product.media?.additionalImages || []),
     ].filter(img => img?.url);
 
+    // Build prefix list: imageMatchPrefixes (from row['Name'] / SKU key) plus the
+    // product's Display Name, which IS the Dropbox subfolder name (e.g. "Amelia Black").
+    const displayName = product.name?.trim().toLowerCase();
+    const allPrefixes = [
+      ...prefixes.map(p => p.toLowerCase()),
+      ...(displayName && !prefixes.map(p => p.toLowerCase()).includes(displayName) ? [displayName] : []),
+    ];
+
     if (!byFolder.has(folderUrl)) byFolder.set(folderUrl, []);
     byFolder.get(folderUrl).push({
       sku:            variant.sku,
-      prefixes:       prefixes.map(p => p.toLowerCase()),
+      prefixes:       allPrefixes,
       sheetFilenames: new Set(sheetImages.map(img => imageBasename(img.url))),
     });
   }
@@ -293,7 +308,7 @@ export async function fetchCollectionImages(records, onProgress) {
     onProgress?.(fi, total, folderUrl);
 
     try {
-      const folderResult = await fetchFolderAssets(folderUrl, items);
+      const folderResult = await fetchFolderAssets(folderUrl, items, fi < 3);
       for (const [sku, assets] of folderResult) {
         bySku.set(sku, assets);
       }

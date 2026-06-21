@@ -85,6 +85,7 @@ export async function syncGfwDropboxAssets() {
       where: { source: 'GFW' },
       select: {
         id: true,
+        name: true,
         media: true,
         externalData: true,
         variants: { select: { sku: true } },
@@ -105,7 +106,7 @@ export async function syncGfwDropboxAssets() {
     // Reconstruct the records format fetchCollectionImages expects
     const records = unsynced.flatMap(p =>
       (p.variants || []).map(v => ({
-        product: { externalData: p.externalData, media: p.media },
+        product: { name: p.name, externalData: p.externalData, media: p.media },
         variant: { sku: v.sku },
       }))
     );
