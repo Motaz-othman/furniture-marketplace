@@ -418,12 +418,18 @@ export async function runFullSync() {
   const startTime = Date.now();
 
   try {
-    setProgress('Fetching data from Wondersign...');
-    const [rawProducts, rawInventory, rawCategories] = await Promise.all([
-      fetchProducts(),
-      fetchInventory(),
-      fetchCategories(),
-    ]);
+    setProgress('Fetching categories...');
+    const rawCategories = await fetchCategories();
+
+    setProgress(`Fetching inventory...`);
+    const rawInventory = await fetchInventory((count) =>
+      setProgress(`Fetching inventory... ${count} items loaded`)
+    );
+
+    setProgress('Fetching products...');
+    const rawProducts = await fetchProducts({}, (count) =>
+      setProgress(`Fetching products... ${count} loaded`)
+    );
 
     setProgress(`Syncing ${rawCategories.length} categories...`);
     await syncCategories(rawCategories);
@@ -477,10 +483,14 @@ export async function runIncrementalSync() {
     const changedSince = lastSync.toISOString();
 
     setProgress('Fetching changed products...');
-    const [rawProducts, rawInventory] = await Promise.all([
-      fetchProducts({ changedSince }),
-      fetchInventory(),
-    ]);
+    const rawProducts = await fetchProducts({ changedSince }, (count) =>
+      setProgress(`Fetching changed products... ${count} loaded`)
+    );
+
+    setProgress('Fetching inventory...');
+    const rawInventory = await fetchInventory((count) =>
+      setProgress(`Fetching inventory... ${count} items loaded`)
+    );
 
     if (rawProducts.length === 0) {
       await logSync('INCREMENTAL_SYNC', 'SUCCESS', { total: 0, synced: 0, failed: 0 });

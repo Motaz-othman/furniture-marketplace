@@ -23,6 +23,8 @@ function loadJsonFile(filename) {
   return JSON.parse(readFileSync(filePath, 'utf-8'));
 }
 
+const REQUEST_TIMEOUT_MS = 60_000; // 60s per page request — Wondersign can be slow
+
 async function fetchFromApi(endpoint, params = {}) {
   if (!API_URL || !API_KEY) {
     throw new Error('WONDERSIGN_API_URL and WONDERSIGN_API_KEY must be set in live mode');
@@ -33,25 +35,38 @@ async function fetchFromApi(endpoint, params = {}) {
     if (value != null) url.searchParams.set(key, String(value));
   }
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      'Authorization': `Bearer ${API_KEY}`,
-      'Content-Type': 'application/json'
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Wondersign API error: ${response.status} ${response.statusText}`);
     }
-  });
 
-  if (!response.ok) {
-    throw new Error(`Wondersign API error: ${response.status} ${response.statusText}`);
+    return response.json();
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(`Wondersign API timed out after ${REQUEST_TIMEOUT_MS / 1000}s (${endpoint})`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
   }
-
-  return response.json();
 }
 
 /**
  * Fetch all pages from a paginated Wondersign endpoint.
- * Uses skip/limit pagination per Wondersign API spec.
+ * @param {Function} [onPage] - called after each page with the running total count
  */
-async function fetchAllPages(endpoint, params = {}) {
+async function fetchAllPages(endpoint, params = {}, onPage) {
   const limit = params.limit || PAGE_SIZE;
   let skip = 0;
   let allResults = [];
@@ -60,6 +75,8 @@ async function fetchAllPages(endpoint, params = {}) {
     const page = await fetchFromApi(endpoint, { ...params, skip, limit });
     const results = Array.isArray(page) ? page : (page.data || page.results || []);
     allResults = allResults.concat(results);
+
+    onPage?.(allResults.length);
 
     if (results.length < limit) break; // last page
     skip += limit;
@@ -72,8 +89,9 @@ async function fetchAllPages(endpoint, params = {}) {
  * Fetch products from Wondersign (mock or live)
  * @param {Object} options
  * @param {string} [options.changedSince] - ISO 8601 timestamp for incremental sync
+ * @param {Function} [onPage] - progress callback(count)
  */
-export async function fetchProducts({ changedSince } = {}) {
+export async function fetchProducts({ changedSince } = {}, onPage) {
   if (MODE === 'mock') {
     return loadJsonFile('wondersign-products.json');
   }
@@ -81,17 +99,18 @@ export async function fetchProducts({ changedSince } = {}) {
   const params = {};
   if (changedSince) params.changedSince = changedSince;
 
-  return fetchAllPages('/products', params);
+  return fetchAllPages('/products', params, onPage);
 }
 
 /**
  * Fetch inventory data from Wondersign (mock or live)
+ * @param {Function} [onPage] - progress callback(count)
  */
-export async function fetchInventory() {
+export async function fetchInventory(onPage) {
   if (MODE === 'mock') {
     return loadJsonFile('wondersign-inventory.json');
   }
-  return fetchAllPages('/inventory');
+  return fetchAllPages('/inventory', {}, onPage);
 }
 
 /**
