@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { getStatus, getLogs, importAcme, refreshAcme, importGlobalFurniture, clearGlobalFurnitureProducts, importUnitedWeavers } from './vendor-import.controller.js';
+import { getStatus, getLogs, importAcme, refreshAcme, importGlobalFurniture, clearGlobalFurnitureProducts, importUnitedWeavers, triggerGfwDropboxSync } from './vendor-import.controller.js';
 import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware.js';
 
 const router = Router();
@@ -44,6 +44,7 @@ router.post('/acme/refresh', upload.fields([
 ]), refreshAcme);
 
 router.delete('/gfw/products', clearGlobalFurnitureProducts);
+router.post('/gfw/dropbox-sync', triggerGfwDropboxSync);
 
 router.post('/gfw/import', upload.fields([
   { name: 'dataCsv', maxCount: 1 },

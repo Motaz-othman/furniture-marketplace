@@ -38,7 +38,126 @@ export function getImportStatus() {
   return { ...importState };
 }
 
-// ─── Category resolution ──────────────────────────────────────────
+// ─── GFW Dropbox sync state ───────────────────────────────────────
+
+let dropboxSyncState = { running: false, startedAt: null, progress: null, lastRun: null };
+
+export function getDropboxSyncStatus() {
+  return { ...dropboxSyncState };
+}
+
+export async function syncGfwDropboxAssets() {
+  if (dropboxSyncState.running) {
+    throw new Error('GFW Dropbox sync already running');
+  }
+
+  dropboxSyncState = { running: true, startedAt: new Date().toISOString(), progress: 'Loading unsynced products...', lastRun: dropboxSyncState.lastRun };
+
+  try {
+    // Query all GFW products from DB that haven't been Dropbox-synced yet
+    const allProducts = await prisma.product.findMany({
+      where: { source: 'GFW' },
+      select: {
+        id: true,
+        media: true,
+        externalData: true,
+        variants: { select: { sku: true } },
+      },
+    });
+
+    const unsynced = allProducts.filter(p => !p.externalData?.dropboxSynced);
+
+    if (unsynced.length === 0) {
+      dropboxSyncState = { running: false, startedAt: dropboxSyncState.startedAt, progress: 'All products already synced.', lastRun: new Date().toISOString() };
+      console.log('[GFW Dropbox] All products already synced — nothing to do.');
+      return { synced: 0, skipped: allProducts.length };
+    }
+
+    console.log(`[GFW Dropbox] ${unsynced.length} unsynced products across ${allProducts.length} total.`);
+    dropboxSyncState.progress = `Fetching Dropbox assets for ${unsynced.length} products...`;
+
+    // Reconstruct the records format fetchCollectionImages expects
+    const records = unsynced.flatMap(p =>
+      (p.variants || []).map(v => ({
+        product: { externalData: p.externalData, media: p.media },
+        variant: { sku: v.sku },
+      }))
+    );
+
+    const extraImagesMap = await fetchCollectionImages(records, (done, total, folderUrl) => {
+      const name = folderUrl
+        ? new URL(folderUrl).pathname.split('/').filter(Boolean).pop() || 'folder'
+        : 'folder';
+      dropboxSyncState.progress = `Dropbox: ${done}/${total} folders — ${name}`;
+    });
+
+    dropboxSyncState.progress = 'Applying assets to products...';
+    let patched = 0;
+
+    for (const [sku, assets] of extraImagesMap) {
+      try {
+        const variant = await prisma.productVariant.findUnique({
+          where: { sku },
+          include: { product: { select: { id: true, media: true, externalData: true } } },
+        });
+        if (!variant?.product) continue;
+
+        const { id: productId, media, externalData } = variant.product;
+        const updatedMedia = media || {};
+
+        if (assets.images?.length) {
+          updatedMedia.additionalImages = [
+            ...(updatedMedia.additionalImages || []),
+            ...assets.images.map(url => ({ url })),
+          ];
+        }
+
+        await prisma.product.update({
+          where: { id: productId },
+          data: {
+            media: updatedMedia,
+            externalData: {
+              ...(externalData || {}),
+              dropboxSynced: true,
+              ...(assets.lineDrawingUrl ? { lineDrawingUrl: assets.lineDrawingUrl } : {}),
+              ...(assets.assemblyUrl    ? { assemblyUrl:    assets.assemblyUrl    } : {}),
+            },
+          },
+        });
+        patched++;
+      } catch (err) {
+        console.error(`[GFW Dropbox] Failed to patch ${sku}: ${err.message}`);
+      }
+    }
+
+    // Mark all products with a vendorAssetsLink but zero results as synced
+    // so they don't get re-attempted on every run
+    const skusPatched = new Set(extraImagesMap.keys());
+    for (const p of unsynced) {
+      const hasLink = p.externalData?.vendorAssetsLink;
+      if (!hasLink) continue;
+      for (const v of p.variants || []) {
+        if (skusPatched.has(v.sku)) continue;
+        await prisma.product.update({
+          where: { id: p.id },
+          data: { externalData: { ...(p.externalData || {}), dropboxSynced: true } },
+        }).catch(() => {});
+      }
+    }
+
+    const summary = `Done. ${patched} products updated, ${allProducts.length - unsynced.length} already had assets.`;
+    dropboxSyncState = { running: false, startedAt: dropboxSyncState.startedAt, progress: summary, lastRun: new Date().toISOString() };
+    console.log(`[GFW Dropbox] ${summary}`);
+
+    return { synced: patched, skipped: allProducts.length - unsynced.length };
+  } catch (err) {
+    dropboxSyncState = { running: false, startedAt: dropboxSyncState.startedAt, progress: `Failed: ${err.message}`, lastRun: new Date().toISOString() };
+    console.error('[GFW Dropbox] Sync failed:', err.message);
+    throw err;
+  }
+}
+
+// ─── Category resolution (used only by runVendorImport) ──────────
 
 let categorySlugMap = new Map();
 
@@ -216,45 +335,9 @@ export async function runVendorImport(source, records) {
       }
     }
 
-    // Phase 2 (GFW only): stream Dropbox folders and patch extra assets onto already-saved products
+    // Phase 2 (GFW only): fire Dropbox asset sync in background — does not block the import response
     if (source === 'GFW') {
-      setProgress('Fetching Dropbox assets...');
-      const extraImagesMap = await fetchCollectionImages(records, (done, total, folderUrl) => {
-        const name = folderUrl ? new URL(folderUrl).pathname.split('/').filter(Boolean).pop() || 'folder' : 'folder';
-        setProgress(`Dropbox assets: ${done}/${total} folders — ${name}`);
-      });
-
-      setProgress('Applying Dropbox assets...');
-      for (const [sku, assets] of extraImagesMap) {
-        try {
-          const variant = await prisma.productVariant.findUnique({
-            where: { sku },
-            include: { product: { select: { id: true, media: true, externalData: true } } },
-          });
-          if (!variant?.product) continue;
-
-          const { id: productId, media, externalData } = variant.product;
-
-          const updatedMedia = media || {};
-          if (assets.images?.length) {
-            updatedMedia.additionalImages = [
-              ...(updatedMedia.additionalImages || []),
-              ...assets.images.map(url => ({ url })),
-            ];
-          }
-
-          const updatedExternalData = { ...(externalData || {}) };
-          if (assets.lineDrawingUrl) updatedExternalData.lineDrawingUrl = assets.lineDrawingUrl;
-          if (assets.assemblyUrl)    updatedExternalData.assemblyUrl    = assets.assemblyUrl;
-
-          await prisma.product.update({
-            where: { id: productId },
-            data: { media: updatedMedia, externalData: updatedExternalData },
-          });
-        } catch (err) {
-          console.error(`[VendorImport:GFW] Failed applying Dropbox assets for ${sku}: ${err.message}`);
-        }
-      }
+      syncGfwDropboxAssets().catch(err => console.error('[GFW Dropbox Auto-sync]', err.message));
     }
 
     // ACME spec sheet is always the full catalog — any product missing from this

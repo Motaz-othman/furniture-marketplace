@@ -2,7 +2,7 @@ import prisma from '../../shared/config/db.js';
 import { parseAcmeCatalog } from '../../shared/adapters/acme.adapter.js';
 import { parseGlobalFurnitureCatalog } from '../../shared/adapters/globalFurniture.adapter.js';
 import { parseUnitedWeaversRugs } from '../../shared/adapters/unitedweavers.adapter.js';
-import { runVendorImport, refreshAcmePricing, getImportStatus } from '../../shared/services/vendorImport.service.js';
+import { runVendorImport, refreshAcmePricing, getImportStatus, syncGfwDropboxAssets, getDropboxSyncStatus } from '../../shared/services/vendorImport.service.js';
 import { toCSVBuffer } from '../../shared/adapters/excelToCSV.js';
 
 function buf(file) {
@@ -25,6 +25,7 @@ export const getStatus = async (req, res) => {
     res.json({
       data: {
         ...status,
+        dropboxSync: getDropboxSyncStatus(),
         lastSyncs: lastLogs.map(log => ({
           source: log.source,
           type: log.type,
@@ -37,6 +38,17 @@ export const getStatus = async (req, res) => {
   } catch (error) {
     console.error('Get vendor import status error:', error);
     res.status(500).json({ error: 'Failed to get import status' });
+  }
+};
+
+// ─── POST /gfw/dropbox-sync ──────────────────────────────────────
+
+export const triggerGfwDropboxSync = async (req, res) => {
+  try {
+    res.json({ message: 'GFW Dropbox sync started' });
+    syncGfwDropboxAssets().catch(err => console.error('[GFW Dropbox Manual]', err.message));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 

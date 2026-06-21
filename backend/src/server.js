@@ -29,6 +29,8 @@ import checkoutRoutes from './modules/checkout/guest.routes.js';
 import settingsRoutes from './modules/settings/settings.routes.js';
 import newsletterRoutes from './modules/newsletter/newsletter.routes.js';
 import { initScheduler } from './shared/services/sync.service.js';
+import { syncGfwDropboxAssets } from './shared/services/vendorImport.service.js';
+import cron from 'node-cron';
 import { registry } from './integrations/index.js';
 import integrationsRoutes from './integrations/router.js';
 
@@ -198,6 +200,12 @@ const startServer = async () => {
 
   // Start sync scheduler (if enabled via env)
   initScheduler();
+
+  // GFW Dropbox asset sync — runs nightly at 2am to pick up any unsynced products
+  cron.schedule('0 2 * * *', () => {
+    console.log('[GFW Dropbox] Nightly sync triggered');
+    syncGfwDropboxAssets().catch(err => console.error('[GFW Dropbox Nightly]', err.message));
+  });
 
   const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
