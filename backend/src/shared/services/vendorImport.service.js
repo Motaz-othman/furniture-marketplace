@@ -108,14 +108,14 @@ async function upsertRecord({ product: p, variant: v }, source, extraImagesMap) 
   if (media && extraAssets?.images?.length) {
     media.additionalImages = [...(media.additionalImages || []), ...extraAssets.images.map(url => ({ url }))];
   }
-  if (extraAssets?.lineDrawingUrl)  externalData.lineDrawingUrl  = extraAssets.lineDrawingUrl;
-  if (extraAssets?.assemblyUrl)     externalData.assemblyUrl     = extraAssets.assemblyUrl;
 
   const acmeStatus = source === 'ACME' ? (p.isActive ? 'ACTIVE' : 'DISABLED') : undefined;
 
   const externalData = {
     ...(p.externalData || {}),
     specHash: p.specHash || null,
+    ...(extraAssets?.lineDrawingUrl ? { lineDrawingUrl: extraAssets.lineDrawingUrl } : {}),
+    ...(extraAssets?.assemblyUrl    ? { assemblyUrl:    extraAssets.assemblyUrl    } : {}),
   };
 
   const productData = {
@@ -202,7 +202,10 @@ export async function runVendorImport(source, records) {
     let extraImagesMap = null;
     if (source === 'GFW') {
       setProgress('Fetching collection images from Dropbox...');
-      extraImagesMap = await fetchCollectionImages(records);
+      extraImagesMap = await fetchCollectionImages(records, (done, total, folderUrl) => {
+        const name = folderUrl ? new URL(folderUrl).pathname.split('/').filter(Boolean).pop() || 'folder' : 'folder';
+        setProgress(`Dropbox assets: ${done}/${total} folders — ${name}`);
+      });
     }
 
     for (let i = 0; i < records.length; i++) {
