@@ -28,9 +28,10 @@ export async function refreshAcme({ priceCsv, inventoryCsv }) {
   return data;
 }
 
-export async function importGlobalFurniture({ csv }) {
+export async function importGlobalFurniture({ dataCsv, inventoryCsv }) {
   const formData = new FormData();
-  formData.append('csv', csv);
+  formData.append('dataCsv', dataCsv);
+  formData.append('inventoryCsv', inventoryCsv);
   const { data } = await api.post('/admin/vendor-import/gfw/import', formData);
   return data;
 }

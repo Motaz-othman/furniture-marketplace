@@ -1,18 +1,16 @@
 /**
  * Global Furniture (GFW) vendor sheet adapter.
  *
- * Unlike ACME, GFW ships one comprehensive CSV — price, images, dimensions,
- * packaging and "Kit" bundle breakdowns (Member Item 1-10) are all in the
- * same row, keyed by `Internal ID`.
+ * Accepts two files:
+ *  - dataCsv      Product Data Sheet — product info, images, dimensions, kit members
+ *  - inventoryCsv Search Results export — WHS (wholesale) price, stock quantities
  *
- * Output: normalized { product, variant } records, one per Internal ID,
- * ready for the vendor-import upsert service. Pure transform — no DB/network access.
+ * The two files are joined on the `Name` field. Search results sometimes append
+ * a short suffix (e.g. "-N") that the data sheet omits; both the raw and
+ * suffix-stripped form are indexed so either side can match.
  *
- * Two open items, deliberately defaulted here pending vendor feedback:
- *  - No status/Enabled-Disabled column → every row is treated as active
- *    (isActive: true). Revisit if GFW sends a removed-items list.
- *  - No inventory/stock column → stock defaults to 0 (out of stock) until
- *    a stock source is available.
+ * Output: normalized { product, variant } records ready for runVendorImport.
+ * Pure transform — no DB/network access.
  */
 
 import { parse } from 'csv-parse/sync';
@@ -26,9 +24,40 @@ function parseCsv(input) {
   return parse(input, { columns: true, skip_empty_lines: true, trim: true });
 }
 
-// "Main Product Image" is sometimes filled with a Dropbox folder share link
-// (same value as "Product Information Link") instead of a direct image —
-// not a usable storefront image, so it's filtered out here.
+// Strip trailing short token like "-N", "-A" from inventory CSV SKU names.
+function normalizeSkuName(name) {
+  return name.replace(/-[A-Za-z0-9]{1,2}$/, '').trim();
+}
+
+/**
+ * Build a lookup map from the inventory (search results) CSV.
+ * Keyed by both the raw Name and the suffix-stripped Name so either form matches.
+ */
+function buildInventoryMap(inventoryCsv) {
+  const rows = parseCsv(inventoryCsv);
+  const map = new Map();
+
+  for (const row of rows) {
+    const rawName = row['Name']?.trim();
+    if (!rawName) continue;
+
+    const entry = {
+      whsPrice: parseNumber(row['WHS Price']),
+      qtyAvailable: Math.max(0, parseNumber(row['Qty Available']) ?? 0),
+      inTransit: parseNumber(row['In Transit']) ?? 0,
+      nextArrivalDate: row['Next Arrival Date']?.trim() || null,
+      nextArrivalQty: parseNumber(row['Next Arrival Quantity']) ?? 0,
+    };
+
+    map.set(rawName, entry);
+    const stripped = normalizeSkuName(rawName);
+    if (stripped !== rawName) map.set(stripped, entry);
+  }
+
+  return map;
+}
+
+// "Main Product Image" is sometimes a Dropbox folder share link — not a usable image.
 function isUsableImageUrl(url) {
   return !url.includes('dropbox.com');
 }
@@ -136,53 +165,49 @@ function buildSpecifications(row) {
     .filter(Boolean);
 }
 
-/**
- * "Product Information Link" is usually a Dropbox folder shared across the
- * whole collection, containing `Product Images/JPEG/2000x2000/<prefix>-*.jpg`
- * files per-SKU. Derive candidate filename prefixes from the internal `Name`
- * (e.g. "2215-BLACK-KB-N" -> "2215-BLACK-KB") so the import service can pull
- * matching images out of that folder. Best-effort: an empty/no-match result
- * just means no extra images are fetched for this row.
- */
 export function buildImageMatchPrefixes(row) {
   const name = row['Name']?.trim();
   if (!name) return [];
 
   const prefixes = new Set([name]);
-
-  // Strip a trailing "-<short token>" (e.g. "-N") that vendor SKU codes
-  // append but image filenames don't include.
-  const stripped = name.replace(/-[A-Za-z0-9]{1,2}$/, '');
+  const stripped = normalizeSkuName(name);
   if (stripped !== name && stripped.length >= 4) prefixes.add(stripped);
 
   return [...prefixes];
 }
 
 /**
- * @param {string|Buffer} csv
+ * @param {{ dataCsv: string|Buffer, inventoryCsv: string|Buffer }} files
  * @returns {Array<{product: Object, variant: Object}>}
  */
-export function parseGlobalFurnitureCatalog(csv) {
-  const rows = parseCsv(csv);
+export function parseGlobalFurnitureCatalog({ dataCsv, inventoryCsv }) {
+  const rows = parseCsv(dataCsv);
+  const inventoryMap = buildInventoryMap(inventoryCsv);
   const records = [];
 
   for (const row of rows) {
     const sku = row['Internal ID']?.trim();
     if (!sku) continue;
 
+    const dataSheetName = row['Name']?.trim();
+
+    // Try exact match on data sheet Name first, then suffix-stripped form.
+    const inv = (dataSheetName && (
+      inventoryMap.get(dataSheetName) || inventoryMap.get(normalizeSkuName(dataSheetName))
+    )) || null;
+
+    const whsPrice = inv?.whsPrice ?? null;       // what we pay (wholesale)
+    const listPrice = parseNumber(row['Price']);   // GFW retail/list price
+    const stockQuantity = inv?.qtyAvailable ?? 0;
+    const isActive = inv !== null;                // only active if present in inventory export
+
     const name = row['Display Name'];
     const isKit = row['Type']?.trim() === 'Kit';
-    const cost = parseNumber(row['Price']);
 
     const { mainImage, media } = buildMedia(row);
 
     const categoryTokens = [row['Subcategory'], row['Category']].filter(Boolean);
     const { categoryPath, categories } = resolveCategories(categoryTokens, GLOBAL_FURNITURE_CATEGORY_MAP);
-
-    // No active/inactive signal from GFW — every row in the sheet is
-    // assumed currently offered. See file header for the inventory caveat.
-    const isActive = true;
-    const totalStock = 0;
 
     const product = {
       source: 'GFW',
@@ -196,37 +221,44 @@ export function parseGlobalFurnitureCatalog(csv) {
       categories,
       media,
       mainImage,
-      // Base price = cost. Retail markup applied via StorefrontListing.pricingRule
-      // at publish time, not baked in here.
-      minPrice: cost,
-      maxPrice: cost,
+      minPrice: listPrice,
+      maxPrice: listPrice,
       compareAtPrice: null,
-      totalStock,
+      totalStock: stockQuantity,
       isActive,
       externalData: {
         specifications: buildSpecifications(row),
-        internalName: row['Name'] || null,
+        internalName: dataSheetName || null,
         shortDescription: row['Description'] || null,
         cleaningInstructions: row['Cleaning Instructions'] || null,
         miscInfo: row['Miscellaneous Item Information'] || null,
         vendorAssetsLink: row['Product Information Link'] || null,
         imageMatchPrefixes: buildImageMatchPrefixes(row),
+        ...(inv && {
+          inTransit: inv.inTransit,
+          nextArrivalDate: inv.nextArrivalDate,
+          nextArrivalQty: inv.nextArrivalQty,
+        }),
       },
     };
 
+    const price = { retailPrice: listPrice };
+    if (whsPrice != null) price.cost = whsPrice;
+    if (listPrice != null) price.listPrice = listPrice;
+
     const variant = {
       sku,
-      status: 'Active',
+      status: isActive ? 'Active' : 'Inactive',
       isActive,
       upc: row['UPC Code']?.replace(/^'/, '') || null,
-      price: { cost, retailPrice: cost },
+      price,
       dimensions: buildDimensions(row),
       packaging: buildPackaging(row),
       attributes: buildAttributes(row),
       packageProducts: isKit ? buildPackageProducts(row) : null,
       packageProductType: isKit ? 'kit' : null,
       isPackage: isKit,
-      stockQuantity: totalStock,
+      stockQuantity,
     };
 
     records.push({ product, variant });

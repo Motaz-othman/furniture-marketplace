@@ -134,11 +134,16 @@ export const refreshAcme = async (req, res) => {
 
 export const importGlobalFurniture = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Missing required file: csv' });
+    const files = req.files || {};
+    const missing = ['dataCsv', 'inventoryCsv'].filter(f => !files[f]?.[0]);
+    if (missing.length) {
+      return res.status(400).json({ error: `Missing required file(s): ${missing.join(', ')}` });
     }
 
-    const records = parseGlobalFurnitureCatalog(buf(req.file));
+    const records = parseGlobalFurnitureCatalog({
+      dataCsv: buf(files.dataCsv[0]),
+      inventoryCsv: buf(files.inventoryCsv[0]),
+    });
 
     if (!records.length) {
       return res.status(400).json({ error: 'No rows found in the uploaded sheet' });

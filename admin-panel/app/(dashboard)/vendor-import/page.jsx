@@ -78,7 +78,8 @@ export default function VendorImportPage() {
   const [refreshInventory, setRefreshInventory] = useState(null);
 
   // GFW import
-  const [gfwCsv, setGfwCsv] = useState(null);
+  const [gfwData, setGfwData] = useState(null);
+  const [gfwInventory, setGfwInventory] = useState(null);
 
   // UW import
   const [uwCatalog, setUwCatalog] = useState(null);
@@ -126,10 +127,11 @@ export default function VendorImportPage() {
   });
 
   const gfwImportMutation = useMutation({
-    mutationFn: () => importGlobalFurniture({ csv: gfwCsv }),
+    mutationFn: () => importGlobalFurniture({ dataCsv: gfwData, inventoryCsv: gfwInventory }),
     onSuccess: (data) => {
       toast.success(data.message || 'Global Furniture import started');
-      setGfwCsv(null);
+      setGfwData(null);
+      setGfwInventory(null);
       invalidate();
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to start Global Furniture import'),
@@ -147,7 +149,7 @@ export default function VendorImportPage() {
 
   const acmeImportDisabled = isRunning || acmeImportMutation.isPending || !acmeSpec || !acmeImages || !acmePrice || !acmeInventory;
   const acmeRefreshDisabled = isRunning || acmeRefreshMutation.isPending || !refreshPrice || !refreshInventory;
-  const gfwImportDisabled = isRunning || gfwImportMutation.isPending || !gfwCsv;
+  const gfwImportDisabled = isRunning || gfwImportMutation.isPending || !gfwData || !gfwInventory;
   const uwImportDisabled = isRunning || uwImportMutation.isPending || !uwCatalog || !uwInventory;
 
   return (
@@ -272,12 +274,13 @@ export default function VendorImportPage() {
             <CardHeader>
               <CardTitle className="text-base">Global Furniture Catalog Import</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Upload the Global Furniture catalog CSV. Creates new products and updates existing ones (matched by Internal ID).
+                Upload the Product Data Sheet and the Search Results export. WHS price and stock quantities are pulled from the Search Results file. Creates new products and updates existing ones (matched by Internal ID).
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="max-w-sm">
-                <FileField id="gfw-csv" label="Catalog sheet" file={gfwCsv} onChange={setGfwCsv} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FileField id="gfw-data" label="Product Data Sheet" file={gfwData} onChange={setGfwData} />
+                <FileField id="gfw-inventory" label="Search Results (inventory)" file={gfwInventory} onChange={setGfwInventory} />
               </div>
               <Button onClick={() => gfwImportMutation.mutate()} disabled={gfwImportDisabled}>
                 <Upload className="h-4 w-4 mr-1" />

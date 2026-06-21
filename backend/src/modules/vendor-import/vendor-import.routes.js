@@ -43,7 +43,10 @@ router.post('/acme/refresh', upload.fields([
   { name: 'inventoryCsv', maxCount: 1 },
 ]), refreshAcme);
 
-router.post('/gfw/import', upload.single('csv'), importGlobalFurniture);
+router.post('/gfw/import', upload.fields([
+  { name: 'dataCsv', maxCount: 1 },
+  { name: 'inventoryCsv', maxCount: 1 },
+]), importGlobalFurniture);
 
 router.post('/uw/import', upload.fields([
   { name: 'catalogCsv', maxCount: 1 },
