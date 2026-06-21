@@ -15,6 +15,11 @@ export async function triggerSync(body) {
   return data;
 }
 
+export async function stopSync() {
+  const { data } = await api.post('/admin/sync/stop');
+  return data;
+}
+
 export async function triggerProductSync(externalId) {
   const { data } = await api.post(`/admin/sync/trigger/product/${externalId}`);
   return data;

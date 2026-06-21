@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSyncStatus, getSyncLogs, triggerSync, getSchedule, updateSchedule } from '@/lib/services/sync';
+import { getSyncStatus, getSyncLogs, triggerSync, stopSync, getSchedule, updateSchedule } from '@/lib/services/sync';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { RefreshCw, Play, Loader2, Clock, Timer } from 'lucide-react';
+import { RefreshCw, Play, Loader2, Clock, Timer, Square } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
@@ -71,6 +71,12 @@ export default function SyncPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to trigger sync'),
   });
 
+  const stopMutation = useMutation({
+    mutationFn: stopSync,
+    onSuccess: (data) => toast.success(data.message || 'Stop requested'),
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to stop sync'),
+  });
+
   const scheduleMutation = useMutation({
     mutationFn: (body) => updateSchedule(body),
     onSuccess: (data) => {
@@ -100,12 +106,37 @@ export default function SyncPage() {
           </CardHeader>
           <CardContent>
             {isRunning ? (
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                  <span className="font-semibold text-blue-600">Running</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                    <span className="font-semibold text-blue-600">Running</span>
+                    {status?.current && status?.total && (
+                      <span className="text-xs font-mono text-blue-500">
+                        {status.current}/{status.total}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => stopMutation.mutate()}
+                    disabled={stopMutation.isPending}
+                  >
+                    <Square className="h-3 w-3 mr-1" />
+                    Stop
+                  </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">{status?.type} — {status?.progress}</p>
+                {status?.current && status?.total && (
+                  <div className="w-full bg-muted rounded-full h-1.5">
+                    <div
+                      className="bg-blue-500 h-1.5 rounded-full transition-all"
+                      style={{ width: `${Math.round((status.current / status.total) * 100)}%` }}
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground truncate">{status?.progress}</p>
                 <p className="text-xs text-muted-foreground">Started: {formatDate(status?.startedAt)}</p>
               </div>
             ) : (

@@ -4,6 +4,7 @@ import {
   runFullSync,
   runIncrementalSync,
   syncSingleProduct,
+  requestStopSync,
   getSchedulePresets,
   getScheduleConfig,
   updateSchedule,
@@ -108,6 +109,17 @@ export const triggerProductSync = async (req, res) => {
   } catch (error) {
     console.error('Trigger product sync error:', error);
     res.status(500).json({ error: error.message || 'Failed to trigger product sync' });
+  }
+};
+
+// ─── POST /stop ──────────────────────────────────────────────────
+
+export const stopSync = (req, res) => {
+  try {
+    requestStopSync();
+    res.json({ message: 'Stop requested — sync will halt after the current product' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to request stop' });
   }
 };
 

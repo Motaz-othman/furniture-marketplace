@@ -14,28 +14,39 @@ import { migrateMediaToS3, migrateImageUrl, clearSyncCache } from './s3.service.
 
 let syncState = {
   running: false,
-  type: null,       // 'FULL_SYNC' | 'INCREMENTAL_SYNC' | 'SINGLE_PRODUCT'
+  type: null,
   startedAt: null,
-  progress: null,    // e.g. "Syncing products..."
+  progress: null,
+  current: null,
+  total: null,
+  stopRequested: false,
 };
 
 function acquireLock(type) {
   if (syncState.running) {
     throw new Error(`A sync is already running (${syncState.type} started at ${syncState.startedAt})`);
   }
-  syncState = { running: true, type, startedAt: new Date().toISOString(), progress: 'Starting...' };
+  syncState = { running: true, type, startedAt: new Date().toISOString(), progress: 'Starting...', current: null, total: null, stopRequested: false };
 }
 
 function releaseLock() {
-  syncState = { running: false, type: null, startedAt: null, progress: null };
+  syncState = { running: false, type: null, startedAt: null, progress: null, current: null, total: null, stopRequested: false };
 }
 
-function setProgress(msg) {
+function setProgress(msg, current = null, total = null) {
   syncState.progress = msg;
+  if (current !== null) syncState.current = current;
+  if (total !== null) syncState.total = total;
 }
 
 export function getSyncStatus() {
   return { ...syncState };
+}
+
+export function requestStopSync() {
+  if (syncState.running) {
+    syncState.stopRequested = true;
+  }
 }
 
 // ─── Scheduler ─────────────────────────────────────────────────────
@@ -232,8 +243,14 @@ async function syncProducts(products, inventoryMap) {
   let created = 0;
   let updated = 0;
   let variantCount = 0;
+  const total = products.length;
 
-  for (const apiProduct of products) {
+  for (let i = 0; i < products.length; i++) {
+    if (syncState.stopRequested) break;
+
+    const apiProduct = products[i];
+    setProgress(`${i + 1}/${total}: ${apiProduct.name}`, i + 1, total);
+
     try {
       const catPath = apiProduct.categories?.[0]?.path;
       const categoryId = resolveCategoryId(catPath);
@@ -415,12 +432,11 @@ export async function runFullSync() {
 
     const inventoryMap = buildInventoryMap(rawInventory);
 
-    setProgress(`Syncing ${rawProducts.length} products...`);
     const result = await syncProducts(rawProducts, inventoryMap);
 
     await logSync('FULL_SYNC', 'SUCCESS', {
       total: rawProducts.length,
-      synced: rawProducts.length,
+      synced: result.created + result.updated,
       failed: 0,
     });
 
@@ -475,7 +491,6 @@ export async function runIncrementalSync() {
     await buildCategorySlugMap();
     const inventoryMap = buildInventoryMap(rawInventory);
 
-    setProgress(`Syncing ${rawProducts.length} changed products...`);
     const result = await syncProducts(rawProducts, inventoryMap);
 
     await logSync('INCREMENTAL_SYNC', 'SUCCESS', {
