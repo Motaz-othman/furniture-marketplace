@@ -299,13 +299,24 @@ export async function fetchCollectionImages(records, onProgress) {
       ...(product.media?.additionalImages || []),
     ].filter(img => img?.url);
 
-    // Build prefix list: imageMatchPrefixes (from row['Name'] / SKU key) plus the
-    // product's Display Name, which IS the Dropbox subfolder name (e.g. "Amelia Black").
     const displayName = product.name?.trim().toLowerCase();
-    const allPrefixes = [
-      ...prefixes.map(p => p.toLowerCase()),
-      ...(displayName && !prefixes.map(p => p.toLowerCase()).includes(displayName) ? [displayName] : []),
-    ];
+    const rawPrefixes = [...prefixes.map(p => p.toLowerCase()), ...(displayName ? [displayName] : [])];
+
+    // Derive additional prefix variants to handle GFW naming quirks:
+    //   1. Normalize special chars (quotes, slashes) that appear in product names
+    //      but not in filenames: 76" EU W/ Speaker → 76 EU W Speaker
+    //   2. Truncate at feature descriptors ("w/", "with", etc.) that follow the
+    //      piece code in the name but are absent from the filename:
+    //      "NAOMI-DR W/ LED" → "NAOMI-DR" to match "NAOMI-DR+MR-1.jpg"
+    const derivedPrefixes = [];
+    for (const p of rawPrefixes) {
+      const norm = p.replace(/"/g, '').replace(/\//g, ' ').replace(/&/g, '').replace(/\s+/g, ' ').trim();
+      if (norm !== p) derivedPrefixes.push(norm);
+      const truncated = norm.replace(/\s+(?:w|with|and|without)\b.*/i, '').trim();
+      if (truncated !== norm && truncated.length >= 4) derivedPrefixes.push(truncated);
+    }
+
+    const allPrefixes = [...new Set([...rawPrefixes, ...derivedPrefixes])];
 
     if (!byFolder.has(folderUrl)) byFolder.set(folderUrl, []);
     byFolder.get(folderUrl).push({
