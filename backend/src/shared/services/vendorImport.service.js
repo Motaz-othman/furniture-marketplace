@@ -104,10 +104,12 @@ async function upsertRecord({ product: p, variant: v }, source, extraImagesMap) 
   const media = await migrateMediaToS3(p.media) || p.media || null;
   const mainImage = media?.mainImages?.[0]?.url || p.mainImage || null;
 
-  const extraImages = extraImagesMap?.get(v.sku);
-  if (media && extraImages?.length) {
-    media.additionalImages = [...(media.additionalImages || []), ...extraImages.map(url => ({ url }))];
+  const extraAssets = extraImagesMap?.get(v.sku);
+  if (media && extraAssets?.images?.length) {
+    media.additionalImages = [...(media.additionalImages || []), ...extraAssets.images.map(url => ({ url }))];
   }
+  if (extraAssets?.lineDrawingUrl)  externalData.lineDrawingUrl  = extraAssets.lineDrawingUrl;
+  if (extraAssets?.assemblyUrl)     externalData.assemblyUrl     = extraAssets.assemblyUrl;
 
   const acmeStatus = source === 'ACME' ? (p.isActive ? 'ACTIVE' : 'DISABLED') : undefined;
 

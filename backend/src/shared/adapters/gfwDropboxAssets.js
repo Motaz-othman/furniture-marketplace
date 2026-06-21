@@ -1,16 +1,16 @@
 /**
- * Fetches extra product images for Global Furniture (GFW) rows from the
- * Dropbox "collection asset" folders linked in `externalData.vendorAssetsLink`.
+ * Fetches extra assets for Global Furniture (GFW) rows from the Dropbox
+ * "collection asset" folders linked in `externalData.vendorAssetsLink`.
  *
- * Those folders are shared per-collection (not per-SKU) and contain line
- * drawings, assembly PDFs, raw TIFFs, carton photos, and a
- * `Product Images/JPEG/2000x2000/<sku-prefix>-*.jpg` set — only the latter
- * is useful for the storefront. Each unique folder is downloaded once
- * (folders can be 500MB+) and matching images are extracted directly from
- * the zip stream without writing the full archive to disk twice.
+ * Each unique folder is downloaded once (folders can be 500MB+). Three
+ * asset types are extracted per SKU, matched by filename prefix:
  *
- * Best-effort throughout: any failure (download, zip parse, no match) just
- * means that SKU gets no extra images — never blocks the import.
+ *   Product Images/JPEG/2000x2000/*.jpg  → extra storefront photos
+ *   Line Drawing*/<prefix>*.pdf          → line drawing uploaded as PDF to S3
+ *   Assembly*/<prefix>*.pdf              → assembly instructions uploaded as PDF to S3
+ *
+ * Raw TIFFs, carton photos, and any other files are skipped.
+ * Best-effort throughout: failures never block the import.
  */
 
 import fs from 'fs';
@@ -23,6 +23,8 @@ import { uploadBufferIfNew } from '../services/s3.service.js';
 
 const DROPBOX_FOLDER_RE = /dropbox\.com\/scl\/fo\//;
 const PRODUCT_IMAGE_DIR_RE = /product images[\\/].*2000x2000[\\/]/i;
+const LINE_DRAWING_DIR_RE  = /line drawings?[\\/]/i;
+const ASSEMBLY_DIR_RE      = /assembly[\\/]/i;
 const MAX_EXTRA_IMAGES_PER_SKU = 4;
 
 function isDropboxFolderUrl(url) {
@@ -44,43 +46,53 @@ async function downloadZip(folderUrl, destPath) {
 }
 
 /**
- * Stream through `zipPath` and extract entries under
- * `Product Images/**\/2000x2000/*.jpg` whose filename starts with one of
- * `prefixes` (case-insensitive). Returns [{ fileName, buffer }].
+ * Stream through `zipPath` and extract entries matching any of the three
+ * asset types for the given SKU prefixes (case-insensitive).
+ *
+ * Returns { images, lineDrawings, assembly } — each an array of { fileName, buffer }.
  */
 function extractMatchingEntries(zipPath, prefixes) {
   return new Promise((resolve, reject) => {
-    const results = [];
+    const images = [];
+    const lineDrawings = [];
+    const assembly = [];
 
     // decodeStrings: false skips yauzl's filename validation — some Dropbox
     // exports include a stray entry with an absolute "/" path that yauzl
-    // otherwise rejects with "absolute path: /" and aborts the whole read.
+    // otherwise rejects and aborts.
     yauzl.open(zipPath, { lazyEntries: true, decodeStrings: false }, (err, zipfile) => {
       if (err) return reject(err);
 
       zipfile.on('error', reject);
-      zipfile.on('end', () => resolve(results));
+      zipfile.on('end', () => resolve({ images, lineDrawings, assembly }));
 
-      zipfile.on('entry', (entry) => {
-        const fileName = entry.fileName.toString('utf8');
+      zipfile.on('entry', (zipEntry) => {
+        const fileName = zipEntry.fileName.toString('utf8');
         const base = path.basename(fileName).toLowerCase();
-        const isMatch = !/\/$/.test(fileName)
-          && /\.(jpe?g)$/i.test(base)
-          && PRODUCT_IMAGE_DIR_RE.test(fileName)
-          && prefixes.some(p => base.startsWith(p));
+        const isDir = /\/$/.test(fileName);
 
-        if (!isMatch) {
+        if (isDir) { zipfile.readEntry(); return; }
+
+        const matchesPrefix = prefixes.some(p => base.startsWith(p));
+        const isImage       = /\.(jpe?g)$/i.test(base) && PRODUCT_IMAGE_DIR_RE.test(fileName) && matchesPrefix;
+        const isLineDrawing = /\.pdf$/i.test(base)     && LINE_DRAWING_DIR_RE.test(fileName)   && matchesPrefix;
+        const isAssembly    = /\.pdf$/i.test(base)     && ASSEMBLY_DIR_RE.test(fileName)        && matchesPrefix;
+
+        if (!isImage && !isLineDrawing && !isAssembly) {
           zipfile.readEntry();
           return;
         }
 
-        zipfile.openReadStream(entry, (err, readStream) => {
+        zipfile.openReadStream(zipEntry, (err, readStream) => {
           if (err) return reject(err);
           const chunks = [];
           readStream.on('data', (chunk) => chunks.push(chunk));
           readStream.on('error', reject);
           readStream.on('end', () => {
-            results.push({ fileName, buffer: Buffer.concat(chunks) });
+            const parsed = { fileName, buffer: Buffer.concat(chunks) };
+            if (isImage) images.push(parsed);
+            else if (isLineDrawing) lineDrawings.push(parsed);
+            else assembly.push(parsed);
             zipfile.readEntry();
           });
         });
@@ -94,7 +106,7 @@ function extractMatchingEntries(zipPath, prefixes) {
 /**
  * Given the full set of normalized GFW { product, variant } records,
  * download each unique Dropbox asset folder once and return a
- * Map<sku, string[]> of extra S3 image URLs found for that SKU.
+ * Map<sku, { images: string[], lineDrawingUrl: string|null, assemblyUrl: string|null }>
  */
 export async function fetchCollectionImages(records) {
   const bySku = new Map();
@@ -103,7 +115,7 @@ export async function fetchCollectionImages(records) {
   const byFolder = new Map();
   for (const { product, variant } of records) {
     const folderUrl = product.externalData?.vendorAssetsLink;
-    const prefixes = product.externalData?.imageMatchPrefixes;
+    const prefixes  = product.externalData?.imageMatchPrefixes;
     if (!isDropboxFolderUrl(folderUrl) || !prefixes?.length) continue;
 
     if (!byFolder.has(folderUrl)) byFolder.set(folderUrl, []);
@@ -116,19 +128,35 @@ export async function fetchCollectionImages(records) {
 
     try {
       await downloadZip(folderUrl, zipPath);
-      const entries = await extractMatchingEntries(zipPath, allPrefixes);
+      const { images, lineDrawings, assembly } = await extractMatchingEntries(zipPath, allPrefixes);
 
       for (const { sku, prefixes } of items) {
-        const matches = entries.filter(e => prefixes.some(p => path.basename(e.fileName).toLowerCase().startsWith(p)));
-        if (!matches.length) continue;
+        const matchFile = (entries) =>
+          entries.filter(e => prefixes.some(p => path.basename(e.fileName).toLowerCase().startsWith(p)));
 
-        const urls = [];
-        for (const entry of matches.slice(0, MAX_EXTRA_IMAGES_PER_SKU)) {
-          const identifier = `${folderUrl}#${entry.fileName}`;
-          const url = await uploadBufferIfNew(identifier, entry.buffer, '.jpg', 'image/jpeg');
-          if (url) urls.push(url);
+        // Product images → up to MAX_EXTRA_IMAGES_PER_SKU S3 URLs
+        const imageMatches = matchFile(images);
+        const imageUrls = [];
+        for (const entry of imageMatches.slice(0, MAX_EXTRA_IMAGES_PER_SKU)) {
+          const url = await uploadBufferIfNew(`${folderUrl}#${entry.fileName}`, entry.buffer, '.jpg', 'image/jpeg');
+          if (url) imageUrls.push(url);
         }
-        if (urls.length) bySku.set(sku, urls);
+
+        // Line drawing → first matching PDF
+        const ldMatch = matchFile(lineDrawings)[0];
+        const lineDrawingUrl = ldMatch
+          ? await uploadBufferIfNew(`${folderUrl}#${ldMatch.fileName}`, ldMatch.buffer, '.pdf', 'application/pdf')
+          : null;
+
+        // Assembly instructions → first matching PDF
+        const asmMatch = matchFile(assembly)[0];
+        const assemblyUrl = asmMatch
+          ? await uploadBufferIfNew(`${folderUrl}#${asmMatch.fileName}`, asmMatch.buffer, '.pdf', 'application/pdf')
+          : null;
+
+        if (imageUrls.length || lineDrawingUrl || assemblyUrl) {
+          bySku.set(sku, { images: imageUrls, lineDrawingUrl, assemblyUrl });
+        }
       }
     } catch (err) {
       console.warn(`[GFW Assets] Failed to process folder ${folderUrl}: ${err.message}`);
