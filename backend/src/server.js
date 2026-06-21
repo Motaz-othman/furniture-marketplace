@@ -4,6 +4,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import { exec } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import authRoutes from './modules/auth/auth.routes.js';
 import productsRoutes from './modules/products/products.routes.js';
 import categoriesRoutes from './modules/categories/categories.routes.js';
@@ -169,8 +172,27 @@ app.use((req, res) => {
 // Global error handler (must be last)
 app.use(errorHandler);
 
+// Clean up GFW asset zips orphaned by a previously crashed instance.
+// They are normally deleted in a finally block, but a hard crash skips that,
+// causing them to accumulate across restarts and exhaust the 2GB /tmp limit.
+function cleanOrphanedGfwZips() {
+  try {
+    const tmpDir = os.tmpdir();
+    for (const f of fs.readdirSync(tmpDir)) {
+      if (f.startsWith('gfw-assets-') && f.endsWith('.zip')) {
+        fs.unlinkSync(path.join(tmpDir, f));
+        console.log(`[Startup] Removed orphaned GFW zip: ${f}`);
+      }
+    }
+  } catch (err) {
+    console.warn(`[Startup] Could not clean /tmp: ${err.message}`);
+  }
+}
+
 // Start server
 const startServer = async () => {
+  cleanOrphanedGfwZips();
+
   // Load all integrations
   await registry.loadAll();
 
