@@ -138,24 +138,26 @@ async function dropboxDownload(sharedLinkUrl, filePath) {
 // ─── Per-folder asset fetch ───────────────────────────────────────
 
 async function fetchFolderAssets(folderUrl, items, logRoot = false) {
-  // Discover the real structure: list immediate children of /Product Images.
-  // GFW organizes images as /Product Images/{Variant Name}/*.jpg — one subfolder
-  // per color/style variant (e.g. "Amelia Black", "Amelia White"), NOT by format
-  // (JPEG/JPG/resize). We list non-recursively so we only get the direct children.
-  const productImagesChildren = await dropboxListAll(folderUrl, '/Product Images', false);
-  const variantSubfolders = productImagesChildren.filter(e => e['.tag'] === 'folder');
-  const flatImages        = productImagesChildren.filter(e => e['.tag'] === 'file' && /\.(jpe?g)$/i.test(e.name));
+  // Recursively list ALL files under /Product Images regardless of nesting depth.
+  // GFW has varied subfolder structures across product lines, e.g.:
+  //   /Product Images/JPEG/2000x2000/*.jpg  (numeric/model-based lines)
+  //   /Product Images/{Color Name}/*.jpg    (named-variant lines)
+  // Recursive listing gets every file at any depth; we then match by filename prefix.
+  const allEntries = await dropboxListAll(folderUrl, '/Product Images');
+  const imageFiles = allEntries.filter(e =>
+    e['.tag'] === 'file' && /\.(jpe?g)$/i.test(e.name)
+  );
 
-  console.log(`[GFW Dropbox Debug] /Product Images: ${variantSubfolders.length} subfolders, ${flatImages.length} flat images (SKUs: ${items.map(i => i.sku).join(',')})`);
-  if (variantSubfolders.length > 0) {
-    console.log(`[GFW Dropbox Debug] Subfolders:`, variantSubfolders.slice(0, 8).map(f => f.name));
+  console.log(`[GFW Dropbox Debug] /Product Images recursive: ${imageFiles.length} JPEGs (SKUs: ${items.map(i => i.sku).join(',')})`);
+  if (imageFiles.length > 0) {
+    console.log(`[GFW Dropbox Debug] Sample filenames:`, imageFiles.slice(0, 5).map(f => f.name));
   }
 
-  // Diagnostic: when /Product Images is empty OR for the first few folders, list the
-  // root so we can see the actual Dropbox structure and adjust accordingly.
-  if (logRoot || (variantSubfolders.length === 0 && flatImages.length === 0)) {
+  // For the first few folders (or any that returned nothing), log the root so we
+  // can see the actual top-level structure and tune matching if needed.
+  if (logRoot || imageFiles.length === 0) {
     const rootEntries = await dropboxListAll(folderUrl, '', false);
-    console.log(`[GFW Dropbox Debug] Root of folder (${folderUrl.slice(-16)}):`, rootEntries.slice(0, 15).map(e => `[${e['.tag']}] ${e.name}`));
+    console.log(`[GFW Dropbox Debug] Root (${folderUrl.slice(-16)}):`, rootEntries.slice(0, 15).map(e => `[${e['.tag']}] ${e.name}`));
   }
 
   // List PDFs in parallel — Line Drawings and Assembly
@@ -169,44 +171,20 @@ async function fetchFolderAssets(folderUrl, items, logRoot = false) {
   for (const { sku, prefixes, sheetFilenames } of items) {
     console.log(`[GFW Dropbox Debug] SKU ${sku} — prefixes:`, prefixes);
 
-    let candidateImages = [];
+    // Match by filename prefix (case-insensitive). e.name is just the basename,
+    // not the full path, so this works regardless of how deep the file is nested.
+    const candidateImages = imageFiles.filter(e => {
+      const base     = e.name.toLowerCase();
+      const baseName = base.replace(/\.[^.]+$/, '');
+      return (
+        prefixes.some(p => base.startsWith(p)) &&
+        !/carton/i.test(base) &&
+        !sheetFilenames.has(baseName) &&
+        e.size <= MAX_IMAGE_SIZE_BYTES
+      );
+    });
 
-    if (variantSubfolders.length > 0) {
-      // Find the subfolder(s) whose name matches this item's prefixes (case-insensitive).
-      // The subfolder name IS the variant label, e.g. "Amelia Black"; prefixes come from
-      // row['Name'] in the GFW data CSV, already lowercased by fetchCollectionImages.
-      const matchedFolders = variantSubfolders.filter(sf => {
-        const sfName = sf.name.toLowerCase();
-        return prefixes.some(p => sfName.startsWith(p) || p.startsWith(sfName));
-      });
-
-      if (matchedFolders.length > 0) {
-        console.log(`[GFW Dropbox Debug] SKU ${sku} matched subfolders:`, matchedFolders.map(f => f.name));
-        for (const sf of matchedFolders) {
-          const entries = await dropboxListAll(folderUrl, sf.path_display);
-          const imgs = entries.filter(e =>
-            e['.tag'] === 'file' &&
-            /\.(jpe?g)$/i.test(e.name) &&
-            !/carton/i.test(e.name) &&
-            e.size <= MAX_IMAGE_SIZE_BYTES
-          );
-          candidateImages.push(...imgs);
-        }
-      } else {
-        console.log(`[GFW Dropbox Debug] SKU ${sku} — no subfolder matched`, prefixes, 'available:', variantSubfolders.map(f => f.name));
-      }
-    } else {
-      // No variant subfolders — fall back to flat image list filtered by prefix
-      candidateImages = flatImages.filter(e => {
-        const base = e.name.toLowerCase().replace(/\.[^.]+$/, '');
-        return (
-          prefixes.some(p => base.startsWith(p)) &&
-          !/carton/i.test(e.name) &&
-          !sheetFilenames.has(base) &&
-          e.size <= MAX_IMAGE_SIZE_BYTES
-        );
-      });
-    }
+    console.log(`[GFW Dropbox Debug] SKU ${sku} matched ${candidateImages.length} images`);
 
     const imageUrls = [];
     for (const entry of candidateImages.slice(0, MAX_EXTRA_IMAGES_PER_SKU)) {
@@ -219,7 +197,6 @@ async function fetchFolderAssets(folderUrl, items, logRoot = false) {
       }
     }
 
-    // PDFs: match by prefix against filename (unchanged — these are at root level)
     const matchPdf = (files) => files.filter(e => {
       const base = e.name.toLowerCase().replace(/\.[^.]+$/, '');
       return prefixes.some(p => base.startsWith(p));
