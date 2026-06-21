@@ -218,6 +218,8 @@ async function fetchFolderAssets(folderUrl, items, logRoot = false) {
 
     if (candidateImages.length > 0) {
       console.log(`[GFW Dropbox Debug] SKU ${sku} matched ${candidateImages.length}:`, candidateImages.map(f => f.name));
+    } else if (imageFiles.length > 0) {
+      console.log(`[GFW Dropbox Debug] SKU ${sku} NO MATCH — prefixes:`, prefixes, '| files:', imageFiles.slice(0, 5).map(f => f.name));
     }
 
     const imageUrls = [];
