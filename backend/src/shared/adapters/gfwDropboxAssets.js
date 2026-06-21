@@ -144,16 +144,21 @@ async function dropboxDownload(sharedLinkUrl, filePath) {
  */
 async function collectImageFiles(sharedLinkUrl, rootPath, maxDepth = 3) {
   const imageFiles = [];
+  // Build paths ourselves rather than trusting path_display (which may be an
+  // absolute Dropbox namespace path, not relative to the shared link root).
   const queue = [{ path: rootPath, depth: 0 }];
 
   while (queue.length > 0) {
     const { path, depth } = queue.shift();
     const entries = await dropboxListAll(sharedLinkUrl, path, false);
+    console.log(`[GFW Dropbox BFS] ${path} → ${entries.length} entries (depth ${depth})`);
     for (const entry of entries) {
       if (entry['.tag'] === 'file' && /\.(jpe?g)$/i.test(entry.name)) {
         imageFiles.push(entry);
       } else if (entry['.tag'] === 'folder' && depth < maxDepth) {
-        queue.push({ path: entry.path_display, depth: depth + 1 });
+        const childPath = `${path}/${entry.name}`;
+        console.log(`[GFW Dropbox BFS] Enqueue: ${childPath}`);
+        queue.push({ path: childPath, depth: depth + 1 });
       }
     }
   }
