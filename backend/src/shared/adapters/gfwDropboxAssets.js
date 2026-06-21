@@ -308,12 +308,22 @@ export async function fetchCollectionImages(records, onProgress) {
     //   2. Truncate at feature descriptors ("w/", "with", etc.) that follow the
     //      piece code in the name but are absent from the filename:
     //      "NAOMI-DR W/ LED" → "NAOMI-DR" to match "NAOMI-DR+MR-1.jpg"
+    //   3. For GROUP products (FBG, QBG, DBG, TBG…) the piece code is a set code
+    //      that doesn't appear in individual piece filenames — strip it to get the
+    //      model+color prefix that all piece images share: "ALINA-WHITE-FBG" → "ALINA-WHITE"
+    const GROUP_CODE_RE = /^(?:[fqdtk]bg|bg|group|set|pkg|package)$/i;
     const derivedPrefixes = [];
     for (const p of rawPrefixes) {
       const norm = p.replace(/"/g, '').replace(/\//g, ' ').replace(/&/g, '').replace(/\s+/g, ' ').trim();
       if (norm !== p) derivedPrefixes.push(norm);
       const truncated = norm.replace(/\s+(?:w|with|and|without)\b.*/i, '').trim();
       if (truncated !== norm && truncated.length >= 4) derivedPrefixes.push(truncated);
+      // Strip group piece code (FBG, QBG, etc.) to match all individual-piece filenames
+      const parts = truncated.split('-');
+      if (parts.length >= 3 && GROUP_CODE_RE.test(parts[parts.length - 1])) {
+        const modelColor = parts.slice(0, -1).join('-');
+        if (modelColor.length >= 4) derivedPrefixes.push(modelColor);
+      }
     }
 
     const allPrefixes = [...new Set([...rawPrefixes, ...derivedPrefixes])];
