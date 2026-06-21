@@ -143,9 +143,11 @@ async function dropboxDownload(sharedLinkUrl, filePath) {
  * so we enumerate each level non-recursively and enqueue subdirectories.
  */
 async function collectImageFiles(sharedLinkUrl, rootPath, maxDepth = 3) {
+  // Each collected file gets a `_sharedPath` — the path we constructed ourselves,
+  // relative to the shared link root. path_display from Dropbox is the absolute
+  // internal namespace path and causes 409 when passed to the download API.
   const imageFiles = [];
-  // Build paths ourselves rather than trusting path_display (which may be an
-  // absolute Dropbox namespace path, not relative to the shared link root).
+  const seenNames  = new Set(); // deduplicate across resolution subfolders
   const queue = [{ path: rootPath, depth: 0 }];
 
   while (queue.length > 0) {
@@ -153,10 +155,14 @@ async function collectImageFiles(sharedLinkUrl, rootPath, maxDepth = 3) {
     const entries = await dropboxListAll(sharedLinkUrl, path, false);
     console.log(`[GFW Dropbox BFS] ${path} → ${entries.length} entries (depth ${depth})`);
     for (const entry of entries) {
+      const childPath = `${path}/${entry.name}`;
       if (entry['.tag'] === 'file' && /\.(jpe?g)$/i.test(entry.name)) {
-        imageFiles.push(entry);
+        const nameLower = entry.name.toLowerCase();
+        if (!seenNames.has(nameLower)) {
+          seenNames.add(nameLower);
+          imageFiles.push({ ...entry, _sharedPath: childPath });
+        }
       } else if (entry['.tag'] === 'folder' && depth < maxDepth) {
-        const childPath = `${path}/${entry.name}`;
         console.log(`[GFW Dropbox BFS] Enqueue: ${childPath}`);
         queue.push({ path: childPath, depth: depth + 1 });
       }
@@ -217,8 +223,8 @@ async function fetchFolderAssets(folderUrl, items, logRoot = false) {
     const imageUrls = [];
     for (const entry of candidateImages.slice(0, MAX_EXTRA_IMAGES_PER_SKU)) {
       try {
-        const buffer = await dropboxDownload(folderUrl, entry.path_display);
-        const url    = await uploadBufferIfNew(`${folderUrl}#${entry.path_display}`, buffer, '.jpg', 'image/jpeg');
+        const buffer = await dropboxDownload(folderUrl, entry._sharedPath);
+        const url    = await uploadBufferIfNew(`${folderUrl}#${entry._sharedPath}`, buffer, '.jpg', 'image/jpeg');
         if (url) imageUrls.push(url);
       } catch (err) {
         console.warn(`[GFW Dropbox] Image download failed (${entry.name}): ${err.message}`);
@@ -233,9 +239,10 @@ async function fetchFolderAssets(folderUrl, items, logRoot = false) {
     let lineDrawingUrl = null;
     const ldEntry = matchPdf(ldFiles)[0];
     if (ldEntry) {
+      const ldPath = `${LINE_DRAWING_FOLDER}/${ldEntry.name}`;
       try {
-        const buffer = await dropboxDownload(folderUrl, ldEntry.path_display);
-        lineDrawingUrl = await uploadBufferIfNew(`${folderUrl}#${ldEntry.path_display}`, buffer, '.pdf', 'application/pdf');
+        const buffer = await dropboxDownload(folderUrl, ldPath);
+        lineDrawingUrl = await uploadBufferIfNew(`${folderUrl}#${ldPath}`, buffer, '.pdf', 'application/pdf');
       } catch (err) {
         console.warn(`[GFW Dropbox] Line drawing download failed (${ldEntry.name}): ${err.message}`);
       }
@@ -244,9 +251,10 @@ async function fetchFolderAssets(folderUrl, items, logRoot = false) {
     let assemblyUrl = null;
     const asmEntry = matchPdf(asmFiles)[0];
     if (asmEntry) {
+      const asmPath = `${ASSEMBLY_FOLDER}/${asmEntry.name}`;
       try {
-        const buffer = await dropboxDownload(folderUrl, asmEntry.path_display);
-        assemblyUrl = await uploadBufferIfNew(`${folderUrl}#${asmEntry.path_display}`, buffer, '.pdf', 'application/pdf');
+        const buffer = await dropboxDownload(folderUrl, asmPath);
+        assemblyUrl = await uploadBufferIfNew(`${folderUrl}#${asmPath}`, buffer, '.pdf', 'application/pdf');
       } catch (err) {
         console.warn(`[GFW Dropbox] Assembly download failed (${asmEntry.name}): ${err.message}`);
       }
