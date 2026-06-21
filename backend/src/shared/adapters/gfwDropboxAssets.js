@@ -39,8 +39,6 @@ async function getAccessToken() {
   return _cachedToken;
 }
 
-// Ordered list of image subfolders to try — first one with matching files wins
-const IMAGE_SUBFOLDERS    = ['/Product Images/JPEG', '/Product Images/JPG', '/Product Images/resize'];
 const LINE_DRAWING_FOLDER = '/Line Drawings';
 const ASSEMBLY_FOLDER     = '/Assembly';
 
@@ -87,7 +85,7 @@ export async function verifyDropboxToken() {
  * List all files under a subfolder path within a shared folder link.
  * Returns [] if the subfolder does not exist (409 path_not_found).
  */
-async function dropboxListAll(sharedLinkUrl, subpath) {
+async function dropboxListAll(sharedLinkUrl, subpath, recursive = true) {
   const entries = [];
   let cursor    = null;
   let hasMore   = true;
@@ -106,7 +104,7 @@ async function dropboxListAll(sharedLinkUrl, subpath) {
           body:    JSON.stringify({
             path:        subpath,
             shared_link: { url: sharedLinkUrl },
-            recursive:   true,
+            recursive,
           }),
         });
 
@@ -140,12 +138,17 @@ async function dropboxDownload(sharedLinkUrl, filePath) {
 // ─── Per-folder asset fetch ───────────────────────────────────────
 
 async function fetchFolderAssets(folderUrl, items) {
-  // Find the first image subfolder that has JPEG files
-  let imageFiles = [];
-  for (const subfolder of IMAGE_SUBFOLDERS) {
-    const entries = await dropboxListAll(folderUrl, subfolder);
-    const jpegs   = entries.filter(e => e['.tag'] === 'file' && /\.(jpe?g)$/i.test(e.name));
-    if (jpegs.length > 0) { imageFiles = jpegs; break; }
+  // Discover the real structure: list immediate children of /Product Images.
+  // GFW organizes images as /Product Images/{Variant Name}/*.jpg — one subfolder
+  // per color/style variant (e.g. "Amelia Black", "Amelia White"), NOT by format
+  // (JPEG/JPG/resize). We list non-recursively so we only get the direct children.
+  const productImagesChildren = await dropboxListAll(folderUrl, '/Product Images', false);
+  const variantSubfolders = productImagesChildren.filter(e => e['.tag'] === 'folder');
+  const flatImages        = productImagesChildren.filter(e => e['.tag'] === 'file' && /\.(jpe?g)$/i.test(e.name));
+
+  console.log(`[GFW Dropbox Debug] /Product Images: ${variantSubfolders.length} subfolders, ${flatImages.length} flat images`);
+  if (variantSubfolders.length > 0) {
+    console.log(`[GFW Dropbox Debug] Subfolders:`, variantSubfolders.slice(0, 8).map(f => f.name));
   }
 
   // List PDFs in parallel — Line Drawings and Assembly
@@ -154,29 +157,50 @@ async function fetchFolderAssets(folderUrl, items) {
     dropboxListAll(folderUrl, ASSEMBLY_FOLDER).then(e =>     e.filter(f => f['.tag'] === 'file' && /\.pdf$/i.test(f.name))),
   ]);
 
-  // Debug: log what we found in this folder
-  if (imageFiles.length > 0) {
-    console.log(`[GFW Dropbox Debug] Found ${imageFiles.length} images. First 5:`, imageFiles.slice(0, 5).map(f => f.name));
-  } else {
-    console.log(`[GFW Dropbox Debug] No images found in any IMAGE_SUBFOLDERS for this collection`);
-  }
-
   const result = new Map();
 
   for (const { sku, prefixes, sheetFilenames } of items) {
     console.log(`[GFW Dropbox Debug] SKU ${sku} — prefixes:`, prefixes);
-    const matchFile = (files) =>
-      files.filter(e => {
-        const base     = e.name.toLowerCase();
-        const baseName = base.replace(/\.[^.]+$/, '');
-        if (!prefixes.some(p => base.startsWith(p))) return false; // wrong SKU
-        if (/carton/i.test(base))                    return false; // carton photo
-        if (sheetFilenames.has(baseName))             return false; // already in spreadsheet
-        return true;
+
+    let candidateImages = [];
+
+    if (variantSubfolders.length > 0) {
+      // Find the subfolder(s) whose name matches this item's prefixes (case-insensitive).
+      // The subfolder name IS the variant label, e.g. "Amelia Black"; prefixes come from
+      // row['Name'] in the GFW data CSV, already lowercased by fetchCollectionImages.
+      const matchedFolders = variantSubfolders.filter(sf => {
+        const sfName = sf.name.toLowerCase();
+        return prefixes.some(p => sfName.startsWith(p) || p.startsWith(sfName));
       });
 
-    // Images: size-filtered, capped per SKU
-    const candidateImages = matchFile(imageFiles).filter(e => e.size <= MAX_IMAGE_SIZE_BYTES);
+      if (matchedFolders.length > 0) {
+        console.log(`[GFW Dropbox Debug] SKU ${sku} matched subfolders:`, matchedFolders.map(f => f.name));
+        for (const sf of matchedFolders) {
+          const entries = await dropboxListAll(folderUrl, sf.path_display);
+          const imgs = entries.filter(e =>
+            e['.tag'] === 'file' &&
+            /\.(jpe?g)$/i.test(e.name) &&
+            !/carton/i.test(e.name) &&
+            e.size <= MAX_IMAGE_SIZE_BYTES
+          );
+          candidateImages.push(...imgs);
+        }
+      } else {
+        console.log(`[GFW Dropbox Debug] SKU ${sku} — no subfolder matched`, prefixes, 'available:', variantSubfolders.map(f => f.name));
+      }
+    } else {
+      // No variant subfolders — fall back to flat image list filtered by prefix
+      candidateImages = flatImages.filter(e => {
+        const base = e.name.toLowerCase().replace(/\.[^.]+$/, '');
+        return (
+          prefixes.some(p => base.startsWith(p)) &&
+          !/carton/i.test(e.name) &&
+          !sheetFilenames.has(base) &&
+          e.size <= MAX_IMAGE_SIZE_BYTES
+        );
+      });
+    }
+
     const imageUrls = [];
     for (const entry of candidateImages.slice(0, MAX_EXTRA_IMAGES_PER_SKU)) {
       try {
@@ -188,9 +212,14 @@ async function fetchFolderAssets(folderUrl, items) {
       }
     }
 
-    // Line drawing PDF
+    // PDFs: match by prefix against filename (unchanged — these are at root level)
+    const matchPdf = (files) => files.filter(e => {
+      const base = e.name.toLowerCase().replace(/\.[^.]+$/, '');
+      return prefixes.some(p => base.startsWith(p));
+    });
+
     let lineDrawingUrl = null;
-    const ldEntry = matchFile(ldFiles)[0];
+    const ldEntry = matchPdf(ldFiles)[0];
     if (ldEntry) {
       try {
         const buffer = await dropboxDownload(folderUrl, ldEntry.path_display);
@@ -200,9 +229,8 @@ async function fetchFolderAssets(folderUrl, items) {
       }
     }
 
-    // Assembly PDF
     let assemblyUrl = null;
-    const asmEntry = matchFile(asmFiles)[0];
+    const asmEntry = matchPdf(asmFiles)[0];
     if (asmEntry) {
       try {
         const buffer = await dropboxDownload(folderUrl, asmEntry.path_display);
