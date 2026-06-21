@@ -12,10 +12,32 @@
 import path from 'path';
 import { uploadBufferIfNew } from '../services/s3.service.js';
 
-const DROPBOX_TOKEN       = process.env.DROPBOX_ACCESS_TOKEN;
 const DROPBOX_API         = 'https://api.dropboxapi.com/2';
 const DROPBOX_CONTENT     = 'https://content.dropboxapi.com/2';
 const DROPBOX_FOLDER_RE   = /dropbox\.com\/scl\/fo\//;
+
+// Cached short-lived access token derived from the refresh token
+let _cachedToken     = null;
+let _tokenExpiresAt  = 0;
+
+async function getAccessToken() {
+  if (_cachedToken && Date.now() < _tokenExpiresAt - 60_000) return _cachedToken;
+  const res = await fetch('https://api.dropbox.com/oauth2/token', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body:    new URLSearchParams({
+      grant_type:    'refresh_token',
+      refresh_token: process.env.DROPBOX_REFRESH_TOKEN,
+      client_id:     process.env.DROPBOX_APP_KEY,
+      client_secret: process.env.DROPBOX_APP_SECRET,
+    }),
+  });
+  if (!res.ok) throw new Error(`Dropbox token refresh failed (${res.status}): ${await res.text()}`);
+  const data     = await res.json();
+  _cachedToken   = data.access_token;
+  _tokenExpiresAt = Date.now() + data.expires_in * 1000;
+  return _cachedToken;
+}
 
 // Ordered list of image subfolders to try — first one with matching files wins
 const IMAGE_SUBFOLDERS    = ['/Product Images/JPEG', '/Product Images/JPG', '/Product Images/resize'];
@@ -40,6 +62,27 @@ function imageBasename(urlOrPath) {
 
 // ─── Dropbox API helpers ──────────────────────────────────────────
 
+/** Verify Dropbox credentials and refresh-token flow before doing any real work. */
+export async function verifyDropboxToken() {
+  const missing = ['DROPBOX_APP_KEY', 'DROPBOX_APP_SECRET', 'DROPBOX_REFRESH_TOKEN'].filter(k => !process.env[k]);
+  if (missing.length) return { ok: false, error: `Missing env vars: ${missing.join(', ')}` };
+  try {
+    const token = await getAccessToken();
+    const res = await fetch(`${DROPBOX_API}/check/user`, {
+      method:  'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ query: 'ping' }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      return { ok: false, error: `Dropbox check failed (${res.status}): ${body}` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
 /**
  * List all files under a subfolder path within a shared folder link.
  * Returns [] if the subfolder does not exist (409 path_not_found).
@@ -50,15 +93,16 @@ async function dropboxListAll(sharedLinkUrl, subpath) {
   let hasMore   = true;
 
   while (hasMore) {
+    const token = await getAccessToken();
     const res = cursor
       ? await fetch(`${DROPBOX_API}/files/list_folder/continue`, {
           method:  'POST',
-          headers: { 'Authorization': `Bearer ${DROPBOX_TOKEN}`, 'Content-Type': 'application/json' },
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
           body:    JSON.stringify({ cursor }),
         })
       : await fetch(`${DROPBOX_API}/files/list_folder`, {
           method:  'POST',
-          headers: { 'Authorization': `Bearer ${DROPBOX_TOKEN}`, 'Content-Type': 'application/json' },
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
           body:    JSON.stringify({
             path:        subpath,
             shared_link: { url: sharedLinkUrl },
@@ -80,10 +124,11 @@ async function dropboxListAll(sharedLinkUrl, subpath) {
 
 /** Download a single file from within a shared folder link by its display path. */
 async function dropboxDownload(sharedLinkUrl, filePath) {
+  const token = await getAccessToken();
   const res = await fetch(`${DROPBOX_CONTENT}/sharing/get_shared_link_file`, {
     method:  'POST',
     headers: {
-      'Authorization':   `Bearer ${DROPBOX_TOKEN}`,
+      'Authorization':   `Bearer ${token}`,
       'Dropbox-API-Arg': JSON.stringify({ url: sharedLinkUrl, path: filePath }),
     },
   });
@@ -109,9 +154,17 @@ async function fetchFolderAssets(folderUrl, items) {
     dropboxListAll(folderUrl, ASSEMBLY_FOLDER).then(e =>     e.filter(f => f['.tag'] === 'file' && /\.pdf$/i.test(f.name))),
   ]);
 
+  // Debug: log what we found in this folder
+  if (imageFiles.length > 0) {
+    console.log(`[GFW Dropbox Debug] Found ${imageFiles.length} images. First 5:`, imageFiles.slice(0, 5).map(f => f.name));
+  } else {
+    console.log(`[GFW Dropbox Debug] No images found in any IMAGE_SUBFOLDERS for this collection`);
+  }
+
   const result = new Map();
 
   for (const { sku, prefixes, sheetFilenames } of items) {
+    console.log(`[GFW Dropbox Debug] SKU ${sku} — prefixes:`, prefixes);
     const matchFile = (files) =>
       files.filter(e => {
         const base     = e.name.toLowerCase();
@@ -177,8 +230,8 @@ async function fetchFolderAssets(folderUrl, items) {
  * @param {Function} [onProgress] - called after each folder: (done, total, folderUrl)
  */
 export async function fetchCollectionImages(records, onProgress) {
-  if (!DROPBOX_TOKEN) {
-    console.warn('[GFW Dropbox] DROPBOX_ACCESS_TOKEN not set — skipping Dropbox asset sync');
+  if (!process.env.DROPBOX_REFRESH_TOKEN) {
+    console.warn('[GFW Dropbox] DROPBOX_REFRESH_TOKEN not set — skipping Dropbox asset sync');
     return new Map();
   }
 
