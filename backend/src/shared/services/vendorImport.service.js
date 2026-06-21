@@ -199,21 +199,13 @@ export async function runVendorImport(source, records) {
   try {
     await buildCategorySlugMap();
 
-    let extraImagesMap = null;
-    if (source === 'GFW') {
-      setProgress('Fetching collection images from Dropbox...');
-      extraImagesMap = await fetchCollectionImages(records, (done, total, folderUrl) => {
-        const name = folderUrl ? new URL(folderUrl).pathname.split('/').filter(Boolean).pop() || 'folder' : 'folder';
-        setProgress(`Dropbox assets: ${done}/${total} folders — ${name}`);
-      });
-    }
-
+    // Phase 1: upsert all products immediately (no Dropbox images yet)
     for (let i = 0; i < records.length; i++) {
       const record = records[i];
       setProgress(`Importing ${i + 1}/${records.length}: ${record.product.name}`);
 
       try {
-        const result = await upsertRecord(record, source, extraImagesMap);
+        const result = await upsertRecord(record, source, null);
         if (result === 'created') created++;
         else if (result === 'updated') updated++;
         else skipped++;
@@ -221,6 +213,47 @@ export async function runVendorImport(source, records) {
         failed++;
         errors.push({ sku: record.variant.sku, name: record.product.name, message: err.message });
         console.error(`[VendorImport:${source}] Failed "${record.product.name}" (${record.variant.sku}): ${err.message}`);
+      }
+    }
+
+    // Phase 2 (GFW only): stream Dropbox folders and patch extra assets onto already-saved products
+    if (source === 'GFW') {
+      setProgress('Fetching Dropbox assets...');
+      const extraImagesMap = await fetchCollectionImages(records, (done, total, folderUrl) => {
+        const name = folderUrl ? new URL(folderUrl).pathname.split('/').filter(Boolean).pop() || 'folder' : 'folder';
+        setProgress(`Dropbox assets: ${done}/${total} folders — ${name}`);
+      });
+
+      setProgress('Applying Dropbox assets...');
+      for (const [sku, assets] of extraImagesMap) {
+        try {
+          const variant = await prisma.productVariant.findUnique({
+            where: { sku },
+            include: { product: { select: { id: true, media: true, externalData: true } } },
+          });
+          if (!variant?.product) continue;
+
+          const { id: productId, media, externalData } = variant.product;
+
+          const updatedMedia = media || {};
+          if (assets.images?.length) {
+            updatedMedia.additionalImages = [
+              ...(updatedMedia.additionalImages || []),
+              ...assets.images.map(url => ({ url })),
+            ];
+          }
+
+          const updatedExternalData = { ...(externalData || {}) };
+          if (assets.lineDrawingUrl) updatedExternalData.lineDrawingUrl = assets.lineDrawingUrl;
+          if (assets.assemblyUrl)    updatedExternalData.assemblyUrl    = assets.assemblyUrl;
+
+          await prisma.product.update({
+            where: { id: productId },
+            data: { media: updatedMedia, externalData: updatedExternalData },
+          });
+        } catch (err) {
+          console.error(`[VendorImport:GFW] Failed applying Dropbox assets for ${sku}: ${err.message}`);
+        }
       }
     }
 
