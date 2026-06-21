@@ -48,3 +48,8 @@ export async function importUnitedWeavers({ catalogCsv, inventoryCsv }) {
   const { data } = await api.post('/admin/vendor-import/uw/import', formData);
   return data;
 }
+
+export async function triggerGfwDropboxSync() {
+  const { data } = await api.post('/admin/vendor-import/gfw/dropbox-sync');
+  return data;
+}

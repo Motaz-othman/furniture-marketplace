@@ -10,6 +10,7 @@ import {
   importGlobalFurniture,
   clearGlobalFurnitureProducts,
   importUnitedWeavers,
+  triggerGfwDropboxSync,
 } from '@/lib/services/vendorImport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,7 +90,10 @@ export default function VendorImportPage() {
   const { data: statusRes } = useQuery({
     queryKey: ['vendor-import-status'],
     queryFn: getVendorImportStatus,
-    refetchInterval: (query) => (query.state.data?.data?.running ? 2000 : 10000),
+    refetchInterval: (query) => {
+      const d = query.state.data?.data;
+      return (d?.running || d?.dropboxSync?.running) ? 2000 : 10000;
+    },
   });
 
   const { data: logsRes, isLoading: logsLoading } = useQuery({
@@ -99,6 +103,7 @@ export default function VendorImportPage() {
 
   const status = statusRes?.data;
   const isRunning = status?.running;
+  const dropbox = status?.dropboxSync;
   const logs = logsRes?.data || [];
   const pagination = logsRes?.pagination;
 
@@ -144,6 +149,12 @@ export default function VendorImportPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to clear GFW products'),
   });
 
+  const dropboxSyncMutation = useMutation({
+    mutationFn: triggerGfwDropboxSync,
+    onSuccess: () => { toast.success('Dropbox sync started'); invalidate(); },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to start Dropbox sync'),
+  });
+
   const uwImportMutation = useMutation({
     mutationFn: () => importUnitedWeavers({ catalogCsv: uwCatalog, inventoryCsv: uwInventory }),
     onSuccess: (data) => {
@@ -170,10 +181,10 @@ export default function VendorImportPage() {
       </div>
 
       {/* Status */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Status</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Import Status</CardTitle>
           </CardHeader>
           <CardContent>
             {isRunning ? (
@@ -192,6 +203,45 @@ export default function VendorImportPage() {
         </Card>
 
         <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Dropbox Image Sync</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {dropbox?.running ? (
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                  <span className="font-semibold text-blue-600">Syncing</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{dropbox.progress}</p>
+                <p className="text-xs text-muted-foreground">Started: {formatDate(dropbox.startedAt)}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="font-semibold text-green-600 text-sm">
+                  {dropbox?.lastRun ? 'Idle' : 'Not run yet'}
+                </p>
+                {dropbox?.lastRun && (
+                  <p className="text-xs text-muted-foreground">Last run: {formatDate(dropbox.lastRun)}</p>
+                )}
+                {dropbox?.progress && (
+                  <p className="text-xs text-muted-foreground">{dropbox.progress}</p>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={dropbox?.running || dropboxSyncMutation.isPending || isRunning}
+                  onClick={() => dropboxSyncMutation.mutate()}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  {dropboxSyncMutation.isPending ? 'Starting...' : 'Sync Now'}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Last Imports</CardTitle>
           </CardHeader>
