@@ -8,6 +8,7 @@ import {
   importAcme,
   refreshAcme,
   importGlobalFurniture,
+  clearGlobalFurnitureProducts,
   importUnitedWeavers,
 } from '@/lib/services/vendorImport';
 import { Button } from '@/components/ui/button';
@@ -135,6 +136,12 @@ export default function VendorImportPage() {
       invalidate();
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to start Global Furniture import'),
+  });
+
+  const gfwClearMutation = useMutation({
+    mutationFn: clearGlobalFurnitureProducts,
+    onSuccess: (data) => toast.success(data.message || 'GFW products cleared'),
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to clear GFW products'),
   });
 
   const uwImportMutation = useMutation({
@@ -282,10 +289,23 @@ export default function VendorImportPage() {
                 <FileField id="gfw-data" label="Product Data Sheet" file={gfwData} onChange={setGfwData} />
                 <FileField id="gfw-inventory" label="Search Results (inventory)" file={gfwInventory} onChange={setGfwInventory} />
               </div>
-              <Button onClick={() => gfwImportMutation.mutate()} disabled={gfwImportDisabled}>
-                <Upload className="h-4 w-4 mr-1" />
-                {gfwImportMutation.isPending ? 'Starting...' : 'Start Import'}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button onClick={() => gfwImportMutation.mutate()} disabled={gfwImportDisabled}>
+                  <Upload className="h-4 w-4 mr-1" />
+                  {gfwImportMutation.isPending ? 'Starting...' : 'Start Import'}
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={isRunning || gfwClearMutation.isPending}
+                  onClick={() => {
+                    if (confirm('This will permanently delete all Global Furniture products, variants, and storefront listings. Continue?')) {
+                      gfwClearMutation.mutate();
+                    }
+                  }}
+                >
+                  {gfwClearMutation.isPending ? 'Clearing...' : 'Clear All GFW Products'}
+                </Button>
+              </div>
               {isRunning && (
                 <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
               )}

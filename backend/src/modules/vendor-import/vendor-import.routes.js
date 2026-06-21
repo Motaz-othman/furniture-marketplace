@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { getStatus, getLogs, importAcme, refreshAcme, importGlobalFurniture, importUnitedWeavers } from './vendor-import.controller.js';
+import { getStatus, getLogs, importAcme, refreshAcme, importGlobalFurniture, clearGlobalFurnitureProducts, importUnitedWeavers } from './vendor-import.controller.js';
 import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware.js';
 
 const router = Router();
@@ -42,6 +42,8 @@ router.post('/acme/refresh', upload.fields([
   { name: 'priceCsv', maxCount: 1 },
   { name: 'inventoryCsv', maxCount: 1 },
 ]), refreshAcme);
+
+router.delete('/gfw/products', clearGlobalFurnitureProducts);
 
 router.post('/gfw/import', upload.fields([
   { name: 'dataCsv', maxCount: 1 },

@@ -28,6 +28,11 @@ export async function refreshAcme({ priceCsv, inventoryCsv }) {
   return data;
 }
 
+export async function clearGlobalFurnitureProducts() {
+  const { data } = await api.delete('/admin/vendor-import/gfw/products');
+  return data;
+}
+
 export async function importGlobalFurniture({ dataCsv, inventoryCsv }) {
   const formData = new FormData();
   formData.append('dataCsv', dataCsv);

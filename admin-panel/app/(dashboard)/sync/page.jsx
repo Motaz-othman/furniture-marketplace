@@ -98,6 +98,53 @@ export default function SyncPage() {
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">Sync Management</h1>
 
+      {/* Running banner — full width, shown only when a sync is active */}
+      {isRunning && (
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800">
+          <CardContent className="pt-4 space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <Loader2 className="h-5 w-5 animate-spin text-blue-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                    {typeLabel(status?.type)} in progress
+                    {status?.current && status?.total
+                      ? ` — ${status.current} / ${status.total}`
+                      : ''}
+                  </p>
+                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70 truncate mt-0.5">
+                    {status?.progress || 'Starting...'}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => stopMutation.mutate()}
+                disabled={stopMutation.isPending}
+                className="shrink-0"
+              >
+                <Square className="h-3.5 w-3.5 mr-1.5" />
+                {stopMutation.isPending ? 'Stopping...' : 'Stop Sync'}
+              </Button>
+            </div>
+            {status?.current && status?.total && (
+              <div className="space-y-1">
+                <div className="w-full bg-blue-200 dark:bg-blue-900 rounded-full h-2">
+                  <div
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.round((status.current / status.total) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-blue-600/70 dark:text-blue-400/70 text-right">
+                  {Math.round((status.current / status.total) * 100)}%
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Status + Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -106,42 +153,14 @@ export default function SyncPage() {
           </CardHeader>
           <CardContent>
             {isRunning ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                    <span className="font-semibold text-blue-600">Running</span>
-                    {status?.current && status?.total && (
-                      <span className="text-xs font-mono text-blue-500">
-                        {status.current}/{status.total}
-                      </span>
-                    )}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => stopMutation.mutate()}
-                    disabled={stopMutation.isPending}
-                  >
-                    <Square className="h-3 w-3 mr-1" />
-                    Stop
-                  </Button>
-                </div>
-                {status?.current && status?.total && (
-                  <div className="w-full bg-muted rounded-full h-1.5">
-                    <div
-                      className="bg-blue-500 h-1.5 rounded-full transition-all"
-                      style={{ width: `${Math.round((status.current / status.total) * 100)}%` }}
-                    />
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground truncate">{status?.progress}</p>
-                <p className="text-xs text-muted-foreground">Started: {formatDate(status?.startedAt)}</p>
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                <span className="font-semibold text-blue-600">Running</span>
               </div>
             ) : (
               <span className="font-semibold text-green-600">Idle</span>
             )}
+            <p className="text-xs text-muted-foreground mt-1">Started: {isRunning ? formatDate(status?.startedAt) : '—'}</p>
           </CardContent>
         </Card>
 

@@ -130,6 +130,34 @@ export const refreshAcme = async (req, res) => {
   }
 };
 
+// ─── DELETE /gfw/products ─────────────────────────────────────────
+
+export const clearGlobalFurnitureProducts = async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: { source: 'GFW' },
+      select: { id: true },
+    });
+    const ids = products.map(p => p.id);
+
+    if (!ids.length) {
+      return res.json({ message: 'No Global Furniture products found', deleted: 0 });
+    }
+
+    await prisma.$transaction([
+      prisma.storefrontListing.deleteMany({ where: { productId: { in: ids } } }),
+      prisma.orderItem.deleteMany({ where: { productId: { in: ids } } }),
+      prisma.productVariant.deleteMany({ where: { productId: { in: ids } } }),
+      prisma.product.deleteMany({ where: { source: 'GFW' } }),
+    ]);
+
+    res.json({ message: `Deleted ${ids.length} Global Furniture products`, deleted: ids.length });
+  } catch (error) {
+    console.error('Clear GFW products error:', error);
+    res.status(500).json({ error: error.message || 'Failed to clear Global Furniture products' });
+  }
+};
+
 // ─── POST /gfw/import ────────────────────────────────────────────
 
 export const importGlobalFurniture = async (req, res) => {
