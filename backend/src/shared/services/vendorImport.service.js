@@ -13,7 +13,7 @@
 import prisma from '../config/db.js';
 import { migrateMediaToS3, clearSyncCache } from './s3.service.js';
 import { parseAcmePriceAndInventory } from '../adapters/acme.adapter.js';
-import { fetchCollectionImages } from '../adapters/gfwDropboxAssets.js';
+import { fetchCollectionImages, verifyDropboxToken } from '../adapters/gfwDropboxAssets.js';
 
 // ─── Lock / progress state ────────────────────────────────────────
 
@@ -46,14 +46,40 @@ export function getDropboxSyncStatus() {
   return { ...dropboxSyncState };
 }
 
+export async function resetGfwDropboxSync() {
+  const products = await prisma.product.findMany({
+    where: { source: 'GFW' },
+    select: { id: true, externalData: true },
+  });
+
+  let reset = 0;
+  for (const p of products) {
+    if (!p.externalData?.dropboxSynced) continue;
+    const { dropboxSynced, lineDrawingUrl, assemblyUrl, ...rest } = p.externalData;
+    await prisma.product.update({ where: { id: p.id }, data: { externalData: rest } });
+    reset++;
+  }
+
+  console.log(`[GFW Dropbox] Reset dropboxSynced flag on ${reset} products`);
+  return { reset };
+}
+
 export async function syncGfwDropboxAssets() {
   if (dropboxSyncState.running) {
     throw new Error('GFW Dropbox sync already running');
   }
 
-  dropboxSyncState = { running: true, startedAt: new Date().toISOString(), progress: 'Loading unsynced products...', lastRun: dropboxSyncState.lastRun };
+  dropboxSyncState = { running: true, startedAt: new Date().toISOString(), progress: 'Verifying Dropbox token...', lastRun: dropboxSyncState.lastRun };
 
   try {
+    const tokenCheck = await verifyDropboxToken();
+    if (!tokenCheck.ok) {
+      dropboxSyncState = { running: false, startedAt: dropboxSyncState.startedAt, progress: `Token error: ${tokenCheck.error}`, lastRun: new Date().toISOString() };
+      console.error('[GFW Dropbox] Token check failed:', tokenCheck.error);
+      return { synced: 0, skipped: 0 };
+    }
+
+    dropboxSyncState.progress = 'Loading unsynced products...';
     // Query all GFW products from DB that haven't been Dropbox-synced yet
     const allProducts = await prisma.product.findMany({
       where: { source: 'GFW' },
@@ -127,21 +153,6 @@ export async function syncGfwDropboxAssets() {
         patched++;
       } catch (err) {
         console.error(`[GFW Dropbox] Failed to patch ${sku}: ${err.message}`);
-      }
-    }
-
-    // Mark all products with a vendorAssetsLink but zero results as synced
-    // so they don't get re-attempted on every run
-    const skusPatched = new Set(extraImagesMap.keys());
-    for (const p of unsynced) {
-      const hasLink = p.externalData?.vendorAssetsLink;
-      if (!hasLink) continue;
-      for (const v of p.variants || []) {
-        if (skusPatched.has(v.sku)) continue;
-        await prisma.product.update({
-          where: { id: p.id },
-          data: { externalData: { ...(p.externalData || {}), dropboxSynced: true } },
-        }).catch(() => {});
       }
     }
 
