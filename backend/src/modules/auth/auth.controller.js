@@ -117,6 +117,26 @@ export const login = async (req, res) => {
       data: { lastLoginAt: new Date() }
     });
 
+    // Link any past guest orders placed with this email
+    if (user.customer) {
+      const guestOrders = await prisma.order.findMany({
+        where: { guestEmail: email, customerId: null },
+        select: { id: true, addressId: true },
+      });
+      if (guestOrders.length > 0) {
+        const orderIds = guestOrders.map(o => o.id);
+        const addressIds = [...new Set(guestOrders.map(o => o.addressId))];
+        await prisma.order.updateMany({
+          where: { id: { in: orderIds } },
+          data: { customerId: user.customer.id },
+        });
+        await prisma.address.updateMany({
+          where: { id: { in: addressIds }, customerId: null },
+          data: { customerId: user.customer.id },
+        });
+      }
+    }
+
     const tokenPayload = { userId: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 };
     const token = generateToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);

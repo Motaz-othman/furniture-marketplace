@@ -26,7 +26,7 @@ export async function loginUser({ email, password }) {
 }
 
 export async function registerUser({ email, password, firstName, lastName }) {
-  return post('/auth/register', { email, password, firstName, lastName });
+  return post('/auth/register', { email, password, firstName, lastName, claimGuestOrders: true });
 }
 
 export async function getMe() {
