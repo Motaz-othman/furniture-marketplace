@@ -18,6 +18,8 @@ import {
   deleteProduct,
   getAllCategories,
   getRecentActivity,
+  getCustomers,
+  getCustomerDetail,
 } from './admin.controller.js';
 import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware.js';
 import { validate } from '../../shared/middleware/validate.middleware.js';
@@ -55,5 +57,8 @@ router.patch('/products/:id/toggle', toggleProductActive);
 router.delete('/products/:id', deleteProduct);
 
 router.get('/categories', getAllCategories);
+
+router.get('/customers',     getCustomers);
+router.get('/customers/:id', getCustomerDetail);
 
 export default router;

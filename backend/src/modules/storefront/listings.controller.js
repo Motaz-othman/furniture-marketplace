@@ -455,8 +455,11 @@ export const getRawProducts = async (req, res) => {
       where.acmeStatus = acmeStatus;
     }
 
-    // Stock filter — show products with totalStock >= minStock
-    if (stock !== undefined && stock !== '') {
+    // Stock filter — 'low' = active products with ≤5 units, otherwise minimum stock
+    if (stock === 'low') {
+      where.isActive = true;
+      where.totalStock = { lte: 5 };
+    } else if (stock !== undefined && stock !== '') {
       where.totalStock = { gte: parseInt(stock, 10) };
     }
 

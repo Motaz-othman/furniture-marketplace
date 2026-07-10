@@ -237,6 +237,10 @@ model Order {
   guestLastName   String?
   guestPhone      String?
 
+  // Coupon
+  couponCode      String?
+  discountAmount  Float?  @default(0)
+
   customer              Customer?     @relation(fields: [customerId], references: [id])
   address               Address       @relation(fields: [addressId], references: [id])
   items                 OrderItem[]
@@ -495,6 +499,22 @@ model SiteSettings {
   settings  Json     @default("{}")
   updatedAt DateTime @updatedAt
 }
+model Coupon {
+  id             String    @id @default(uuid())
+  code           String    @unique
+  type           String    // PERCENTAGE or FIXED
+  value          Float
+  minOrderAmount Float?
+  maxUses        Int?
+  usedCount      Int       @default(0)
+  expiresAt      DateTime?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([code])
+}
+
 model NewsletterSubscriber {
   id          String   @id @default(cuid())
   email       String   @unique

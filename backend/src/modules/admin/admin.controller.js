@@ -604,3 +604,94 @@ export const getRecentActivity = async (req, res) => {
     res.status(500).json({ error: 'Failed to get recent activity' });
   }
 };
+
+// ============================================
+// CUSTOMERS
+// ============================================
+
+export const getCustomers = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const where = search ? {
+      user: {
+        OR: [
+          { email:     { contains: search, mode: 'insensitive' } },
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName:  { contains: search, mode: 'insensitive' } },
+        ],
+      },
+    } : {};
+
+    const [customers, total] = await Promise.all([
+      prisma.customer.findMany({
+        where,
+        skip,
+        take: parseInt(limit),
+        orderBy: { orders: { _count: 'desc' } },
+        select: {
+          id: true,
+          user: { select: { id: true, email: true, firstName: true, lastName: true, phone: true, createdAt: true, isBlocked: true } },
+          _count: { select: { orders: true } },
+          orders: {
+            select: { total: true, createdAt: true, status: true },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+      }),
+      prisma.customer.count({ where }),
+    ]);
+
+    // Compute total spend per customer
+    const customerIds = customers.map(c => c.id);
+    const spends = await prisma.order.groupBy({
+      by: ['customerId'],
+      where: { customerId: { in: customerIds }, status: { notIn: ['CANCELLED', 'REFUNDED'] } },
+      _sum: { total: true },
+    });
+    const spendMap = Object.fromEntries(spends.map(s => [s.customerId, s._sum.total || 0]));
+
+    const data = customers.map(c => ({
+      id: c.id,
+      user: c.user,
+      orderCount: c._count.orders,
+      totalSpend: spendMap[c.id] || 0,
+      lastOrderAt: c.orders[0]?.createdAt || null,
+      lastOrderStatus: c.orders[0]?.status || null,
+    }));
+
+    res.json({ data, pagination: { page: parseInt(page), limit: parseInt(limit), total, totalPages: Math.ceil(total / parseInt(limit)) } });
+  } catch (err) {
+    console.error('Get customers error:', err);
+    res.status(500).json({ error: 'Failed to get customers' });
+  }
+};
+
+export const getCustomerDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const customer = await prisma.customer.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true, email: true, firstName: true, lastName: true, phone: true, createdAt: true, isBlocked: true } },
+        addresses: true,
+        orders: {
+          orderBy: { createdAt: 'desc' },
+          include: { items: { include: { product: { select: { name: true, mainImage: true } } } } },
+        },
+      },
+    });
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+    const totalSpend = customer.orders
+      .filter(o => !['CANCELLED', 'REFUNDED'].includes(o.status))
+      .reduce((sum, o) => sum + o.total, 0);
+
+    res.json({ ...customer, totalSpend });
+  } catch (err) {
+    console.error('Get customer detail error:', err);
+    res.status(500).json({ error: 'Failed to get customer' });
+  }
+};

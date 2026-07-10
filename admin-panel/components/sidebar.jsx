@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth';
-import { Package, ShoppingBag, RefreshCw, Users, LogOut, Calculator, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud, LayoutDashboard } from 'lucide-react';
+import { Package, ShoppingBag, RefreshCw, Users, LogOut, Calculator, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud, LayoutDashboard, UserCircle, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -11,12 +11,14 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/products', label: 'Raw Products', icon: Package },
+  { href: '/customers', label: 'Customers', icon: UserCircle },
   { href: '/vendor-import', label: 'Vendor Import', icon: UploadCloud },
   { href: '/listings', label: 'Storefront Listings', icon: ShoppingBag },
   { href: '/categories', label: 'Categories', icon: LayoutGrid },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
   { href: '/sync', label: 'Sync Management', icon: RefreshCw },
   { href: '/users', label: 'User Management', icon: Users },
+  { href: '/coupons', label: 'Coupons', icon: Tag },
   { href: '/cost-calculator', label: 'Cost Calculator', icon: Calculator },
   { href: '/gigiga-calculator', label: 'Gigiga Cloud Calculator', icon: Cloud },
   { href: '/settings', label: 'Storefront Settings', icon: Settings },
