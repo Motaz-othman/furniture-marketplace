@@ -81,6 +81,8 @@ export function CartProvider({ children }) {
     if (authLoading) return;
 
     if (isAuthenticated) {
+      const guestItems = readStorage();
+      if (guestItems.length) return; // Effect 2 will merge guest items then reload
       setIsLoading(true);
       get('/cart')
         .then((res) => {

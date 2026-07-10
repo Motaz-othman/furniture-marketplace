@@ -30,7 +30,8 @@ export default function LoginContent() {
     try {
       await login({ email, password });
       toast.success('Welcome back!');
-      const redirect = searchParams.get('redirect') || '/';
+      const raw = searchParams.get('redirect') || '/';
+      const redirect = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/';
       router.push(redirect);
     } catch (err) {
       setError(getAuthError(err, 'Invalid email or password'));

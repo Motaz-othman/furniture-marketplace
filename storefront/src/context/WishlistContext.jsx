@@ -22,7 +22,7 @@ function writeGuestWishlist(items) {
 }
 
 export function WishlistProvider({ children }) {
-  const { user, isAuthenticated, isLoading: authLoading } = useContext(AuthContext);
+  const { isAuthenticated, isLoading: authLoading } = useContext(AuthContext);
   const [items, setItems] = useState([]); // { id, productId, product }
   const [isLoading, setIsLoading] = useState(true);
 
@@ -47,6 +47,21 @@ export function WishlistProvider({ children }) {
   useEffect(() => {
     loadWishlist();
   }, [loadWishlist]);
+
+  // Merge guest wishlist to backend on login
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+    const guestItems = readGuestWishlist();
+    if (!guestItems.length) return;
+
+    Promise.all(guestItems.map((item) => addToWishlist(item.productId).catch(() => null)))
+      .then(() => {
+        localStorage.removeItem(GUEST_KEY);
+        return getWishlist();
+      })
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [isAuthenticated, authLoading]);
 
   // Clear guest wishlist on logout
   useEffect(() => {

@@ -118,7 +118,7 @@ export default function CheckoutContent() {
           toast.error('Could not load your saved addresses. You can enter one manually.');
         });
     }
-  }, [isAuthenticated, user, selectedAddressId]);
+  }, [isAuthenticated, user]); // selectedAddressId intentionally excluded — only set default on first load
 
   // Redirect to cart if empty
   useEffect(() => {
@@ -246,11 +246,9 @@ export default function CheckoutContent() {
     } catch (err) {
       const data = err.response?.data;
       // Log full error so we can see exactly what the backend returns
-      console.error('[Checkout] Order failed:', {
-        status: err.response?.status,
-        data,
-        message: err.message,
-      });
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('[Checkout] Order failed:', { status: err.response?.status, data, message: err.message });
+      }
       if (data?.details?.length) {
         const messages = data.details.map((d) => `${d.field}: ${d.message}`).join('\n');
         toast.error(messages, { duration: 5000 });

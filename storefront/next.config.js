@@ -6,7 +6,7 @@ const backendOrigin = new URL(backendUrl).origin;
 
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' js.stripe.com",
+  "script-src 'self' 'unsafe-inline' js.stripe.com",
   "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
   "font-src 'self' fonts.gstatic.com",
   "img-src 'self' data: blob: res.cloudinary.com images.unsplash.com *.s3.amazonaws.com *.s3.us-east-1.amazonaws.com *.stripe.com",

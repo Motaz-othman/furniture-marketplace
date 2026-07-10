@@ -71,7 +71,7 @@ export default function CartPageContent() {
     );
   }
 
-  const shipping = total >= 500 ? 0 : 50;
+  const shipping = total >= 500 ? 0 : 49.99;
   const grandTotal = total + shipping;
 
   return (

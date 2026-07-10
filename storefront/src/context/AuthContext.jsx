@@ -39,6 +39,7 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (credentials) => {
     const data = await loginUser(credentials);
     localStorage.setItem('token', data.token);
+    if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
     setUser(data.user);
     return data;
@@ -47,6 +48,7 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (fields) => {
     const data = await registerUser(fields);
     localStorage.setItem('token', data.token);
+    if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
     setUser(data.user);
     return data;
@@ -54,6 +56,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.removeItem('livipoint_cart');
     setUser(null);

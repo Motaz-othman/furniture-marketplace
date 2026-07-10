@@ -340,7 +340,7 @@ export default function ProductDetailContent({ slug }) {
   }, [product, selectedVariant]);
 
   // Use product-level pricing (includes admin's Original Price / Discounted Price overrides)
-  const currentPrice = product?.price || 0;
+  const currentPrice = product?.price || product?.minPrice || 0;
   const currentCompareAtPrice = product?.compareAtPrice || null;
   const currentSku = selectedVariant?.sku || product?.sku || '';
   const currentStock = selectedVariant?.stockQuantity ?? product?.stockQuantity ?? 0;
@@ -414,7 +414,7 @@ export default function ProductDetailContent({ slug }) {
     : `/categories/${subcategory?.slug || 'all'}`;
 
   const handleQuantityChange = (delta) => {
-    setQuantity(Math.max(1, quantity + delta));
+    setQuantity(Math.max(1, Math.min(quantity + delta, currentStock || Infinity)));
   };
 
   const handleAddToCart = () => {

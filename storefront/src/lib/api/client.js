@@ -44,6 +44,8 @@ apiClient.interceptors.request.use(
   }
 );
 
+let _refreshPromise = null;
+
 /**
  * Response interceptor - Handle errors globally
  */
@@ -51,14 +53,39 @@ apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
-    // Handle 401 Unauthorized - clear credentials and notify AuthContext
-    if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.dispatchEvent(new Event('auth:logout'));
+  async (error) => {
+    const original = error.config;
+
+    // Handle 401 — try refresh once, then log out
+    if (
+      error.response?.status === 401 &&
+      !original._retry &&
+      typeof window !== 'undefined' &&
+      !original.url?.includes('/auth/refresh')
+    ) {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        original._retry = true;
+        try {
+          if (!_refreshPromise) {
+            _refreshPromise = axios
+              .post(`${API_URL}/auth/refresh`, { refreshToken })
+              .finally(() => { _refreshPromise = null; });
+          }
+          const { data } = await _refreshPromise;
+          localStorage.setItem('token', data.token);
+          if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+          original.headers = { ...original.headers, Authorization: `Bearer ${data.token}` };
+          return apiClient(original);
+        } catch {
+          // Refresh failed — fall through to log out
+        }
       }
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('auth:logout'));
+      return Promise.reject(error);
     }
 
     // Handle 403 Forbidden

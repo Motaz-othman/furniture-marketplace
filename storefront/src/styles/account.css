@@ -616,10 +616,15 @@
 /* Order Footer */
 .order-card-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
   padding: 16px 20px;
   border-top: 1px solid var(--border-color);
+}
+
+.order-discount {
+  font-size: 13px;
+  color: #16a34a;
 }
 
 .order-total {

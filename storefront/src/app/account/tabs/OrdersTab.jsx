@@ -129,6 +129,11 @@ export default function OrdersTab() {
                   )}
 
                   <div className="order-card-footer">
+                    {order.discountAmount > 0 && (
+                      <span className="order-discount">
+                        Discount{order.couponCode ? ` (${order.couponCode})` : ''}: −{formatPrice(order.discountAmount)}
+                      </span>
+                    )}
                     <span className="order-total">Total: {formatPrice(order.total)}</span>
                     <div className="order-footer-actions">
                       {order.trackingNumber && (
