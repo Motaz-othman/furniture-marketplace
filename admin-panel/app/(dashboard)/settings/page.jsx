@@ -55,6 +55,7 @@ const DEFAULT = {
   email: {
     from: 'admin@livipoint.com',
     fromName: 'LiviPoint',
+    adminEmail: 'admin@livipoint.com',
   },
   heroSlides: { items: DEFAULT_HERO_SLIDES },
   offerBar: {
@@ -841,9 +842,20 @@ export default function SettingsPage() {
               />
             </div>
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Admin Notification Email</Label>
+            <Input
+              type="email"
+              value={form.email?.adminEmail || ''}
+              onChange={e => setEmailField('adminEmail', e.target.value)}
+              placeholder="admin@livipoint.com"
+            />
+            <p className="text-xs text-muted-foreground">
+              Where new order notifications are sent. Update to a dedicated inbox when ready.
+            </p>
+          </div>
           <p className="text-xs text-muted-foreground">
-            The email address must match what&apos;s configured in your SMTP provider (EMAIL_USER env var on Render).
-            Change it here once you create a dedicated orders@ address.
+            From Email must match the SMTP account configured in Render (EMAIL_USER env var).
           </p>
         </CardContent>
       </Card>

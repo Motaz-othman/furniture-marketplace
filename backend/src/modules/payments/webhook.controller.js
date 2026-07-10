@@ -1,6 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { verifyWebhookSignature } from '../../shared/services/stripe.service.js';
-import { sendOrderConfirmationEmail } from '../../shared/services/email.service.js';
+import { sendOrderConfirmationEmail, sendAdminOrderNotificationEmail } from '../../shared/services/email.service.js';
 
 // Handle Stripe webhooks
 export const handleStripeWebhook = async (req, res) => {
@@ -70,7 +70,10 @@ const handlePaymentSuccess = async (paymentIntent) => {
         customer: { include: { user: true } },
       },
     }).then((order) => {
-      if (order) sendOrderConfirmationEmail(order).catch(() => {});
+      if (order) {
+        sendOrderConfirmationEmail(order).catch(() => {});
+        sendAdminOrderNotificationEmail(order).catch(() => {});
+      }
     }).catch(() => {});
   } else {
     console.log(`Duplicate payment.succeeded event ignored for order ${orderId}`);

@@ -22,9 +22,14 @@ async function getEmailConfig() {
     return {
       from: s.email?.from || process.env.EMAIL_USER || 'admin@livipoint.com',
       fromName: s.email?.fromName || 'LiviPoint',
+      adminEmail: s.email?.adminEmail || process.env.EMAIL_USER || 'admin@livipoint.com',
     };
   } catch {
-    return { from: process.env.EMAIL_USER || 'admin@livipoint.com', fromName: 'LiviPoint' };
+    return {
+      from: process.env.EMAIL_USER || 'admin@livipoint.com',
+      fromName: 'LiviPoint',
+      adminEmail: process.env.EMAIL_USER || 'admin@livipoint.com',
+    };
   }
 }
 
@@ -204,5 +209,106 @@ export const sendOrderConfirmationEmail = async (order) => {
     console.log(`Order confirmation email sent to ${to} for order ${order.orderNumber}`);
   } catch (error) {
     console.error('Order confirmation email error:', error);
+  }
+};
+
+// Send new order notification to admin
+export const sendAdminOrderNotificationEmail = async (order) => {
+  const { from, fromName, adminEmail } = await getEmailConfig();
+
+  const fmt = (n) => `$${Number(n || 0).toFixed(2)}`;
+  const customerName = order.guestFirstName
+    ? `${order.guestFirstName} ${order.guestLastName || ''}`.trim()
+    : order.customer?.user
+      ? `${order.customer.user.firstName} ${order.customer.user.lastName}`.trim()
+      : 'Guest';
+  const customerEmail = order.guestEmail || order.customer?.user?.email || '—';
+
+  const itemsHtml = (order.items || []).map((item) => {
+    const name = item.product?.name || 'Product';
+    const variant = item.variant?.name ? ` — ${item.variant.name}` : '';
+    return `<tr>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px;">${name}${variant}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:center;font-size:14px;">×${item.quantity}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:right;font-size:14px;">${fmt(item.price * item.quantity)}</td>
+    </tr>`;
+  }).join('');
+
+  const adminPanelUrl = process.env.ADMIN_URL || 'https://admin-panel-lvwp25rft-mutaz-othmans-projects.vercel.app';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+        <tr><td style="background:#2563eb;padding:20px 32px;">
+          <p style="margin:0;font-size:16px;font-weight:bold;color:#fff;">New Order Received</p>
+        </td></tr>
+
+        <tr><td style="padding:28px 32px;">
+          <h2 style="margin:0 0 20px;font-size:20px;color:#111;">Order #${order.orderNumber}</h2>
+
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;background:#f7f7f7;border-radius:6px;padding:16px;">
+            <tr>
+              <td style="font-size:13px;color:#555;padding:4px 0;width:120px;">Customer</td>
+              <td style="font-size:13px;color:#111;padding:4px 0;font-weight:600;">${customerName}</td>
+            </tr>
+            <tr>
+              <td style="font-size:13px;color:#555;padding:4px 0;">Email</td>
+              <td style="font-size:13px;color:#111;padding:4px 0;">${customerEmail}</td>
+            </tr>
+            <tr>
+              <td style="font-size:13px;color:#555;padding:4px 0;">Order Total</td>
+              <td style="font-size:13px;color:#111;padding:4px 0;font-weight:700;">${fmt(order.total)}</td>
+            </tr>
+            ${order.discountAmount > 0 ? `<tr>
+              <td style="font-size:13px;color:#555;padding:4px 0;">Discount</td>
+              <td style="font-size:13px;color:#16a34a;padding:4px 0;">−${fmt(order.discountAmount)}${order.couponCode ? ` (${order.couponCode})` : ''}</td>
+            </tr>` : ''}
+          </table>
+
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <thead>
+              <tr>
+                <th style="text-align:left;font-size:11px;color:#888;text-transform:uppercase;padding-bottom:8px;border-bottom:2px solid #f0f0f0;">Item</th>
+                <th style="text-align:center;font-size:11px;color:#888;text-transform:uppercase;padding-bottom:8px;border-bottom:2px solid #f0f0f0;">Qty</th>
+                <th style="text-align:right;font-size:11px;color:#888;text-transform:uppercase;padding-bottom:8px;border-bottom:2px solid #f0f0f0;">Price</th>
+              </tr>
+            </thead>
+            <tbody>${itemsHtml}</tbody>
+          </table>
+
+          <div style="margin-top:28px;text-align:center;">
+            <a href="${adminPanelUrl}/orders/${order.id}"
+               style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+              View Order in Admin Panel
+            </a>
+          </div>
+        </td></tr>
+
+        <tr><td style="padding:16px 32px;border-top:1px solid #f0f0f0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">This is an automated notification from ${fromName}.</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await createTransporter().sendMail({
+      from: `"${fromName}" <${from}>`,
+      to: adminEmail,
+      subject: `New Order #${order.orderNumber} — ${customerName} — $${Number(order.total).toFixed(2)}`,
+      html,
+    });
+    console.log(`Admin order notification sent for order ${order.orderNumber}`);
+  } catch (error) {
+    console.error('Admin order notification email error:', error);
   }
 };
