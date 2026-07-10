@@ -30,6 +30,11 @@ export const authenticate = async (req, res, next) => {
       return res.status(403).json({ error: 'Account has been suspended' });
     }
 
+    // Reject tokens issued before the last logout or password change
+    if ((decoded.tokenVersion ?? 0) !== (user.tokenVersion ?? 0)) {
+      return res.status(401).json({ error: 'Session expired. Please log in again.' });
+    }
+
     req.user = user;
     next();
 

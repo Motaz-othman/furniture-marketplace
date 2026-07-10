@@ -14,12 +14,15 @@ export const createCoupon = async (req, res) => {
     const { code, type, value, minOrderAmount, maxUses, expiresAt, isActive } = req.body;
     if (!code || !type || value == null) return res.status(400).json({ error: 'code, type, and value are required' });
     if (!['PERCENTAGE', 'FIXED'].includes(type)) return res.status(400).json({ error: 'type must be PERCENTAGE or FIXED' });
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue <= 0) return res.status(400).json({ error: 'value must be a positive number' });
+    if (type === 'PERCENTAGE' && numValue > 100) return res.status(400).json({ error: 'Percentage value cannot exceed 100' });
 
     const coupon = await prisma.coupon.create({
       data: {
         code: code.toUpperCase().trim(),
         type,
-        value: parseFloat(value),
+        value: numValue,
         minOrderAmount: minOrderAmount ? parseFloat(minOrderAmount) : null,
         maxUses: maxUses ? parseInt(maxUses) : null,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
@@ -37,6 +40,11 @@ export const updateCoupon = async (req, res) => {
   try {
     const { id } = req.params;
     const { type, value, minOrderAmount, maxUses, expiresAt, isActive } = req.body;
+    if (value !== undefined) {
+      const numValue = parseFloat(value);
+      if (isNaN(numValue) || numValue <= 0) return res.status(400).json({ error: 'value must be a positive number' });
+      if (type === 'PERCENTAGE' && numValue > 100) return res.status(400).json({ error: 'Percentage value cannot exceed 100' });
+    }
     const coupon = await prisma.coupon.update({
       where: { id },
       data: {

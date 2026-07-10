@@ -585,17 +585,20 @@ export const getRawProductFilters = async (req, res) => {
 
     // Only return top-level categories that have at least one product (direct or via child),
     // scoped to the vendor when a source filter is active
-    const categories = (
-      await Promise.all(
-        topLevelCats.map(async (cat) => {
-          const childIds = cat.children.map((c) => c.id);
-          const count = await prisma.product.count({
-            where: { categoryId: { in: [cat.id, ...childIds] }, ...vendorFilter },
-          });
-          return count > 0 ? { id: cat.id, name: cat.name, childIds } : null;
-        })
-      )
-    ).filter(Boolean);
+    const allCatIds = topLevelCats.flatMap((cat) => [cat.id, ...cat.children.map((c) => c.id)]);
+    const productCatCounts = await prisma.product.groupBy({
+      by: ['categoryId'],
+      where: { categoryId: { in: allCatIds }, ...vendorFilter },
+      _count: { _all: true },
+    });
+    const catsWithProducts = new Set(productCatCounts.map((r) => r.categoryId));
+    const categories = topLevelCats
+      .map((cat) => {
+        const childIds = cat.children.map((c) => c.id);
+        const hasProducts = catsWithProducts.has(cat.id) || childIds.some((id) => catsWithProducts.has(id));
+        return hasProducts ? { id: cat.id, name: cat.name, childIds } : null;
+      })
+      .filter(Boolean);
 
     res.json({
       data: {

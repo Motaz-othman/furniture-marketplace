@@ -1,6 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { notifyOrderPlaced, notifyOrderStatusChanged, notifyOrderCancelled } from '../../shared/services/notification.service.js';
-import { createPaymentIntent } from '../../shared/services/stripe.service.js';
+import { createPaymentIntent, cancelPaymentIntent } from '../../shared/services/stripe.service.js';
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
@@ -142,9 +142,16 @@ export const createOrder = async (req, res) => {
       clientSecret = paymentIntent.client_secret;
     } catch (paymentError) {
       console.error('Payment intent creation failed:', paymentError);
-      await prisma.order.update({
-        where: { id: order.id },
-        data: { status: 'CANCELLED', paymentStatus: 'FAILED' }
+      // Restore stock since the transaction already committed
+      await prisma.$transaction(async (tx) => {
+        await tx.order.update({ where: { id: order.id }, data: { status: 'CANCELLED', paymentStatus: 'FAILED' } });
+        for (const item of cartItems) {
+          if (item.variantId) {
+            await tx.productVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { increment: item.quantity } } });
+          } else {
+            await tx.product.update({ where: { id: item.productId }, data: { totalStock: { increment: item.quantity } } });
+          }
+        }
       }).catch(() => {});
       return res.status(502).json({ error: 'Payment service unavailable. Your order has been cancelled — please try again.' });
     }
@@ -299,6 +306,13 @@ export const cancelOrder = async (req, res) => {
       }
       return cancelled;
     }, { maxWait: 10000, timeout: 30000 });
+
+    // Cancel the Stripe PaymentIntent so the client_secret can no longer be used
+    if (order.stripePaymentIntentId) {
+      cancelPaymentIntent(order.stripePaymentIntentId).catch((err) => {
+        console.error('Failed to cancel PaymentIntent on order cancel:', err.message);
+      });
+    }
 
     try {
       const customer = await prisma.customer.findUnique({ where: { id: customerId }, select: { userId: true } });

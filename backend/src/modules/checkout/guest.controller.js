@@ -219,6 +219,20 @@ export const guestCheckout = async (req, res) => {
         }
       }
 
+      // Atomically increment coupon usedCount inside the transaction to prevent race conditions
+      if (appliedCoupon) {
+        const updated = await tx.coupon.updateMany({
+          where: {
+            id: appliedCoupon.id,
+            ...(appliedCoupon.maxUses != null && { usedCount: { lt: appliedCoupon.maxUses } }),
+          },
+          data: { usedCount: { increment: 1 } },
+        });
+        if (updated.count === 0 && appliedCoupon.maxUses != null) {
+          throw new Error('COUPON_EXHAUSTED');
+        }
+      }
+
       return createdOrder;
       }, { maxWait: 10000, timeout: 30000 });
     } catch (txError) {
@@ -228,15 +242,10 @@ export const guestCheckout = async (req, res) => {
       } catch (cancelError) {
         console.error('Failed to cancel orphaned PaymentIntent:', cancelError);
       }
+      if (txError.message === 'COUPON_EXHAUSTED') {
+        return res.status(400).json({ error: 'This coupon has reached its usage limit' });
+      }
       throw txError;
-    }
-
-    // Increment coupon usage (best-effort, doesn't fail the order)
-    if (appliedCoupon) {
-      prisma.coupon.update({
-        where: { id: appliedCoupon.id },
-        data: { usedCount: { increment: 1 } },
-      }).catch((err) => console.error('Failed to increment coupon usedCount:', err));
     }
 
     // Attach the real orderId so the webhook handler can look up the order

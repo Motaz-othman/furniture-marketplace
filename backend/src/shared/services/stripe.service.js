@@ -87,7 +87,7 @@ export const createConnectAccount = async (email, country = 'US') => {
     return account;
   } catch (error) {
     console.error('Create connect account error:', error);
-    throw new Error('Failed to create Stripe account');
+    throw error;
   }
 };
 
@@ -104,7 +104,7 @@ export const createAccountLink = async (accountId, refreshUrl, returnUrl) => {
     return accountLink;
   } catch (error) {
     console.error('Create account link error:', error);
-    throw new Error('Failed to create onboarding link');
+    throw error;
   }
 };
 
@@ -115,7 +115,7 @@ export const getAccountDetails = async (accountId) => {
     return account;
   } catch (error) {
     console.error('Get account details error:', error);
-    throw new Error('Failed to get account details');
+    throw error;
   }
 };
 
@@ -136,7 +136,7 @@ export const getRefund = async (refundId) => {
     return refund;
   } catch (error) {
     console.error('Get refund error:', error);
-    throw new Error('Failed to get refund details');
+    throw error;
   }
 };
 
@@ -150,7 +150,7 @@ export const listRefunds = async (paymentIntentId) => {
     return refunds.data;
   } catch (error) {
     console.error('List refunds error:', error);
-    throw new Error('Failed to list refunds');
+    throw error;
   }
 };
 
@@ -161,7 +161,7 @@ export const createDashboardLink = async (accountId) => {
     return loginLink;
   } catch (error) {
     console.error('Create dashboard link error:', error);
-    throw new Error('Failed to create dashboard link');
+    throw error;
   }
 };
 

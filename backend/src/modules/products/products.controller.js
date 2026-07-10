@@ -90,7 +90,7 @@ export const getAllProducts = async (req, res) => {
     } = req.query;
 
     const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
+    const limitNum = Math.min(parseInt(limit), 100);
     const skip = (pageNum - 1) * limitNum;
 
     // isFeatured/isNew/isOnSale map 1:1 to these StorefrontListing flags
@@ -300,8 +300,7 @@ export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await prisma.orderItem.deleteMany({ where: { productId: id } });
-    await prisma.product.delete({ where: { id } });
+    await prisma.product.update({ where: { id }, data: { isActive: false } });
 
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {

@@ -39,7 +39,7 @@ export const getPlatformStats = async (req, res) => {
       prisma.order.aggregate({ where: { createdAt: { gte: todayStart } }, _sum: { total: true }, _count: { _all: true } }),
       prisma.product.groupBy({ by: ['source'], _count: { _all: true } }),
       prisma.product.count({ where: { isActive: true, totalStock: { lte: 5 } } }),
-      prisma.storefrontListing.count({ where: { isVisible: true } }),
+      prisma.storefrontListing.count({ where: { isPublished: true } }),
     ]);
 
     const totalRevenue = totalRevenueAgg._sum.total || 0;

@@ -67,9 +67,9 @@ export const register = async (req, res) => {
       }
     }
 
-    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 };
     const token = generateToken(tokenPayload);
-    const refreshToken = generateRefreshToken({ ...tokenPayload, tokenVersion: user.tokenVersion ?? 0 });
+    const refreshToken = generateRefreshToken(tokenPayload);
 
     const { passwordHash: _, ...userWithoutPassword } = user;
 
@@ -117,9 +117,9 @@ export const login = async (req, res) => {
       data: { lastLoginAt: new Date() }
     });
 
-    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 };
     const token = generateToken(tokenPayload);
-    const refreshToken = generateRefreshToken({ ...tokenPayload, tokenVersion: user.tokenVersion ?? 0 });
+    const refreshToken = generateRefreshToken(tokenPayload);
 
     const { passwordHash: _, ...userWithoutPassword } = user;
 
@@ -389,9 +389,9 @@ export const refreshToken = async (req, res) => {
       return res.status(401).json({ error: 'Refresh token has been revoked' });
     }
 
-    const tokenPayload = { userId: user.id, email: user.email, role: user.role };
+    const tokenPayload = { userId: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion };
     const newToken = generateToken(tokenPayload);
-    const newRefreshToken = generateRefreshToken({ ...tokenPayload, tokenVersion: user.tokenVersion });
+    const newRefreshToken = generateRefreshToken(tokenPayload);
 
     res.json({ token: newToken, refreshToken: newRefreshToken });
   } catch (error) {
