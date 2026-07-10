@@ -52,6 +52,10 @@ const DEFAULT_HERO_SLIDES = [
 
 
 const DEFAULT = {
+  email: {
+    from: 'admin@livipoint.com',
+    fromName: 'LiviPoint',
+  },
   heroSlides: { items: DEFAULT_HERO_SLIDES },
   offerBar: {
     enabled: true,
@@ -532,6 +536,10 @@ export default function SettingsPage() {
     }
   }
 
+  function setEmailField(field, value) {
+    setForm(f => ({ ...f, email: { ...f.email, [field]: value } }));
+  }
+
   if (isLoading) return <div className="p-8 text-muted-foreground">Loading settings…</div>;
 
   return (
@@ -800,6 +808,43 @@ export default function SettingsPage() {
               <input ref={storyImageRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleStoryImage} />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* ── Email Settings ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Email Settings</CardTitle>
+          <CardDescription>
+            Sender name and address used for order confirmation emails.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs">From Name</Label>
+              <Input
+                value={form.email?.fromName || ''}
+                onChange={e => setEmailField('fromName', e.target.value)}
+                placeholder="LiviPoint"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">From Email</Label>
+              <Input
+                type="email"
+                value={form.email?.from || ''}
+                onChange={e => setEmailField('from', e.target.value)}
+                placeholder="admin@livipoint.com"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            The email address must match what&apos;s configured in your SMTP provider (EMAIL_USER env var on Render).
+            Change it here once you create a dedicated orders@ address.
+          </p>
         </CardContent>
       </Card>
 

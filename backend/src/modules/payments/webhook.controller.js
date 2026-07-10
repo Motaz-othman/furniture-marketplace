@@ -1,5 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { verifyWebhookSignature } from '../../shared/services/stripe.service.js';
+import { sendOrderConfirmationEmail } from '../../shared/services/email.service.js';
 
 // Handle Stripe webhooks
 export const handleStripeWebhook = async (req, res) => {
@@ -58,8 +59,22 @@ const handlePaymentSuccess = async (paymentIntent) => {
     data: { paymentStatus: 'SUCCEEDED', status: 'CONFIRMED' }
   });
 
-  if (count > 0) console.log(`Payment succeeded for order ${orderId}`);
-  else console.log(`Duplicate payment.succeeded event ignored for order ${orderId}`);
+  if (count > 0) {
+    console.log(`Payment succeeded for order ${orderId}`);
+    // Send confirmation email — fire-and-forget, never block the webhook response
+    prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: { include: { product: true, variant: true } },
+        address: true,
+        customer: { include: { user: true } },
+      },
+    }).then((order) => {
+      if (order) sendOrderConfirmationEmail(order).catch(() => {});
+    }).catch(() => {});
+  } else {
+    console.log(`Duplicate payment.succeeded event ignored for order ${orderId}`);
+  }
 };
 
 // Handle failed payment — idempotent: only updates if not already failed/succeeded
