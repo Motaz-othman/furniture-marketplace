@@ -200,12 +200,10 @@ export default function OrdersTab() {
       )}
 
       {returnOrderId && (
-        <div className="confirm-dialog-overlay">
-          <div className="confirm-dialog">
-            <h3 className="confirm-dialog-title">Request Return</h3>
-            <p className="confirm-dialog-message">
-              Tell us why you&apos;d like to return this order. Our team will contact you within 1–2 business days.
-            </p>
+        <div className="confirm-dialog-overlay" onClick={() => { setReturnOrderId(null); setReturnReason(''); }}>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <h3>Request Return</h3>
+            <p>Tell us why you&apos;d like to return this order. Our team will contact you within 1–2 business days.</p>
             <textarea
               className="order-return-reason"
               rows={3}
@@ -215,17 +213,17 @@ export default function OrdersTab() {
             />
             <div className="confirm-dialog-actions">
               <button
-                className="confirm-dialog-confirm"
+                className="account-cancel-btn"
+                onClick={() => { setReturnOrderId(null); setReturnReason(''); }}
+              >
+                Cancel
+              </button>
+              <button
+                className="danger-btn"
                 disabled={submittingReturn}
                 onClick={handleReturnSubmit}
               >
                 {submittingReturn ? 'Submitting…' : 'Submit Request'}
-              </button>
-              <button
-                className="confirm-dialog-cancel"
-                onClick={() => { setReturnOrderId(null); setReturnReason(''); }}
-              >
-                Cancel
               </button>
             </div>
           </div>
