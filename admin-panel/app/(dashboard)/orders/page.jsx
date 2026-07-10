@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, X, Package } from 'lucide-react';
+import { Search, X, Package, Download } from 'lucide-react';
 
 const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 
@@ -66,12 +66,51 @@ function formatCurrency(val) {
   return val != null ? `$${Number(val).toFixed(2)}` : '—';
 }
 
+function exportOrdersCSV(orders) {
+  const headers = ['Order #', 'Customer', 'Email', 'Items', 'Subtotal', 'Discount', 'Coupon', 'Tax', 'Shipping', 'Total', 'Status', 'Payment', 'Date'];
+  const rows = orders.map((o) => {
+    const name = o.customer?.user
+      ? `${o.customer.user.firstName} ${o.customer.user.lastName}`
+      : o.guestFirstName ? `${o.guestFirstName} ${o.guestLastName || ''}`.trim() : 'Guest';
+    const email = o.customer?.user?.email || o.guestEmail || '';
+    const itemCount = o.items?.length ?? 0;
+    return [
+      o.orderNumber,
+      name,
+      email,
+      itemCount,
+      o.subtotal?.toFixed(2) ?? '',
+      o.discountAmount ? o.discountAmount.toFixed(2) : '0.00',
+      o.couponCode || '',
+      o.tax?.toFixed(2) ?? '',
+      o.shippingCost?.toFixed(2) ?? '',
+      o.total?.toFixed(2) ?? '',
+      o.status,
+      o.paymentStatus || '',
+      new Date(o.createdAt).toLocaleDateString('en-US'),
+    ];
+  });
+
+  const csv = [headers, ...rows]
+    .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function OrdersPage() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -81,6 +120,21 @@ export default function OrdersPage() {
   const params = { page, limit: 20 };
   if (debouncedSearch) params.search = debouncedSearch;
   if (status) params.status = status;
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const exportParams = { limit: 9999 };
+      if (debouncedSearch) exportParams.search = debouncedSearch;
+      if (status) exportParams.status = status;
+      const result = await getOrders(exportParams);
+      exportOrdersCSV(result.orders || []);
+    } catch {
+      // silently fail
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-orders', debouncedSearch, status, page],
@@ -100,11 +154,17 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Orders</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {pagination.totalCount ?? '—'} total orders
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Orders</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {pagination.totalCount ?? '—'} total orders
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+          <Download className="h-4 w-4 mr-1.5" />
+          {exporting ? 'Exporting...' : 'Export CSV'}
+        </Button>
       </div>
 
       {/* Filters */}
@@ -173,11 +233,18 @@ export default function OrdersPage() {
                     {order.orderNumber}
                   </TableCell>
                   <TableCell className="text-sm">
-                    {order.customer?.user
-                      ? `${order.customer.user.firstName} ${order.customer.user.lastName}`
-                      : '—'}
-                    {order.customer?.user?.email && (
-                      <div className="text-xs text-muted-foreground">{order.customer.user.email}</div>
+                    {order.customer?.user ? (
+                      <>
+                        {order.customer.user.firstName} {order.customer.user.lastName}
+                        <div className="text-xs text-muted-foreground">{order.customer.user.email}</div>
+                      </>
+                    ) : order.guestFirstName ? (
+                      <>
+                        {order.guestFirstName} {order.guestLastName || ''}
+                        <div className="text-xs text-muted-foreground">{order.guestEmail} · Guest</div>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
                   <TableCell className="text-sm">
