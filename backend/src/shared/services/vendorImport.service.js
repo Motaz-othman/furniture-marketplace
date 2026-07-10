@@ -40,7 +40,7 @@ export function getImportStatus() {
 
 // ─── GFW Dropbox sync state ───────────────────────────────────────
 
-let dropboxSyncState = { running: false, startedAt: null, progress: null, lastRun: null };
+let dropboxSyncState = { running: false, startedAt: null, progress: null, lastRun: null, lastResult: null };
 
 export function getDropboxSyncStatus() {
   return { ...dropboxSyncState };
@@ -74,8 +74,20 @@ export async function syncGfwDropboxAssets() {
   try {
     const tokenCheck = await verifyDropboxToken();
     if (!tokenCheck.ok) {
-      dropboxSyncState = { running: false, startedAt: dropboxSyncState.startedAt, progress: `Token error: ${tokenCheck.error}`, lastRun: new Date().toISOString() };
+      const lastRun = new Date().toISOString();
+      dropboxSyncState = {
+        running: false, startedAt: dropboxSyncState.startedAt,
+        progress: `Token error: ${tokenCheck.error}`, lastRun,
+        lastResult: { status: 'FAILED' },
+      };
       console.error('[GFW Dropbox] Token check failed:', tokenCheck.error);
+      await prisma.syncLog.create({
+        data: {
+          source: 'GFW', type: 'DROPBOX_SYNC', status: 'FAILED',
+          itemsTotal: 0, itemsSynced: 0, itemsFailed: 0,
+          errors: { message: tokenCheck.error },
+        },
+      }).catch(() => {});
       return { synced: 0, skipped: 0 };
     }
 
@@ -157,14 +169,42 @@ export async function syncGfwDropboxAssets() {
       }
     }
 
-    const summary = `Done. ${patched} products updated, ${allProducts.length - unsynced.length} already had assets.`;
-    dropboxSyncState = { running: false, startedAt: dropboxSyncState.startedAt, progress: summary, lastRun: new Date().toISOString() };
+    const skippedCount = allProducts.length - unsynced.length;
+    const summary = `Done. ${patched} products updated, ${skippedCount} already had assets.`;
+    const lastRun = new Date().toISOString();
+    dropboxSyncState = {
+      running: false, startedAt: dropboxSyncState.startedAt,
+      progress: summary, lastRun,
+      lastResult: { status: 'SUCCESS', synced: patched, skipped: skippedCount, total: allProducts.length },
+    };
     console.log(`[GFW Dropbox] ${summary}`);
 
-    return { synced: patched, skipped: allProducts.length - unsynced.length };
+    await prisma.syncLog.create({
+      data: {
+        source: 'GFW', type: 'DROPBOX_SYNC', status: 'SUCCESS',
+        itemsTotal: unsynced.length, itemsSynced: patched, itemsFailed: unsynced.length - patched,
+        data: { skipped: skippedCount, total: allProducts.length },
+      },
+    });
+
+    return { synced: patched, skipped: skippedCount };
   } catch (err) {
-    dropboxSyncState = { running: false, startedAt: dropboxSyncState.startedAt, progress: `Failed: ${err.message}`, lastRun: new Date().toISOString() };
+    const lastRun = new Date().toISOString();
+    dropboxSyncState = {
+      running: false, startedAt: dropboxSyncState.startedAt,
+      progress: `Failed: ${err.message}`, lastRun,
+      lastResult: { status: 'FAILED' },
+    };
     console.error('[GFW Dropbox] Sync failed:', err.message);
+
+    await prisma.syncLog.create({
+      data: {
+        source: 'GFW', type: 'DROPBOX_SYNC', status: 'FAILED',
+        itemsTotal: 0, itemsSynced: 0, itemsFailed: 0,
+        errors: { message: err.message },
+      },
+    }).catch(() => {});
+
     throw err;
   }
 }

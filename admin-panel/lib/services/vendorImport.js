@@ -53,3 +53,8 @@ export async function triggerGfwDropboxSync() {
   const { data } = await api.post('/admin/vendor-import/gfw/dropbox-sync');
   return data;
 }
+
+export async function resetGfwDropboxSync() {
+  const { data } = await api.post('/admin/vendor-import/gfw/dropbox-reset');
+  return data;
+}

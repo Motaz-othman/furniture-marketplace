@@ -11,6 +11,7 @@ import {
   clearGlobalFurnitureProducts,
   importUnitedWeavers,
   triggerGfwDropboxSync,
+  resetGfwDropboxSync,
 } from '@/lib/services/vendorImport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,8 +37,9 @@ function formatDate(dateStr) {
 
 function typeLabel(type) {
   switch (type) {
-    case 'FULL_SYNC': return 'Full Import';
+    case 'FULL_SYNC':     return 'Full Import';
     case 'PRICE_REFRESH': return 'Price/Stock Refresh';
+    case 'DROPBOX_SYNC':  return 'Dropbox Image Sync';
     default: return type;
   }
 }
@@ -68,6 +70,7 @@ function FileField({ id, label, file, onChange, accept = '.csv,.xlsx,.xls' }) {
 export default function VendorImportPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [logSource, setLogSource] = useState(null); // null = all
 
   // ACME full import
   const [acmeSpec, setAcmeSpec] = useState(null);
@@ -97,8 +100,8 @@ export default function VendorImportPage() {
   });
 
   const { data: logsRes, isLoading: logsLoading } = useQuery({
-    queryKey: ['vendor-import-logs', page],
-    queryFn: () => getVendorImportLogs({ page, limit: 15 }),
+    queryKey: ['vendor-import-logs', page, logSource],
+    queryFn: () => getVendorImportLogs({ page, limit: 15, ...(logSource ? { source: logSource } : {}) }),
   });
 
   const status = statusRes?.data;
@@ -111,6 +114,12 @@ export default function VendorImportPage() {
     queryClient.invalidateQueries({ queryKey: ['vendor-import-status'] });
     queryClient.invalidateQueries({ queryKey: ['vendor-import-logs'] });
   }
+
+  const dropboxResetMutation = useMutation({
+    mutationFn: resetGfwDropboxSync,
+    onSuccess: (data) => { toast.success(data.message || 'Dropbox sync reset'); invalidate(); },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to reset Dropbox sync'),
+  });
 
   const acmeImportMutation = useMutation({
     mutationFn: () => importAcme({ specCsv: acmeSpec, imagesCsv: acmeImages, priceCsv: acmePrice, inventoryCsv: acmeInventory }),
@@ -175,7 +184,7 @@ export default function VendorImportPage() {
       <div>
         <h1 className="text-xl font-semibold">Vendor Import</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Upload ACME and Global Furniture catalog spreadsheets to create or update products.
+          Upload ACME, Global Furniture, or United Weavers catalog spreadsheets to create or update products.
           Imports run in the background and migrate images to S3, which can take a while for large catalogs.
         </p>
       </div>
@@ -218,24 +227,53 @@ export default function VendorImportPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="font-semibold text-green-600 text-sm">
-                  {dropbox?.lastRun ? 'Idle' : 'Not run yet'}
-                </p>
-                {dropbox?.lastRun && (
-                  <p className="text-xs text-muted-foreground">Last run: {formatDate(dropbox.lastRun)}</p>
-                )}
-                {dropbox?.progress && (
-                  <p className="text-xs text-muted-foreground">{dropbox.progress}</p>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={dropbox?.running || dropboxSyncMutation.isPending || isRunning}
-                  onClick={() => dropboxSyncMutation.mutate()}
-                >
-                  <RefreshCw className="h-3 w-3 mr-1" />
-                  {dropboxSyncMutation.isPending ? 'Starting...' : 'Sync Now'}
-                </Button>
+                {(() => {
+                  const isError = /error|failed/i.test(dropbox?.progress || '');
+                  return (
+                    <>
+                      <p className={`font-semibold text-sm ${isError ? 'text-red-600' : 'text-green-600'}`}>
+                        {dropbox?.lastRun ? (isError ? 'Error' : 'Idle') : 'Not run yet'}
+                      </p>
+                      {dropbox?.lastRun && (
+                        <p className="text-xs text-muted-foreground">Last run: {formatDate(dropbox.lastRun)}</p>
+                      )}
+                      {dropbox?.progress && (
+                        <p className={`text-xs ${isError ? 'text-red-500' : 'text-muted-foreground'}`}>
+                          {dropbox.progress}
+                        </p>
+                      )}
+                      {dropbox?.lastResult && (
+                        <p className="text-xs text-muted-foreground">
+                          {dropbox.lastResult.synced ?? 0} updated · {dropbox.lastResult.skipped ?? 0} already synced · {dropbox.lastResult.total ?? 0} total
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={dropbox?.running || dropboxSyncMutation.isPending || isRunning}
+                    onClick={() => dropboxSyncMutation.mutate()}
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    {dropboxSyncMutation.isPending ? 'Starting...' : 'Sync Now'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-muted-foreground"
+                    disabled={dropbox?.running || dropboxResetMutation.isPending || isRunning}
+                    onClick={() => {
+                      if (confirm('This clears the dropboxSynced flag on all GFW products so the next sync re-downloads all assets. Continue?')) {
+                        dropboxResetMutation.mutate();
+                      }
+                    }}
+                  >
+                    {dropboxResetMutation.isPending ? 'Resetting...' : 'Reset & Re-sync'}
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
@@ -391,7 +429,26 @@ export default function VendorImportPage() {
 
       {/* Import history */}
       <div>
-        <h2 className="text-lg font-semibold mb-3">Import History</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Import History</h2>
+          <div className="flex gap-1">
+            {[
+              { label: 'All', value: null },
+              { label: 'ACME', value: 'ACME' },
+              { label: 'Global Furniture', value: 'GFW' },
+              { label: 'United Weavers', value: 'UW' },
+            ].map(({ label, value }) => (
+              <Button
+                key={label}
+                size="sm"
+                variant={logSource === value ? 'default' : 'outline'}
+                onClick={() => { setLogSource(value); setPage(1); }}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        </div>
         <div className="border rounded-lg">
           <Table>
             <TableHeader>

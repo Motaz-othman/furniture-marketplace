@@ -70,6 +70,7 @@ export const getLogs = async (req, res) => {
     const limitNum = parseInt(limit);
 
     const where = { source: source ? source : { in: ['ACME', 'GFW', 'UW'] } };
+    if (!source) where.type = { in: ['FULL_SYNC', 'PRICE_REFRESH', 'DROPBOX_SYNC'] };
 
     const [logs, total] = await Promise.all([
       prisma.syncLog.findMany({
