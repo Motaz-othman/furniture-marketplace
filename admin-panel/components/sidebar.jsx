@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth';
-import { Package, ShoppingBag, RefreshCw, Users, LogOut, Calculator, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud } from 'lucide-react';
+import { Package, ShoppingBag, RefreshCw, Users, LogOut, Calculator, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 const navItems = [
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/products', label: 'Raw Products', icon: Package },
   { href: '/vendor-import', label: 'Vendor Import', icon: UploadCloud },
   { href: '/listings', label: 'Storefront Listings', icon: ShoppingBag },
@@ -47,7 +48,7 @@ export function Sidebar() {
             href={href}
             className={cn(
               'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
-              pathname.startsWith(href)
+              (href === '/' ? pathname === '/' : pathname.startsWith(href))
                 ? 'bg-primary text-primary-foreground'
                 : 'hover:bg-muted text-muted-foreground hover:text-foreground'
             )}
