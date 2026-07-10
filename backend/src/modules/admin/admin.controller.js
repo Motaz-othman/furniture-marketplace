@@ -23,18 +23,29 @@ export const getPlatformStats = async (req, res) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [totalOrders, totalRevenueAgg, ordersByStatusRaw, recentOrders, recentUsers, recentRevenueAgg] = await Promise.all([
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [
+      totalOrders, totalRevenueAgg, ordersByStatusRaw, recentOrders, recentUsers,
+      recentRevenueAgg, todayOrdersAgg, productsByVendorRaw, lowStockCount, totalListings,
+    ] = await Promise.all([
       prisma.order.count(),
       prisma.order.aggregate({ _sum: { total: true } }),
       prisma.order.groupBy({ by: ['status'], _count: { _all: true } }),
       prisma.order.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
       prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
       prisma.order.aggregate({ where: { createdAt: { gte: thirtyDaysAgo } }, _sum: { total: true } }),
+      prisma.order.aggregate({ where: { createdAt: { gte: todayStart } }, _sum: { total: true }, _count: { _all: true } }),
+      prisma.product.groupBy({ by: ['source'], _count: { _all: true } }),
+      prisma.product.count({ where: { isActive: true, totalStock: { lte: 5 } } }),
+      prisma.storefrontListing.count({ where: { isVisible: true } }),
     ]);
 
     const totalRevenue = totalRevenueAgg._sum.total || 0;
     const ordersByStatus = Object.fromEntries(ordersByStatusRaw.map(r => [r.status, r._count._all]));
     const recentRevenue = recentRevenueAgg._sum.total || 0;
+    const byVendor = Object.fromEntries(productsByVendorRaw.map(r => [r.source, r._count._all]));
 
     const [totalCategories, totalReviews] = await Promise.all([
       prisma.category.count(),
@@ -43,9 +54,14 @@ export const getPlatformStats = async (req, res) => {
 
     res.json({
       users: { total: totalUsers, customers: totalCustomers, admins: totalAdmins, blocked: blockedUsers, newLast30Days: recentUsers },
-      products: { total: totalProducts, active: activeProducts, inactive: totalProducts - activeProducts },
-      orders: { total: totalOrders, byStatus: ordersByStatus, newLast30Days: recentOrders },
+      products: { total: totalProducts, active: activeProducts, inactive: totalProducts - activeProducts, byVendor, lowStock: lowStockCount },
+      orders: {
+        total: totalOrders, byStatus: ordersByStatus, newLast30Days: recentOrders,
+        today: { count: todayOrdersAgg._count._all, revenue: todayOrdersAgg._sum.total || 0 },
+        pending: ordersByStatus['PENDING'] || 0,
+      },
       revenue: { total: totalRevenue, last30Days: recentRevenue },
+      listings: { active: totalListings },
       categories: totalCategories,
       reviews: totalReviews,
     });
