@@ -2,7 +2,7 @@
 
 import '@/styles/return-page.css';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import MainLayout from '@/components/layout/MainLayout';
 import { getOrderById, requestReturn } from '@/lib/api/orders';
@@ -31,6 +31,8 @@ function formatDate(str) {
 export default function ReturnContent({ orderId }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preSelectedItemId = searchParams.get('item');
 
   const [order, setOrder] = useState(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
@@ -52,7 +54,12 @@ export default function ReturnContent({ orderId }) {
         setOrder(data);
         const init = {};
         (data.items || []).forEach((item) => {
-          init[item.id] = { selected: false, returnQty: 1, reason: '', otherText: '' };
+          init[item.id] = {
+            selected: item.id === preSelectedItemId,
+            returnQty: 1,
+            reason: '',
+            otherText: '',
+          };
         });
         setItemStates(init);
       })
@@ -88,10 +95,9 @@ export default function ReturnContent({ orderId }) {
             ? s.otherText.trim() || 'Other'
             : s.reason;
         return {
-          itemId: item.id,
+          orderItemId: item.id,
           name: item.product?.name || 'Product',
-          quantity: s.returnQty,
-          price: item.price,
+          quantity: s.returnQty || 1,
           reason: resolvedReason,
         };
       });
@@ -107,16 +113,11 @@ export default function ReturnContent({ orderId }) {
       return;
     }
 
-    // Build a combined reason string for the email subject/summary
-    const combinedReason = selectedItems
-      .map((i) => `${i.name} ×${i.quantity}: ${i.reason}`)
-      .join('\n');
-
     setSubmitting(true);
     try {
-      const res = await requestReturn(order.id, combinedReason, selectedItems);
+      const res = await requestReturn(orderId, selectedItems);
       toast.success(res.message || 'Return request submitted');
-      router.push('/account#orders');
+      router.push(`/account/orders/${orderId}`);
     } catch (err) {
       toast.error(err?.response?.data?.error || 'Failed to submit return request');
     } finally {
@@ -154,7 +155,7 @@ export default function ReturnContent({ orderId }) {
 
         {/* Breadcrumb */}
         <nav className="return-breadcrumb">
-          <Link href="/account#orders">← Back to Orders</Link>
+          <Link href={`/account/orders/${orderId}`}>← Back to Order</Link>
         </nav>
 
         {/* Header */}

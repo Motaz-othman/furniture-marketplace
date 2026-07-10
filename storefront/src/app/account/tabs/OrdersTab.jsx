@@ -86,7 +86,9 @@ export default function OrdersTab() {
                 <div key={order.id} className="order-card">
                   <div className="order-card-header">
                     <div className="order-meta">
-                      <span className="order-number">{order.orderNumber}</span>
+                      <Link href={`/account/orders/${order.id}`} className="order-number order-number-link">
+                        {order.orderNumber}
+                      </Link>
                       <span className="order-date">{formatDate(order.createdAt)}</span>
                     </div>
                     <span className={`order-status status-${order.status.toLowerCase()}`}>
@@ -143,15 +145,12 @@ export default function OrdersTab() {
                           Cancel
                         </button>
                       )}
-                      {order.status === 'DELIVERED' && order.paymentStatus !== 'REFUNDED' && (
-                        <Link
-                          href={`/account/returns/${order.id}`}
-                          className="order-return-btn"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Request Return
-                        </Link>
-                      )}
+                      <Link
+                        href={`/account/orders/${order.id}`}
+                        className="order-view-btn"
+                      >
+                        View Details
+                      </Link>
                     </div>
                   </div>
                 </div>

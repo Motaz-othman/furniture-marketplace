@@ -29,6 +29,7 @@ import checkoutRoutes from './modules/checkout/guest.routes.js';
 import settingsRoutes from './modules/settings/settings.routes.js';
 import newsletterRoutes from './modules/newsletter/newsletter.routes.js';
 import couponsRoutes from './modules/coupons/coupons.routes.js';
+import { customerReturnsRouter, adminReturnsRouter } from './modules/returns/returns.routes.js';
 import { initScheduler } from './shared/services/sync.service.js';
 import { syncGfwDropboxAssets } from './shared/services/vendorImport.service.js';
 import cron from 'node-cron';
@@ -164,6 +165,8 @@ app.use('/api/admin/storefront', storefrontListingsRoutes);
 app.use('/api/admin/sync', syncRoutes);
 app.use('/api/admin/vendor-import', vendorImportRoutes);
 app.use('/api/admin/coupons', couponsRoutes);
+app.use('/api/orders', customerReturnsRouter);
+app.use('/api/admin/return-requests', adminReturnsRouter);
 app.use('/api/integrations', integrationsRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 

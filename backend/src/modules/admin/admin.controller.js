@@ -322,6 +322,21 @@ export const getOrderDetails = async (req, res) => {
           },
           orderBy: { createdAt: 'asc' },
         },
+        returnRequests: {
+          include: {
+            items: {
+              include: {
+                orderItem: {
+                  include: {
+                    product: { select: { name: true, mainImage: true } },
+                    variant: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
       }
     });
 

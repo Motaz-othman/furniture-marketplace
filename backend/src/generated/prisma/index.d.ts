@@ -99,10 +99,25 @@ export type SyncLog = $Result.DefaultSelection<Prisma.$SyncLogPayload>
  */
 export type SiteSettings = $Result.DefaultSelection<Prisma.$SiteSettingsPayload>
 /**
+ * Model Coupon
+ * 
+ */
+export type Coupon = $Result.DefaultSelection<Prisma.$CouponPayload>
+/**
  * Model NewsletterSubscriber
  * 
  */
 export type NewsletterSubscriber = $Result.DefaultSelection<Prisma.$NewsletterSubscriberPayload>
+/**
+ * Model ReturnRequest
+ * 
+ */
+export type ReturnRequest = $Result.DefaultSelection<Prisma.$ReturnRequestPayload>
+/**
+ * Model ReturnRequestItem
+ * 
+ */
+export type ReturnRequestItem = $Result.DefaultSelection<Prisma.$ReturnRequestItemPayload>
 
 /**
  * Enums
@@ -170,6 +185,16 @@ export const PaymentStatus: {
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
+
+export const ReturnStatus: {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  REFUNDED: 'REFUNDED'
+};
+
+export type ReturnStatus = (typeof ReturnStatus)[keyof typeof ReturnStatus]
+
 }
 
 export type Role = $Enums.Role
@@ -195,6 +220,10 @@ export const ShipmentStatus: typeof $Enums.ShipmentStatus
 export type PaymentStatus = $Enums.PaymentStatus
 
 export const PaymentStatus: typeof $Enums.PaymentStatus
+
+export type ReturnStatus = $Enums.ReturnStatus
+
+export const ReturnStatus: typeof $Enums.ReturnStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -485,6 +514,16 @@ export class PrismaClient<
   get siteSettings(): Prisma.SiteSettingsDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.coupon`: Exposes CRUD operations for the **Coupon** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Coupons
+    * const coupons = await prisma.coupon.findMany()
+    * ```
+    */
+  get coupon(): Prisma.CouponDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.newsletterSubscriber`: Exposes CRUD operations for the **NewsletterSubscriber** model.
     * Example usage:
     * ```ts
@@ -493,6 +532,26 @@ export class PrismaClient<
     * ```
     */
   get newsletterSubscriber(): Prisma.NewsletterSubscriberDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.returnRequest`: Exposes CRUD operations for the **ReturnRequest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReturnRequests
+    * const returnRequests = await prisma.returnRequest.findMany()
+    * ```
+    */
+  get returnRequest(): Prisma.ReturnRequestDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.returnRequestItem`: Exposes CRUD operations for the **ReturnRequestItem** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReturnRequestItems
+    * const returnRequestItems = await prisma.returnRequestItem.findMany()
+    * ```
+    */
+  get returnRequestItem(): Prisma.ReturnRequestItemDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -951,7 +1010,10 @@ export namespace Prisma {
     IntegrationProvider: 'IntegrationProvider',
     SyncLog: 'SyncLog',
     SiteSettings: 'SiteSettings',
-    NewsletterSubscriber: 'NewsletterSubscriber'
+    Coupon: 'Coupon',
+    NewsletterSubscriber: 'NewsletterSubscriber',
+    ReturnRequest: 'ReturnRequest',
+    ReturnRequestItem: 'ReturnRequestItem'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -970,7 +1032,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customer" | "address" | "category" | "product" | "cartItem" | "order" | "orderItem" | "shipment" | "review" | "wishlist" | "notification" | "productVariant" | "storefrontListing" | "integrationProvider" | "syncLog" | "siteSettings" | "newsletterSubscriber"
+      modelProps: "user" | "customer" | "address" | "category" | "product" | "cartItem" | "order" | "orderItem" | "shipment" | "review" | "wishlist" | "notification" | "productVariant" | "storefrontListing" | "integrationProvider" | "syncLog" | "siteSettings" | "coupon" | "newsletterSubscriber" | "returnRequest" | "returnRequestItem"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2232,6 +2294,80 @@ export namespace Prisma {
           }
         }
       }
+      Coupon: {
+        payload: Prisma.$CouponPayload<ExtArgs>
+        fields: Prisma.CouponFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CouponFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CouponFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>
+          }
+          findFirst: {
+            args: Prisma.CouponFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CouponFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>
+          }
+          findMany: {
+            args: Prisma.CouponFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>[]
+          }
+          create: {
+            args: Prisma.CouponCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>
+          }
+          createMany: {
+            args: Prisma.CouponCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CouponCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>[]
+          }
+          delete: {
+            args: Prisma.CouponDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>
+          }
+          update: {
+            args: Prisma.CouponUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>
+          }
+          deleteMany: {
+            args: Prisma.CouponDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CouponUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CouponUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>[]
+          }
+          upsert: {
+            args: Prisma.CouponUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CouponPayload>
+          }
+          aggregate: {
+            args: Prisma.CouponAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCoupon>
+          }
+          groupBy: {
+            args: Prisma.CouponGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CouponGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CouponCountArgs<ExtArgs>
+            result: $Utils.Optional<CouponCountAggregateOutputType> | number
+          }
+        }
+      }
       NewsletterSubscriber: {
         payload: Prisma.$NewsletterSubscriberPayload<ExtArgs>
         fields: Prisma.NewsletterSubscriberFieldRefs
@@ -2303,6 +2439,154 @@ export namespace Prisma {
           count: {
             args: Prisma.NewsletterSubscriberCountArgs<ExtArgs>
             result: $Utils.Optional<NewsletterSubscriberCountAggregateOutputType> | number
+          }
+        }
+      }
+      ReturnRequest: {
+        payload: Prisma.$ReturnRequestPayload<ExtArgs>
+        fields: Prisma.ReturnRequestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReturnRequestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReturnRequestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>
+          }
+          findFirst: {
+            args: Prisma.ReturnRequestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReturnRequestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>
+          }
+          findMany: {
+            args: Prisma.ReturnRequestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>[]
+          }
+          create: {
+            args: Prisma.ReturnRequestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>
+          }
+          createMany: {
+            args: Prisma.ReturnRequestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReturnRequestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>[]
+          }
+          delete: {
+            args: Prisma.ReturnRequestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>
+          }
+          update: {
+            args: Prisma.ReturnRequestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>
+          }
+          deleteMany: {
+            args: Prisma.ReturnRequestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReturnRequestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ReturnRequestUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>[]
+          }
+          upsert: {
+            args: Prisma.ReturnRequestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestPayload>
+          }
+          aggregate: {
+            args: Prisma.ReturnRequestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReturnRequest>
+          }
+          groupBy: {
+            args: Prisma.ReturnRequestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReturnRequestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReturnRequestCountArgs<ExtArgs>
+            result: $Utils.Optional<ReturnRequestCountAggregateOutputType> | number
+          }
+        }
+      }
+      ReturnRequestItem: {
+        payload: Prisma.$ReturnRequestItemPayload<ExtArgs>
+        fields: Prisma.ReturnRequestItemFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReturnRequestItemFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReturnRequestItemFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>
+          }
+          findFirst: {
+            args: Prisma.ReturnRequestItemFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReturnRequestItemFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>
+          }
+          findMany: {
+            args: Prisma.ReturnRequestItemFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>[]
+          }
+          create: {
+            args: Prisma.ReturnRequestItemCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>
+          }
+          createMany: {
+            args: Prisma.ReturnRequestItemCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReturnRequestItemCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>[]
+          }
+          delete: {
+            args: Prisma.ReturnRequestItemDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>
+          }
+          update: {
+            args: Prisma.ReturnRequestItemUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>
+          }
+          deleteMany: {
+            args: Prisma.ReturnRequestItemDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReturnRequestItemUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ReturnRequestItemUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>[]
+          }
+          upsert: {
+            args: Prisma.ReturnRequestItemUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReturnRequestItemPayload>
+          }
+          aggregate: {
+            args: Prisma.ReturnRequestItemAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReturnRequestItem>
+          }
+          groupBy: {
+            args: Prisma.ReturnRequestItemGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReturnRequestItemGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReturnRequestItemCountArgs<ExtArgs>
+            result: $Utils.Optional<ReturnRequestItemCountAggregateOutputType> | number
           }
         }
       }
@@ -2419,7 +2703,10 @@ export namespace Prisma {
     integrationProvider?: IntegrationProviderOmit
     syncLog?: SyncLogOmit
     siteSettings?: SiteSettingsOmit
+    coupon?: CouponOmit
     newsletterSubscriber?: NewsletterSubscriberOmit
+    returnRequest?: ReturnRequestOmit
+    returnRequestItem?: ReturnRequestItemOmit
   }
 
   /* Types for Logging */
@@ -2536,6 +2823,7 @@ export namespace Prisma {
     orders: number
     reviews: number
     wishlist: number
+    returnRequests: number
   }
 
   export type CustomerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2544,6 +2832,7 @@ export namespace Prisma {
     orders?: boolean | CustomerCountOutputTypeCountOrdersArgs
     reviews?: boolean | CustomerCountOutputTypeCountReviewsArgs
     wishlist?: boolean | CustomerCountOutputTypeCountWishlistArgs
+    returnRequests?: boolean | CustomerCountOutputTypeCountReturnRequestsArgs
   }
 
   // Custom InputTypes
@@ -2590,6 +2879,13 @@ export namespace Prisma {
    */
   export type CustomerCountOutputTypeCountWishlistArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WishlistWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountReturnRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReturnRequestWhereInput
   }
 
 
@@ -2747,11 +3043,13 @@ export namespace Prisma {
   export type OrderCountOutputType = {
     items: number
     shipments: number
+    returnRequests: number
   }
 
   export type OrderCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     items?: boolean | OrderCountOutputTypeCountItemsArgs
     shipments?: boolean | OrderCountOutputTypeCountShipmentsArgs
+    returnRequests?: boolean | OrderCountOutputTypeCountReturnRequestsArgs
   }
 
   // Custom InputTypes
@@ -2777,6 +3075,44 @@ export namespace Prisma {
    */
   export type OrderCountOutputTypeCountShipmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ShipmentWhereInput
+  }
+
+  /**
+   * OrderCountOutputType without action
+   */
+  export type OrderCountOutputTypeCountReturnRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReturnRequestWhereInput
+  }
+
+
+  /**
+   * Count Type OrderItemCountOutputType
+   */
+
+  export type OrderItemCountOutputType = {
+    returnRequestItems: number
+  }
+
+  export type OrderItemCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    returnRequestItems?: boolean | OrderItemCountOutputTypeCountReturnRequestItemsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * OrderItemCountOutputType without action
+   */
+  export type OrderItemCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderItemCountOutputType
+     */
+    select?: OrderItemCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * OrderItemCountOutputType without action
+   */
+  export type OrderItemCountOutputTypeCountReturnRequestItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReturnRequestItemWhereInput
   }
 
 
@@ -2879,6 +3215,37 @@ export namespace Prisma {
    */
   export type IntegrationProviderCountOutputTypeCountSyncLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SyncLogWhereInput
+  }
+
+
+  /**
+   * Count Type ReturnRequestCountOutputType
+   */
+
+  export type ReturnRequestCountOutputType = {
+    items: number
+  }
+
+  export type ReturnRequestCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    items?: boolean | ReturnRequestCountOutputTypeCountItemsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ReturnRequestCountOutputType without action
+   */
+  export type ReturnRequestCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestCountOutputType
+     */
+    select?: ReturnRequestCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ReturnRequestCountOutputType without action
+   */
+  export type ReturnRequestCountOutputTypeCountItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReturnRequestItemWhereInput
   }
 
 
@@ -4284,6 +4651,7 @@ export namespace Prisma {
     orders?: boolean | Customer$ordersArgs<ExtArgs>
     reviews?: boolean | Customer$reviewsArgs<ExtArgs>
     wishlist?: boolean | Customer$wishlistArgs<ExtArgs>
+    returnRequests?: boolean | Customer$returnRequestsArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customer"]>
 
@@ -4315,6 +4683,7 @@ export namespace Prisma {
     orders?: boolean | Customer$ordersArgs<ExtArgs>
     reviews?: boolean | Customer$reviewsArgs<ExtArgs>
     wishlist?: boolean | Customer$wishlistArgs<ExtArgs>
+    returnRequests?: boolean | Customer$returnRequestsArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4333,6 +4702,7 @@ export namespace Prisma {
       orders: Prisma.$OrderPayload<ExtArgs>[]
       reviews: Prisma.$ReviewPayload<ExtArgs>[]
       wishlist: Prisma.$WishlistPayload<ExtArgs>[]
+      returnRequests: Prisma.$ReturnRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4738,6 +5108,7 @@ export namespace Prisma {
     orders<T extends Customer$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Customer$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     reviews<T extends Customer$reviewsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     wishlist<T extends Customer$wishlistArgs<ExtArgs> = {}>(args?: Subset<T, Customer$wishlistArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WishlistPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    returnRequests<T extends Customer$returnRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$returnRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5283,6 +5654,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: WishlistScalarFieldEnum | WishlistScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.returnRequests
+   */
+  export type Customer$returnRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    where?: ReturnRequestWhereInput
+    orderBy?: ReturnRequestOrderByWithRelationInput | ReturnRequestOrderByWithRelationInput[]
+    cursor?: ReturnRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReturnRequestScalarFieldEnum | ReturnRequestScalarFieldEnum[]
   }
 
   /**
@@ -10474,6 +10869,7 @@ export namespace Prisma {
     tax: number | null
     shippingCost: number | null
     total: number | null
+    discountAmount: number | null
   }
 
   export type OrderSumAggregateOutputType = {
@@ -10481,6 +10877,7 @@ export namespace Prisma {
     tax: number | null
     shippingCost: number | null
     total: number | null
+    discountAmount: number | null
   }
 
   export type OrderMinAggregateOutputType = {
@@ -10507,6 +10904,8 @@ export namespace Prisma {
     guestFirstName: string | null
     guestLastName: string | null
     guestPhone: string | null
+    couponCode: string | null
+    discountAmount: number | null
   }
 
   export type OrderMaxAggregateOutputType = {
@@ -10533,6 +10932,8 @@ export namespace Prisma {
     guestFirstName: string | null
     guestLastName: string | null
     guestPhone: string | null
+    couponCode: string | null
+    discountAmount: number | null
   }
 
   export type OrderCountAggregateOutputType = {
@@ -10560,6 +10961,8 @@ export namespace Prisma {
     guestFirstName: number
     guestLastName: number
     guestPhone: number
+    couponCode: number
+    discountAmount: number
     _all: number
   }
 
@@ -10569,6 +10972,7 @@ export namespace Prisma {
     tax?: true
     shippingCost?: true
     total?: true
+    discountAmount?: true
   }
 
   export type OrderSumAggregateInputType = {
@@ -10576,6 +10980,7 @@ export namespace Prisma {
     tax?: true
     shippingCost?: true
     total?: true
+    discountAmount?: true
   }
 
   export type OrderMinAggregateInputType = {
@@ -10602,6 +11007,8 @@ export namespace Prisma {
     guestFirstName?: true
     guestLastName?: true
     guestPhone?: true
+    couponCode?: true
+    discountAmount?: true
   }
 
   export type OrderMaxAggregateInputType = {
@@ -10628,6 +11035,8 @@ export namespace Prisma {
     guestFirstName?: true
     guestLastName?: true
     guestPhone?: true
+    couponCode?: true
+    discountAmount?: true
   }
 
   export type OrderCountAggregateInputType = {
@@ -10655,6 +11064,8 @@ export namespace Prisma {
     guestFirstName?: true
     guestLastName?: true
     guestPhone?: true
+    couponCode?: true
+    discountAmount?: true
     _all?: true
   }
 
@@ -10769,6 +11180,8 @@ export namespace Prisma {
     guestFirstName: string | null
     guestLastName: string | null
     guestPhone: string | null
+    couponCode: string | null
+    discountAmount: number | null
     _count: OrderCountAggregateOutputType | null
     _avg: OrderAvgAggregateOutputType | null
     _sum: OrderSumAggregateOutputType | null
@@ -10815,10 +11228,13 @@ export namespace Prisma {
     guestFirstName?: boolean
     guestLastName?: boolean
     guestPhone?: boolean
+    couponCode?: boolean
+    discountAmount?: boolean
     customer?: boolean | Order$customerArgs<ExtArgs>
     address?: boolean | AddressDefaultArgs<ExtArgs>
     items?: boolean | Order$itemsArgs<ExtArgs>
     shipments?: boolean | Order$shipmentsArgs<ExtArgs>
+    returnRequests?: boolean | Order$returnRequestsArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
 
@@ -10847,6 +11263,8 @@ export namespace Prisma {
     guestFirstName?: boolean
     guestLastName?: boolean
     guestPhone?: boolean
+    couponCode?: boolean
+    discountAmount?: boolean
     customer?: boolean | Order$customerArgs<ExtArgs>
     address?: boolean | AddressDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
@@ -10876,6 +11294,8 @@ export namespace Prisma {
     guestFirstName?: boolean
     guestLastName?: boolean
     guestPhone?: boolean
+    couponCode?: boolean
+    discountAmount?: boolean
     customer?: boolean | Order$customerArgs<ExtArgs>
     address?: boolean | AddressDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
@@ -10905,14 +11325,17 @@ export namespace Prisma {
     guestFirstName?: boolean
     guestLastName?: boolean
     guestPhone?: boolean
+    couponCode?: boolean
+    discountAmount?: boolean
   }
 
-  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "addressId" | "orderNumber" | "status" | "subtotal" | "tax" | "shippingCost" | "total" | "stripePaymentId" | "trackingNumber" | "trackingUrl" | "notes" | "createdAt" | "updatedAt" | "source" | "externalOrderId" | "externalData" | "stripePaymentIntentId" | "paymentStatus" | "guestEmail" | "guestFirstName" | "guestLastName" | "guestPhone", ExtArgs["result"]["order"]>
+  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "addressId" | "orderNumber" | "status" | "subtotal" | "tax" | "shippingCost" | "total" | "stripePaymentId" | "trackingNumber" | "trackingUrl" | "notes" | "createdAt" | "updatedAt" | "source" | "externalOrderId" | "externalData" | "stripePaymentIntentId" | "paymentStatus" | "guestEmail" | "guestFirstName" | "guestLastName" | "guestPhone" | "couponCode" | "discountAmount", ExtArgs["result"]["order"]>
   export type OrderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | Order$customerArgs<ExtArgs>
     address?: boolean | AddressDefaultArgs<ExtArgs>
     items?: boolean | Order$itemsArgs<ExtArgs>
     shipments?: boolean | Order$shipmentsArgs<ExtArgs>
+    returnRequests?: boolean | Order$returnRequestsArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10931,6 +11354,7 @@ export namespace Prisma {
       address: Prisma.$AddressPayload<ExtArgs>
       items: Prisma.$OrderItemPayload<ExtArgs>[]
       shipments: Prisma.$ShipmentPayload<ExtArgs>[]
+      returnRequests: Prisma.$ReturnRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -10957,6 +11381,8 @@ export namespace Prisma {
       guestFirstName: string | null
       guestLastName: string | null
       guestPhone: string | null
+      couponCode: string | null
+      discountAmount: number | null
     }, ExtArgs["result"]["order"]>
     composites: {}
   }
@@ -11355,6 +11781,7 @@ export namespace Prisma {
     address<T extends AddressDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AddressDefaultArgs<ExtArgs>>): Prisma__AddressClient<$Result.GetResult<Prisma.$AddressPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     items<T extends Order$itemsArgs<ExtArgs> = {}>(args?: Subset<T, Order$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shipments<T extends Order$shipmentsArgs<ExtArgs> = {}>(args?: Subset<T, Order$shipmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShipmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    returnRequests<T extends Order$returnRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Order$returnRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11408,6 +11835,8 @@ export namespace Prisma {
     readonly guestFirstName: FieldRef<"Order", 'String'>
     readonly guestLastName: FieldRef<"Order", 'String'>
     readonly guestPhone: FieldRef<"Order", 'String'>
+    readonly couponCode: FieldRef<"Order", 'String'>
+    readonly discountAmount: FieldRef<"Order", 'Float'>
   }
     
 
@@ -11871,6 +12300,30 @@ export namespace Prisma {
   }
 
   /**
+   * Order.returnRequests
+   */
+  export type Order$returnRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    where?: ReturnRequestWhereInput
+    orderBy?: ReturnRequestOrderByWithRelationInput | ReturnRequestOrderByWithRelationInput[]
+    cursor?: ReturnRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReturnRequestScalarFieldEnum | ReturnRequestScalarFieldEnum[]
+  }
+
+  /**
    * Order without action
    */
   export type OrderDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12111,6 +12564,8 @@ export namespace Prisma {
     shipment?: boolean | OrderItem$shipmentArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
     variant?: boolean | OrderItem$variantArgs<ExtArgs>
+    returnRequestItems?: boolean | OrderItem$returnRequestItemsArgs<ExtArgs>
+    _count?: boolean | OrderItemCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["orderItem"]>
 
   export type OrderItemSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -12157,6 +12612,8 @@ export namespace Prisma {
     shipment?: boolean | OrderItem$shipmentArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
     variant?: boolean | OrderItem$variantArgs<ExtArgs>
+    returnRequestItems?: boolean | OrderItem$returnRequestItemsArgs<ExtArgs>
+    _count?: boolean | OrderItemCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrderItemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
@@ -12178,6 +12635,7 @@ export namespace Prisma {
       shipment: Prisma.$ShipmentPayload<ExtArgs> | null
       product: Prisma.$ProductPayload<ExtArgs>
       variant: Prisma.$ProductVariantPayload<ExtArgs> | null
+      returnRequestItems: Prisma.$ReturnRequestItemPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -12585,6 +13043,7 @@ export namespace Prisma {
     shipment<T extends OrderItem$shipmentArgs<ExtArgs> = {}>(args?: Subset<T, OrderItem$shipmentArgs<ExtArgs>>): Prisma__ShipmentClient<$Result.GetResult<Prisma.$ShipmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     variant<T extends OrderItem$variantArgs<ExtArgs> = {}>(args?: Subset<T, OrderItem$variantArgs<ExtArgs>>): Prisma__ProductVariantClient<$Result.GetResult<Prisma.$ProductVariantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    returnRequestItems<T extends OrderItem$returnRequestItemsArgs<ExtArgs> = {}>(args?: Subset<T, OrderItem$returnRequestItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -13052,6 +13511,30 @@ export namespace Prisma {
      */
     include?: ProductVariantInclude<ExtArgs> | null
     where?: ProductVariantWhereInput
+  }
+
+  /**
+   * OrderItem.returnRequestItems
+   */
+  export type OrderItem$returnRequestItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    where?: ReturnRequestItemWhereInput
+    orderBy?: ReturnRequestItemOrderByWithRelationInput | ReturnRequestItemOrderByWithRelationInput[]
+    cursor?: ReturnRequestItemWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReturnRequestItemScalarFieldEnum | ReturnRequestItemScalarFieldEnum[]
   }
 
   /**
@@ -23635,6 +24118,1125 @@ export namespace Prisma {
 
 
   /**
+   * Model Coupon
+   */
+
+  export type AggregateCoupon = {
+    _count: CouponCountAggregateOutputType | null
+    _avg: CouponAvgAggregateOutputType | null
+    _sum: CouponSumAggregateOutputType | null
+    _min: CouponMinAggregateOutputType | null
+    _max: CouponMaxAggregateOutputType | null
+  }
+
+  export type CouponAvgAggregateOutputType = {
+    value: number | null
+    minOrderAmount: number | null
+    maxUses: number | null
+    usedCount: number | null
+  }
+
+  export type CouponSumAggregateOutputType = {
+    value: number | null
+    minOrderAmount: number | null
+    maxUses: number | null
+    usedCount: number | null
+  }
+
+  export type CouponMinAggregateOutputType = {
+    id: string | null
+    code: string | null
+    type: string | null
+    value: number | null
+    minOrderAmount: number | null
+    maxUses: number | null
+    usedCount: number | null
+    expiresAt: Date | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CouponMaxAggregateOutputType = {
+    id: string | null
+    code: string | null
+    type: string | null
+    value: number | null
+    minOrderAmount: number | null
+    maxUses: number | null
+    usedCount: number | null
+    expiresAt: Date | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CouponCountAggregateOutputType = {
+    id: number
+    code: number
+    type: number
+    value: number
+    minOrderAmount: number
+    maxUses: number
+    usedCount: number
+    expiresAt: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CouponAvgAggregateInputType = {
+    value?: true
+    minOrderAmount?: true
+    maxUses?: true
+    usedCount?: true
+  }
+
+  export type CouponSumAggregateInputType = {
+    value?: true
+    minOrderAmount?: true
+    maxUses?: true
+    usedCount?: true
+  }
+
+  export type CouponMinAggregateInputType = {
+    id?: true
+    code?: true
+    type?: true
+    value?: true
+    minOrderAmount?: true
+    maxUses?: true
+    usedCount?: true
+    expiresAt?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CouponMaxAggregateInputType = {
+    id?: true
+    code?: true
+    type?: true
+    value?: true
+    minOrderAmount?: true
+    maxUses?: true
+    usedCount?: true
+    expiresAt?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CouponCountAggregateInputType = {
+    id?: true
+    code?: true
+    type?: true
+    value?: true
+    minOrderAmount?: true
+    maxUses?: true
+    usedCount?: true
+    expiresAt?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CouponAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Coupon to aggregate.
+     */
+    where?: CouponWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Coupons to fetch.
+     */
+    orderBy?: CouponOrderByWithRelationInput | CouponOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CouponWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Coupons from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Coupons.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Coupons
+    **/
+    _count?: true | CouponCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CouponAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CouponSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CouponMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CouponMaxAggregateInputType
+  }
+
+  export type GetCouponAggregateType<T extends CouponAggregateArgs> = {
+        [P in keyof T & keyof AggregateCoupon]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCoupon[P]>
+      : GetScalarType<T[P], AggregateCoupon[P]>
+  }
+
+
+
+
+  export type CouponGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CouponWhereInput
+    orderBy?: CouponOrderByWithAggregationInput | CouponOrderByWithAggregationInput[]
+    by: CouponScalarFieldEnum[] | CouponScalarFieldEnum
+    having?: CouponScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CouponCountAggregateInputType | true
+    _avg?: CouponAvgAggregateInputType
+    _sum?: CouponSumAggregateInputType
+    _min?: CouponMinAggregateInputType
+    _max?: CouponMaxAggregateInputType
+  }
+
+  export type CouponGroupByOutputType = {
+    id: string
+    code: string
+    type: string
+    value: number
+    minOrderAmount: number | null
+    maxUses: number | null
+    usedCount: number
+    expiresAt: Date | null
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: CouponCountAggregateOutputType | null
+    _avg: CouponAvgAggregateOutputType | null
+    _sum: CouponSumAggregateOutputType | null
+    _min: CouponMinAggregateOutputType | null
+    _max: CouponMaxAggregateOutputType | null
+  }
+
+  type GetCouponGroupByPayload<T extends CouponGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CouponGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CouponGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CouponGroupByOutputType[P]>
+            : GetScalarType<T[P], CouponGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CouponSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    type?: boolean
+    value?: boolean
+    minOrderAmount?: boolean
+    maxUses?: boolean
+    usedCount?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["coupon"]>
+
+  export type CouponSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    type?: boolean
+    value?: boolean
+    minOrderAmount?: boolean
+    maxUses?: boolean
+    usedCount?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["coupon"]>
+
+  export type CouponSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    type?: boolean
+    value?: boolean
+    minOrderAmount?: boolean
+    maxUses?: boolean
+    usedCount?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["coupon"]>
+
+  export type CouponSelectScalar = {
+    id?: boolean
+    code?: boolean
+    type?: boolean
+    value?: boolean
+    minOrderAmount?: boolean
+    maxUses?: boolean
+    usedCount?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CouponOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "type" | "value" | "minOrderAmount" | "maxUses" | "usedCount" | "expiresAt" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["coupon"]>
+
+  export type $CouponPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Coupon"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      code: string
+      type: string
+      value: number
+      minOrderAmount: number | null
+      maxUses: number | null
+      usedCount: number
+      expiresAt: Date | null
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["coupon"]>
+    composites: {}
+  }
+
+  type CouponGetPayload<S extends boolean | null | undefined | CouponDefaultArgs> = $Result.GetResult<Prisma.$CouponPayload, S>
+
+  type CouponCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CouponFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CouponCountAggregateInputType | true
+    }
+
+  export interface CouponDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Coupon'], meta: { name: 'Coupon' } }
+    /**
+     * Find zero or one Coupon that matches the filter.
+     * @param {CouponFindUniqueArgs} args - Arguments to find a Coupon
+     * @example
+     * // Get one Coupon
+     * const coupon = await prisma.coupon.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CouponFindUniqueArgs>(args: SelectSubset<T, CouponFindUniqueArgs<ExtArgs>>): Prisma__CouponClient<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Coupon that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CouponFindUniqueOrThrowArgs} args - Arguments to find a Coupon
+     * @example
+     * // Get one Coupon
+     * const coupon = await prisma.coupon.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CouponFindUniqueOrThrowArgs>(args: SelectSubset<T, CouponFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CouponClient<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Coupon that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CouponFindFirstArgs} args - Arguments to find a Coupon
+     * @example
+     * // Get one Coupon
+     * const coupon = await prisma.coupon.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CouponFindFirstArgs>(args?: SelectSubset<T, CouponFindFirstArgs<ExtArgs>>): Prisma__CouponClient<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Coupon that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CouponFindFirstOrThrowArgs} args - Arguments to find a Coupon
+     * @example
+     * // Get one Coupon
+     * const coupon = await prisma.coupon.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CouponFindFirstOrThrowArgs>(args?: SelectSubset<T, CouponFindFirstOrThrowArgs<ExtArgs>>): Prisma__CouponClient<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Coupons that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CouponFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Coupons
+     * const coupons = await prisma.coupon.findMany()
+     * 
+     * // Get first 10 Coupons
+     * const coupons = await prisma.coupon.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const couponWithIdOnly = await prisma.coupon.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CouponFindManyArgs>(args?: SelectSubset<T, CouponFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Coupon.
+     * @param {CouponCreateArgs} args - Arguments to create a Coupon.
+     * @example
+     * // Create one Coupon
+     * const Coupon = await prisma.coupon.create({
+     *   data: {
+     *     // ... data to create a Coupon
+     *   }
+     * })
+     * 
+     */
+    create<T extends CouponCreateArgs>(args: SelectSubset<T, CouponCreateArgs<ExtArgs>>): Prisma__CouponClient<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Coupons.
+     * @param {CouponCreateManyArgs} args - Arguments to create many Coupons.
+     * @example
+     * // Create many Coupons
+     * const coupon = await prisma.coupon.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CouponCreateManyArgs>(args?: SelectSubset<T, CouponCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Coupons and returns the data saved in the database.
+     * @param {CouponCreateManyAndReturnArgs} args - Arguments to create many Coupons.
+     * @example
+     * // Create many Coupons
+     * const coupon = await prisma.coupon.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Coupons and only return the `id`
+     * const couponWithIdOnly = await prisma.coupon.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CouponCreateManyAndReturnArgs>(args?: SelectSubset<T, CouponCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Coupon.
+     * @param {CouponDeleteArgs} args - Arguments to delete one Coupon.
+     * @example
+     * // Delete one Coupon
+     * const Coupon = await prisma.coupon.delete({
+     *   where: {
+     *     // ... filter to delete one Coupon
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CouponDeleteArgs>(args: SelectSubset<T, CouponDeleteArgs<ExtArgs>>): Prisma__CouponClient<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Coupon.
+     * @param {CouponUpdateArgs} args - Arguments to update one Coupon.
+     * @example
+     * // Update one Coupon
+     * const coupon = await prisma.coupon.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CouponUpdateArgs>(args: SelectSubset<T, CouponUpdateArgs<ExtArgs>>): Prisma__CouponClient<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Coupons.
+     * @param {CouponDeleteManyArgs} args - Arguments to filter Coupons to delete.
+     * @example
+     * // Delete a few Coupons
+     * const { count } = await prisma.coupon.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CouponDeleteManyArgs>(args?: SelectSubset<T, CouponDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Coupons.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CouponUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Coupons
+     * const coupon = await prisma.coupon.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CouponUpdateManyArgs>(args: SelectSubset<T, CouponUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Coupons and returns the data updated in the database.
+     * @param {CouponUpdateManyAndReturnArgs} args - Arguments to update many Coupons.
+     * @example
+     * // Update many Coupons
+     * const coupon = await prisma.coupon.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Coupons and only return the `id`
+     * const couponWithIdOnly = await prisma.coupon.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CouponUpdateManyAndReturnArgs>(args: SelectSubset<T, CouponUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Coupon.
+     * @param {CouponUpsertArgs} args - Arguments to update or create a Coupon.
+     * @example
+     * // Update or create a Coupon
+     * const coupon = await prisma.coupon.upsert({
+     *   create: {
+     *     // ... data to create a Coupon
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Coupon we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CouponUpsertArgs>(args: SelectSubset<T, CouponUpsertArgs<ExtArgs>>): Prisma__CouponClient<$Result.GetResult<Prisma.$CouponPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Coupons.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CouponCountArgs} args - Arguments to filter Coupons to count.
+     * @example
+     * // Count the number of Coupons
+     * const count = await prisma.coupon.count({
+     *   where: {
+     *     // ... the filter for the Coupons we want to count
+     *   }
+     * })
+    **/
+    count<T extends CouponCountArgs>(
+      args?: Subset<T, CouponCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CouponCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Coupon.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CouponAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CouponAggregateArgs>(args: Subset<T, CouponAggregateArgs>): Prisma.PrismaPromise<GetCouponAggregateType<T>>
+
+    /**
+     * Group by Coupon.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CouponGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CouponGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CouponGroupByArgs['orderBy'] }
+        : { orderBy?: CouponGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CouponGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCouponGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Coupon model
+   */
+  readonly fields: CouponFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Coupon.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CouponClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Coupon model
+   */
+  interface CouponFieldRefs {
+    readonly id: FieldRef<"Coupon", 'String'>
+    readonly code: FieldRef<"Coupon", 'String'>
+    readonly type: FieldRef<"Coupon", 'String'>
+    readonly value: FieldRef<"Coupon", 'Float'>
+    readonly minOrderAmount: FieldRef<"Coupon", 'Float'>
+    readonly maxUses: FieldRef<"Coupon", 'Int'>
+    readonly usedCount: FieldRef<"Coupon", 'Int'>
+    readonly expiresAt: FieldRef<"Coupon", 'DateTime'>
+    readonly isActive: FieldRef<"Coupon", 'Boolean'>
+    readonly createdAt: FieldRef<"Coupon", 'DateTime'>
+    readonly updatedAt: FieldRef<"Coupon", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Coupon findUnique
+   */
+  export type CouponFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * Filter, which Coupon to fetch.
+     */
+    where: CouponWhereUniqueInput
+  }
+
+  /**
+   * Coupon findUniqueOrThrow
+   */
+  export type CouponFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * Filter, which Coupon to fetch.
+     */
+    where: CouponWhereUniqueInput
+  }
+
+  /**
+   * Coupon findFirst
+   */
+  export type CouponFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * Filter, which Coupon to fetch.
+     */
+    where?: CouponWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Coupons to fetch.
+     */
+    orderBy?: CouponOrderByWithRelationInput | CouponOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Coupons.
+     */
+    cursor?: CouponWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Coupons from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Coupons.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Coupons.
+     */
+    distinct?: CouponScalarFieldEnum | CouponScalarFieldEnum[]
+  }
+
+  /**
+   * Coupon findFirstOrThrow
+   */
+  export type CouponFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * Filter, which Coupon to fetch.
+     */
+    where?: CouponWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Coupons to fetch.
+     */
+    orderBy?: CouponOrderByWithRelationInput | CouponOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Coupons.
+     */
+    cursor?: CouponWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Coupons from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Coupons.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Coupons.
+     */
+    distinct?: CouponScalarFieldEnum | CouponScalarFieldEnum[]
+  }
+
+  /**
+   * Coupon findMany
+   */
+  export type CouponFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * Filter, which Coupons to fetch.
+     */
+    where?: CouponWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Coupons to fetch.
+     */
+    orderBy?: CouponOrderByWithRelationInput | CouponOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Coupons.
+     */
+    cursor?: CouponWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Coupons from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Coupons.
+     */
+    skip?: number
+    distinct?: CouponScalarFieldEnum | CouponScalarFieldEnum[]
+  }
+
+  /**
+   * Coupon create
+   */
+  export type CouponCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * The data needed to create a Coupon.
+     */
+    data: XOR<CouponCreateInput, CouponUncheckedCreateInput>
+  }
+
+  /**
+   * Coupon createMany
+   */
+  export type CouponCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Coupons.
+     */
+    data: CouponCreateManyInput | CouponCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Coupon createManyAndReturn
+   */
+  export type CouponCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * The data used to create many Coupons.
+     */
+    data: CouponCreateManyInput | CouponCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Coupon update
+   */
+  export type CouponUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * The data needed to update a Coupon.
+     */
+    data: XOR<CouponUpdateInput, CouponUncheckedUpdateInput>
+    /**
+     * Choose, which Coupon to update.
+     */
+    where: CouponWhereUniqueInput
+  }
+
+  /**
+   * Coupon updateMany
+   */
+  export type CouponUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Coupons.
+     */
+    data: XOR<CouponUpdateManyMutationInput, CouponUncheckedUpdateManyInput>
+    /**
+     * Filter which Coupons to update
+     */
+    where?: CouponWhereInput
+    /**
+     * Limit how many Coupons to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Coupon updateManyAndReturn
+   */
+  export type CouponUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * The data used to update Coupons.
+     */
+    data: XOR<CouponUpdateManyMutationInput, CouponUncheckedUpdateManyInput>
+    /**
+     * Filter which Coupons to update
+     */
+    where?: CouponWhereInput
+    /**
+     * Limit how many Coupons to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Coupon upsert
+   */
+  export type CouponUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * The filter to search for the Coupon to update in case it exists.
+     */
+    where: CouponWhereUniqueInput
+    /**
+     * In case the Coupon found by the `where` argument doesn't exist, create a new Coupon with this data.
+     */
+    create: XOR<CouponCreateInput, CouponUncheckedCreateInput>
+    /**
+     * In case the Coupon was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CouponUpdateInput, CouponUncheckedUpdateInput>
+  }
+
+  /**
+   * Coupon delete
+   */
+  export type CouponDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+    /**
+     * Filter which Coupon to delete.
+     */
+    where: CouponWhereUniqueInput
+  }
+
+  /**
+   * Coupon deleteMany
+   */
+  export type CouponDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Coupons to delete
+     */
+    where?: CouponWhereInput
+    /**
+     * Limit how many Coupons to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Coupon without action
+   */
+  export type CouponDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Coupon
+     */
+    select?: CouponSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Coupon
+     */
+    omit?: CouponOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model NewsletterSubscriber
    */
 
@@ -24604,6 +26206,2228 @@ export namespace Prisma {
 
 
   /**
+   * Model ReturnRequest
+   */
+
+  export type AggregateReturnRequest = {
+    _count: ReturnRequestCountAggregateOutputType | null
+    _min: ReturnRequestMinAggregateOutputType | null
+    _max: ReturnRequestMaxAggregateOutputType | null
+  }
+
+  export type ReturnRequestMinAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    customerId: string | null
+    status: $Enums.ReturnStatus | null
+    adminNotes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ReturnRequestMaxAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    customerId: string | null
+    status: $Enums.ReturnStatus | null
+    adminNotes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ReturnRequestCountAggregateOutputType = {
+    id: number
+    orderId: number
+    customerId: number
+    status: number
+    adminNotes: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ReturnRequestMinAggregateInputType = {
+    id?: true
+    orderId?: true
+    customerId?: true
+    status?: true
+    adminNotes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ReturnRequestMaxAggregateInputType = {
+    id?: true
+    orderId?: true
+    customerId?: true
+    status?: true
+    adminNotes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ReturnRequestCountAggregateInputType = {
+    id?: true
+    orderId?: true
+    customerId?: true
+    status?: true
+    adminNotes?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ReturnRequestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReturnRequest to aggregate.
+     */
+    where?: ReturnRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReturnRequests to fetch.
+     */
+    orderBy?: ReturnRequestOrderByWithRelationInput | ReturnRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ReturnRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReturnRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReturnRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ReturnRequests
+    **/
+    _count?: true | ReturnRequestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReturnRequestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReturnRequestMaxAggregateInputType
+  }
+
+  export type GetReturnRequestAggregateType<T extends ReturnRequestAggregateArgs> = {
+        [P in keyof T & keyof AggregateReturnRequest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReturnRequest[P]>
+      : GetScalarType<T[P], AggregateReturnRequest[P]>
+  }
+
+
+
+
+  export type ReturnRequestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReturnRequestWhereInput
+    orderBy?: ReturnRequestOrderByWithAggregationInput | ReturnRequestOrderByWithAggregationInput[]
+    by: ReturnRequestScalarFieldEnum[] | ReturnRequestScalarFieldEnum
+    having?: ReturnRequestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReturnRequestCountAggregateInputType | true
+    _min?: ReturnRequestMinAggregateInputType
+    _max?: ReturnRequestMaxAggregateInputType
+  }
+
+  export type ReturnRequestGroupByOutputType = {
+    id: string
+    orderId: string
+    customerId: string
+    status: $Enums.ReturnStatus
+    adminNotes: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ReturnRequestCountAggregateOutputType | null
+    _min: ReturnRequestMinAggregateOutputType | null
+    _max: ReturnRequestMaxAggregateOutputType | null
+  }
+
+  type GetReturnRequestGroupByPayload<T extends ReturnRequestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReturnRequestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReturnRequestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReturnRequestGroupByOutputType[P]>
+            : GetScalarType<T[P], ReturnRequestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReturnRequestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    customerId?: boolean
+    status?: boolean
+    adminNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    items?: boolean | ReturnRequest$itemsArgs<ExtArgs>
+    _count?: boolean | ReturnRequestCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["returnRequest"]>
+
+  export type ReturnRequestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    customerId?: boolean
+    status?: boolean
+    adminNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["returnRequest"]>
+
+  export type ReturnRequestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    customerId?: boolean
+    status?: boolean
+    adminNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["returnRequest"]>
+
+  export type ReturnRequestSelectScalar = {
+    id?: boolean
+    orderId?: boolean
+    customerId?: boolean
+    status?: boolean
+    adminNotes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ReturnRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "customerId" | "status" | "adminNotes" | "createdAt" | "updatedAt", ExtArgs["result"]["returnRequest"]>
+  export type ReturnRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    items?: boolean | ReturnRequest$itemsArgs<ExtArgs>
+    _count?: boolean | ReturnRequestCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ReturnRequestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type ReturnRequestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $ReturnRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReturnRequest"
+    objects: {
+      order: Prisma.$OrderPayload<ExtArgs>
+      customer: Prisma.$CustomerPayload<ExtArgs>
+      items: Prisma.$ReturnRequestItemPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orderId: string
+      customerId: string
+      status: $Enums.ReturnStatus
+      adminNotes: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["returnRequest"]>
+    composites: {}
+  }
+
+  type ReturnRequestGetPayload<S extends boolean | null | undefined | ReturnRequestDefaultArgs> = $Result.GetResult<Prisma.$ReturnRequestPayload, S>
+
+  type ReturnRequestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ReturnRequestFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ReturnRequestCountAggregateInputType | true
+    }
+
+  export interface ReturnRequestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReturnRequest'], meta: { name: 'ReturnRequest' } }
+    /**
+     * Find zero or one ReturnRequest that matches the filter.
+     * @param {ReturnRequestFindUniqueArgs} args - Arguments to find a ReturnRequest
+     * @example
+     * // Get one ReturnRequest
+     * const returnRequest = await prisma.returnRequest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReturnRequestFindUniqueArgs>(args: SelectSubset<T, ReturnRequestFindUniqueArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ReturnRequest that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ReturnRequestFindUniqueOrThrowArgs} args - Arguments to find a ReturnRequest
+     * @example
+     * // Get one ReturnRequest
+     * const returnRequest = await prisma.returnRequest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReturnRequestFindUniqueOrThrowArgs>(args: SelectSubset<T, ReturnRequestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ReturnRequest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestFindFirstArgs} args - Arguments to find a ReturnRequest
+     * @example
+     * // Get one ReturnRequest
+     * const returnRequest = await prisma.returnRequest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReturnRequestFindFirstArgs>(args?: SelectSubset<T, ReturnRequestFindFirstArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ReturnRequest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestFindFirstOrThrowArgs} args - Arguments to find a ReturnRequest
+     * @example
+     * // Get one ReturnRequest
+     * const returnRequest = await prisma.returnRequest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReturnRequestFindFirstOrThrowArgs>(args?: SelectSubset<T, ReturnRequestFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ReturnRequests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReturnRequests
+     * const returnRequests = await prisma.returnRequest.findMany()
+     * 
+     * // Get first 10 ReturnRequests
+     * const returnRequests = await prisma.returnRequest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const returnRequestWithIdOnly = await prisma.returnRequest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ReturnRequestFindManyArgs>(args?: SelectSubset<T, ReturnRequestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ReturnRequest.
+     * @param {ReturnRequestCreateArgs} args - Arguments to create a ReturnRequest.
+     * @example
+     * // Create one ReturnRequest
+     * const ReturnRequest = await prisma.returnRequest.create({
+     *   data: {
+     *     // ... data to create a ReturnRequest
+     *   }
+     * })
+     * 
+     */
+    create<T extends ReturnRequestCreateArgs>(args: SelectSubset<T, ReturnRequestCreateArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ReturnRequests.
+     * @param {ReturnRequestCreateManyArgs} args - Arguments to create many ReturnRequests.
+     * @example
+     * // Create many ReturnRequests
+     * const returnRequest = await prisma.returnRequest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ReturnRequestCreateManyArgs>(args?: SelectSubset<T, ReturnRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReturnRequests and returns the data saved in the database.
+     * @param {ReturnRequestCreateManyAndReturnArgs} args - Arguments to create many ReturnRequests.
+     * @example
+     * // Create many ReturnRequests
+     * const returnRequest = await prisma.returnRequest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ReturnRequests and only return the `id`
+     * const returnRequestWithIdOnly = await prisma.returnRequest.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ReturnRequestCreateManyAndReturnArgs>(args?: SelectSubset<T, ReturnRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ReturnRequest.
+     * @param {ReturnRequestDeleteArgs} args - Arguments to delete one ReturnRequest.
+     * @example
+     * // Delete one ReturnRequest
+     * const ReturnRequest = await prisma.returnRequest.delete({
+     *   where: {
+     *     // ... filter to delete one ReturnRequest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ReturnRequestDeleteArgs>(args: SelectSubset<T, ReturnRequestDeleteArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ReturnRequest.
+     * @param {ReturnRequestUpdateArgs} args - Arguments to update one ReturnRequest.
+     * @example
+     * // Update one ReturnRequest
+     * const returnRequest = await prisma.returnRequest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ReturnRequestUpdateArgs>(args: SelectSubset<T, ReturnRequestUpdateArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ReturnRequests.
+     * @param {ReturnRequestDeleteManyArgs} args - Arguments to filter ReturnRequests to delete.
+     * @example
+     * // Delete a few ReturnRequests
+     * const { count } = await prisma.returnRequest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ReturnRequestDeleteManyArgs>(args?: SelectSubset<T, ReturnRequestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReturnRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReturnRequests
+     * const returnRequest = await prisma.returnRequest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ReturnRequestUpdateManyArgs>(args: SelectSubset<T, ReturnRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReturnRequests and returns the data updated in the database.
+     * @param {ReturnRequestUpdateManyAndReturnArgs} args - Arguments to update many ReturnRequests.
+     * @example
+     * // Update many ReturnRequests
+     * const returnRequest = await prisma.returnRequest.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ReturnRequests and only return the `id`
+     * const returnRequestWithIdOnly = await prisma.returnRequest.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ReturnRequestUpdateManyAndReturnArgs>(args: SelectSubset<T, ReturnRequestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ReturnRequest.
+     * @param {ReturnRequestUpsertArgs} args - Arguments to update or create a ReturnRequest.
+     * @example
+     * // Update or create a ReturnRequest
+     * const returnRequest = await prisma.returnRequest.upsert({
+     *   create: {
+     *     // ... data to create a ReturnRequest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReturnRequest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReturnRequestUpsertArgs>(args: SelectSubset<T, ReturnRequestUpsertArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ReturnRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestCountArgs} args - Arguments to filter ReturnRequests to count.
+     * @example
+     * // Count the number of ReturnRequests
+     * const count = await prisma.returnRequest.count({
+     *   where: {
+     *     // ... the filter for the ReturnRequests we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReturnRequestCountArgs>(
+      args?: Subset<T, ReturnRequestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReturnRequestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReturnRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReturnRequestAggregateArgs>(args: Subset<T, ReturnRequestAggregateArgs>): Prisma.PrismaPromise<GetReturnRequestAggregateType<T>>
+
+    /**
+     * Group by ReturnRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ReturnRequestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReturnRequestGroupByArgs['orderBy'] }
+        : { orderBy?: ReturnRequestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReturnRequestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReturnRequestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReturnRequest model
+   */
+  readonly fields: ReturnRequestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReturnRequest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReturnRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    order<T extends OrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderDefaultArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    items<T extends ReturnRequest$itemsArgs<ExtArgs> = {}>(args?: Subset<T, ReturnRequest$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReturnRequest model
+   */
+  interface ReturnRequestFieldRefs {
+    readonly id: FieldRef<"ReturnRequest", 'String'>
+    readonly orderId: FieldRef<"ReturnRequest", 'String'>
+    readonly customerId: FieldRef<"ReturnRequest", 'String'>
+    readonly status: FieldRef<"ReturnRequest", 'ReturnStatus'>
+    readonly adminNotes: FieldRef<"ReturnRequest", 'String'>
+    readonly createdAt: FieldRef<"ReturnRequest", 'DateTime'>
+    readonly updatedAt: FieldRef<"ReturnRequest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ReturnRequest findUnique
+   */
+  export type ReturnRequestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequest to fetch.
+     */
+    where: ReturnRequestWhereUniqueInput
+  }
+
+  /**
+   * ReturnRequest findUniqueOrThrow
+   */
+  export type ReturnRequestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequest to fetch.
+     */
+    where: ReturnRequestWhereUniqueInput
+  }
+
+  /**
+   * ReturnRequest findFirst
+   */
+  export type ReturnRequestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequest to fetch.
+     */
+    where?: ReturnRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReturnRequests to fetch.
+     */
+    orderBy?: ReturnRequestOrderByWithRelationInput | ReturnRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReturnRequests.
+     */
+    cursor?: ReturnRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReturnRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReturnRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReturnRequests.
+     */
+    distinct?: ReturnRequestScalarFieldEnum | ReturnRequestScalarFieldEnum[]
+  }
+
+  /**
+   * ReturnRequest findFirstOrThrow
+   */
+  export type ReturnRequestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequest to fetch.
+     */
+    where?: ReturnRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReturnRequests to fetch.
+     */
+    orderBy?: ReturnRequestOrderByWithRelationInput | ReturnRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReturnRequests.
+     */
+    cursor?: ReturnRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReturnRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReturnRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReturnRequests.
+     */
+    distinct?: ReturnRequestScalarFieldEnum | ReturnRequestScalarFieldEnum[]
+  }
+
+  /**
+   * ReturnRequest findMany
+   */
+  export type ReturnRequestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequests to fetch.
+     */
+    where?: ReturnRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReturnRequests to fetch.
+     */
+    orderBy?: ReturnRequestOrderByWithRelationInput | ReturnRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ReturnRequests.
+     */
+    cursor?: ReturnRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReturnRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReturnRequests.
+     */
+    skip?: number
+    distinct?: ReturnRequestScalarFieldEnum | ReturnRequestScalarFieldEnum[]
+  }
+
+  /**
+   * ReturnRequest create
+   */
+  export type ReturnRequestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReturnRequest.
+     */
+    data: XOR<ReturnRequestCreateInput, ReturnRequestUncheckedCreateInput>
+  }
+
+  /**
+   * ReturnRequest createMany
+   */
+  export type ReturnRequestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReturnRequests.
+     */
+    data: ReturnRequestCreateManyInput | ReturnRequestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReturnRequest createManyAndReturn
+   */
+  export type ReturnRequestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * The data used to create many ReturnRequests.
+     */
+    data: ReturnRequestCreateManyInput | ReturnRequestCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReturnRequest update
+   */
+  export type ReturnRequestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReturnRequest.
+     */
+    data: XOR<ReturnRequestUpdateInput, ReturnRequestUncheckedUpdateInput>
+    /**
+     * Choose, which ReturnRequest to update.
+     */
+    where: ReturnRequestWhereUniqueInput
+  }
+
+  /**
+   * ReturnRequest updateMany
+   */
+  export type ReturnRequestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReturnRequests.
+     */
+    data: XOR<ReturnRequestUpdateManyMutationInput, ReturnRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which ReturnRequests to update
+     */
+    where?: ReturnRequestWhereInput
+    /**
+     * Limit how many ReturnRequests to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReturnRequest updateManyAndReturn
+   */
+  export type ReturnRequestUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * The data used to update ReturnRequests.
+     */
+    data: XOR<ReturnRequestUpdateManyMutationInput, ReturnRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which ReturnRequests to update
+     */
+    where?: ReturnRequestWhereInput
+    /**
+     * Limit how many ReturnRequests to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReturnRequest upsert
+   */
+  export type ReturnRequestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReturnRequest to update in case it exists.
+     */
+    where: ReturnRequestWhereUniqueInput
+    /**
+     * In case the ReturnRequest found by the `where` argument doesn't exist, create a new ReturnRequest with this data.
+     */
+    create: XOR<ReturnRequestCreateInput, ReturnRequestUncheckedCreateInput>
+    /**
+     * In case the ReturnRequest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReturnRequestUpdateInput, ReturnRequestUncheckedUpdateInput>
+  }
+
+  /**
+   * ReturnRequest delete
+   */
+  export type ReturnRequestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+    /**
+     * Filter which ReturnRequest to delete.
+     */
+    where: ReturnRequestWhereUniqueInput
+  }
+
+  /**
+   * ReturnRequest deleteMany
+   */
+  export type ReturnRequestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReturnRequests to delete
+     */
+    where?: ReturnRequestWhereInput
+    /**
+     * Limit how many ReturnRequests to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReturnRequest.items
+   */
+  export type ReturnRequest$itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    where?: ReturnRequestItemWhereInput
+    orderBy?: ReturnRequestItemOrderByWithRelationInput | ReturnRequestItemOrderByWithRelationInput[]
+    cursor?: ReturnRequestItemWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReturnRequestItemScalarFieldEnum | ReturnRequestItemScalarFieldEnum[]
+  }
+
+  /**
+   * ReturnRequest without action
+   */
+  export type ReturnRequestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequest
+     */
+    select?: ReturnRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequest
+     */
+    omit?: ReturnRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ReturnRequestItem
+   */
+
+  export type AggregateReturnRequestItem = {
+    _count: ReturnRequestItemCountAggregateOutputType | null
+    _avg: ReturnRequestItemAvgAggregateOutputType | null
+    _sum: ReturnRequestItemSumAggregateOutputType | null
+    _min: ReturnRequestItemMinAggregateOutputType | null
+    _max: ReturnRequestItemMaxAggregateOutputType | null
+  }
+
+  export type ReturnRequestItemAvgAggregateOutputType = {
+    quantity: number | null
+  }
+
+  export type ReturnRequestItemSumAggregateOutputType = {
+    quantity: number | null
+  }
+
+  export type ReturnRequestItemMinAggregateOutputType = {
+    id: string | null
+    returnRequestId: string | null
+    orderItemId: string | null
+    quantity: number | null
+    reason: string | null
+  }
+
+  export type ReturnRequestItemMaxAggregateOutputType = {
+    id: string | null
+    returnRequestId: string | null
+    orderItemId: string | null
+    quantity: number | null
+    reason: string | null
+  }
+
+  export type ReturnRequestItemCountAggregateOutputType = {
+    id: number
+    returnRequestId: number
+    orderItemId: number
+    quantity: number
+    reason: number
+    _all: number
+  }
+
+
+  export type ReturnRequestItemAvgAggregateInputType = {
+    quantity?: true
+  }
+
+  export type ReturnRequestItemSumAggregateInputType = {
+    quantity?: true
+  }
+
+  export type ReturnRequestItemMinAggregateInputType = {
+    id?: true
+    returnRequestId?: true
+    orderItemId?: true
+    quantity?: true
+    reason?: true
+  }
+
+  export type ReturnRequestItemMaxAggregateInputType = {
+    id?: true
+    returnRequestId?: true
+    orderItemId?: true
+    quantity?: true
+    reason?: true
+  }
+
+  export type ReturnRequestItemCountAggregateInputType = {
+    id?: true
+    returnRequestId?: true
+    orderItemId?: true
+    quantity?: true
+    reason?: true
+    _all?: true
+  }
+
+  export type ReturnRequestItemAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReturnRequestItem to aggregate.
+     */
+    where?: ReturnRequestItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReturnRequestItems to fetch.
+     */
+    orderBy?: ReturnRequestItemOrderByWithRelationInput | ReturnRequestItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ReturnRequestItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReturnRequestItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReturnRequestItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ReturnRequestItems
+    **/
+    _count?: true | ReturnRequestItemCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ReturnRequestItemAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ReturnRequestItemSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReturnRequestItemMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReturnRequestItemMaxAggregateInputType
+  }
+
+  export type GetReturnRequestItemAggregateType<T extends ReturnRequestItemAggregateArgs> = {
+        [P in keyof T & keyof AggregateReturnRequestItem]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReturnRequestItem[P]>
+      : GetScalarType<T[P], AggregateReturnRequestItem[P]>
+  }
+
+
+
+
+  export type ReturnRequestItemGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReturnRequestItemWhereInput
+    orderBy?: ReturnRequestItemOrderByWithAggregationInput | ReturnRequestItemOrderByWithAggregationInput[]
+    by: ReturnRequestItemScalarFieldEnum[] | ReturnRequestItemScalarFieldEnum
+    having?: ReturnRequestItemScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReturnRequestItemCountAggregateInputType | true
+    _avg?: ReturnRequestItemAvgAggregateInputType
+    _sum?: ReturnRequestItemSumAggregateInputType
+    _min?: ReturnRequestItemMinAggregateInputType
+    _max?: ReturnRequestItemMaxAggregateInputType
+  }
+
+  export type ReturnRequestItemGroupByOutputType = {
+    id: string
+    returnRequestId: string
+    orderItemId: string
+    quantity: number
+    reason: string
+    _count: ReturnRequestItemCountAggregateOutputType | null
+    _avg: ReturnRequestItemAvgAggregateOutputType | null
+    _sum: ReturnRequestItemSumAggregateOutputType | null
+    _min: ReturnRequestItemMinAggregateOutputType | null
+    _max: ReturnRequestItemMaxAggregateOutputType | null
+  }
+
+  type GetReturnRequestItemGroupByPayload<T extends ReturnRequestItemGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReturnRequestItemGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReturnRequestItemGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReturnRequestItemGroupByOutputType[P]>
+            : GetScalarType<T[P], ReturnRequestItemGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReturnRequestItemSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    returnRequestId?: boolean
+    orderItemId?: boolean
+    quantity?: boolean
+    reason?: boolean
+    returnRequest?: boolean | ReturnRequestDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["returnRequestItem"]>
+
+  export type ReturnRequestItemSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    returnRequestId?: boolean
+    orderItemId?: boolean
+    quantity?: boolean
+    reason?: boolean
+    returnRequest?: boolean | ReturnRequestDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["returnRequestItem"]>
+
+  export type ReturnRequestItemSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    returnRequestId?: boolean
+    orderItemId?: boolean
+    quantity?: boolean
+    reason?: boolean
+    returnRequest?: boolean | ReturnRequestDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["returnRequestItem"]>
+
+  export type ReturnRequestItemSelectScalar = {
+    id?: boolean
+    returnRequestId?: boolean
+    orderItemId?: boolean
+    quantity?: boolean
+    reason?: boolean
+  }
+
+  export type ReturnRequestItemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "returnRequestId" | "orderItemId" | "quantity" | "reason", ExtArgs["result"]["returnRequestItem"]>
+  export type ReturnRequestItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    returnRequest?: boolean | ReturnRequestDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }
+  export type ReturnRequestItemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    returnRequest?: boolean | ReturnRequestDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }
+  export type ReturnRequestItemIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    returnRequest?: boolean | ReturnRequestDefaultArgs<ExtArgs>
+    orderItem?: boolean | OrderItemDefaultArgs<ExtArgs>
+  }
+
+  export type $ReturnRequestItemPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReturnRequestItem"
+    objects: {
+      returnRequest: Prisma.$ReturnRequestPayload<ExtArgs>
+      orderItem: Prisma.$OrderItemPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      returnRequestId: string
+      orderItemId: string
+      quantity: number
+      reason: string
+    }, ExtArgs["result"]["returnRequestItem"]>
+    composites: {}
+  }
+
+  type ReturnRequestItemGetPayload<S extends boolean | null | undefined | ReturnRequestItemDefaultArgs> = $Result.GetResult<Prisma.$ReturnRequestItemPayload, S>
+
+  type ReturnRequestItemCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ReturnRequestItemFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ReturnRequestItemCountAggregateInputType | true
+    }
+
+  export interface ReturnRequestItemDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReturnRequestItem'], meta: { name: 'ReturnRequestItem' } }
+    /**
+     * Find zero or one ReturnRequestItem that matches the filter.
+     * @param {ReturnRequestItemFindUniqueArgs} args - Arguments to find a ReturnRequestItem
+     * @example
+     * // Get one ReturnRequestItem
+     * const returnRequestItem = await prisma.returnRequestItem.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReturnRequestItemFindUniqueArgs>(args: SelectSubset<T, ReturnRequestItemFindUniqueArgs<ExtArgs>>): Prisma__ReturnRequestItemClient<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ReturnRequestItem that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ReturnRequestItemFindUniqueOrThrowArgs} args - Arguments to find a ReturnRequestItem
+     * @example
+     * // Get one ReturnRequestItem
+     * const returnRequestItem = await prisma.returnRequestItem.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReturnRequestItemFindUniqueOrThrowArgs>(args: SelectSubset<T, ReturnRequestItemFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReturnRequestItemClient<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ReturnRequestItem that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestItemFindFirstArgs} args - Arguments to find a ReturnRequestItem
+     * @example
+     * // Get one ReturnRequestItem
+     * const returnRequestItem = await prisma.returnRequestItem.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReturnRequestItemFindFirstArgs>(args?: SelectSubset<T, ReturnRequestItemFindFirstArgs<ExtArgs>>): Prisma__ReturnRequestItemClient<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ReturnRequestItem that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestItemFindFirstOrThrowArgs} args - Arguments to find a ReturnRequestItem
+     * @example
+     * // Get one ReturnRequestItem
+     * const returnRequestItem = await prisma.returnRequestItem.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReturnRequestItemFindFirstOrThrowArgs>(args?: SelectSubset<T, ReturnRequestItemFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReturnRequestItemClient<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ReturnRequestItems that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestItemFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReturnRequestItems
+     * const returnRequestItems = await prisma.returnRequestItem.findMany()
+     * 
+     * // Get first 10 ReturnRequestItems
+     * const returnRequestItems = await prisma.returnRequestItem.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const returnRequestItemWithIdOnly = await prisma.returnRequestItem.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ReturnRequestItemFindManyArgs>(args?: SelectSubset<T, ReturnRequestItemFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ReturnRequestItem.
+     * @param {ReturnRequestItemCreateArgs} args - Arguments to create a ReturnRequestItem.
+     * @example
+     * // Create one ReturnRequestItem
+     * const ReturnRequestItem = await prisma.returnRequestItem.create({
+     *   data: {
+     *     // ... data to create a ReturnRequestItem
+     *   }
+     * })
+     * 
+     */
+    create<T extends ReturnRequestItemCreateArgs>(args: SelectSubset<T, ReturnRequestItemCreateArgs<ExtArgs>>): Prisma__ReturnRequestItemClient<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ReturnRequestItems.
+     * @param {ReturnRequestItemCreateManyArgs} args - Arguments to create many ReturnRequestItems.
+     * @example
+     * // Create many ReturnRequestItems
+     * const returnRequestItem = await prisma.returnRequestItem.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ReturnRequestItemCreateManyArgs>(args?: SelectSubset<T, ReturnRequestItemCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReturnRequestItems and returns the data saved in the database.
+     * @param {ReturnRequestItemCreateManyAndReturnArgs} args - Arguments to create many ReturnRequestItems.
+     * @example
+     * // Create many ReturnRequestItems
+     * const returnRequestItem = await prisma.returnRequestItem.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ReturnRequestItems and only return the `id`
+     * const returnRequestItemWithIdOnly = await prisma.returnRequestItem.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ReturnRequestItemCreateManyAndReturnArgs>(args?: SelectSubset<T, ReturnRequestItemCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ReturnRequestItem.
+     * @param {ReturnRequestItemDeleteArgs} args - Arguments to delete one ReturnRequestItem.
+     * @example
+     * // Delete one ReturnRequestItem
+     * const ReturnRequestItem = await prisma.returnRequestItem.delete({
+     *   where: {
+     *     // ... filter to delete one ReturnRequestItem
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ReturnRequestItemDeleteArgs>(args: SelectSubset<T, ReturnRequestItemDeleteArgs<ExtArgs>>): Prisma__ReturnRequestItemClient<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ReturnRequestItem.
+     * @param {ReturnRequestItemUpdateArgs} args - Arguments to update one ReturnRequestItem.
+     * @example
+     * // Update one ReturnRequestItem
+     * const returnRequestItem = await prisma.returnRequestItem.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ReturnRequestItemUpdateArgs>(args: SelectSubset<T, ReturnRequestItemUpdateArgs<ExtArgs>>): Prisma__ReturnRequestItemClient<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ReturnRequestItems.
+     * @param {ReturnRequestItemDeleteManyArgs} args - Arguments to filter ReturnRequestItems to delete.
+     * @example
+     * // Delete a few ReturnRequestItems
+     * const { count } = await prisma.returnRequestItem.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ReturnRequestItemDeleteManyArgs>(args?: SelectSubset<T, ReturnRequestItemDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReturnRequestItems.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestItemUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReturnRequestItems
+     * const returnRequestItem = await prisma.returnRequestItem.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ReturnRequestItemUpdateManyArgs>(args: SelectSubset<T, ReturnRequestItemUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReturnRequestItems and returns the data updated in the database.
+     * @param {ReturnRequestItemUpdateManyAndReturnArgs} args - Arguments to update many ReturnRequestItems.
+     * @example
+     * // Update many ReturnRequestItems
+     * const returnRequestItem = await prisma.returnRequestItem.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ReturnRequestItems and only return the `id`
+     * const returnRequestItemWithIdOnly = await prisma.returnRequestItem.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ReturnRequestItemUpdateManyAndReturnArgs>(args: SelectSubset<T, ReturnRequestItemUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ReturnRequestItem.
+     * @param {ReturnRequestItemUpsertArgs} args - Arguments to update or create a ReturnRequestItem.
+     * @example
+     * // Update or create a ReturnRequestItem
+     * const returnRequestItem = await prisma.returnRequestItem.upsert({
+     *   create: {
+     *     // ... data to create a ReturnRequestItem
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReturnRequestItem we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReturnRequestItemUpsertArgs>(args: SelectSubset<T, ReturnRequestItemUpsertArgs<ExtArgs>>): Prisma__ReturnRequestItemClient<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ReturnRequestItems.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestItemCountArgs} args - Arguments to filter ReturnRequestItems to count.
+     * @example
+     * // Count the number of ReturnRequestItems
+     * const count = await prisma.returnRequestItem.count({
+     *   where: {
+     *     // ... the filter for the ReturnRequestItems we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReturnRequestItemCountArgs>(
+      args?: Subset<T, ReturnRequestItemCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReturnRequestItemCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReturnRequestItem.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestItemAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReturnRequestItemAggregateArgs>(args: Subset<T, ReturnRequestItemAggregateArgs>): Prisma.PrismaPromise<GetReturnRequestItemAggregateType<T>>
+
+    /**
+     * Group by ReturnRequestItem.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReturnRequestItemGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ReturnRequestItemGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReturnRequestItemGroupByArgs['orderBy'] }
+        : { orderBy?: ReturnRequestItemGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReturnRequestItemGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReturnRequestItemGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReturnRequestItem model
+   */
+  readonly fields: ReturnRequestItemFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReturnRequestItem.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReturnRequestItemClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    returnRequest<T extends ReturnRequestDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ReturnRequestDefaultArgs<ExtArgs>>): Prisma__ReturnRequestClient<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    orderItem<T extends OrderItemDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderItemDefaultArgs<ExtArgs>>): Prisma__OrderItemClient<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReturnRequestItem model
+   */
+  interface ReturnRequestItemFieldRefs {
+    readonly id: FieldRef<"ReturnRequestItem", 'String'>
+    readonly returnRequestId: FieldRef<"ReturnRequestItem", 'String'>
+    readonly orderItemId: FieldRef<"ReturnRequestItem", 'String'>
+    readonly quantity: FieldRef<"ReturnRequestItem", 'Int'>
+    readonly reason: FieldRef<"ReturnRequestItem", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ReturnRequestItem findUnique
+   */
+  export type ReturnRequestItemFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequestItem to fetch.
+     */
+    where: ReturnRequestItemWhereUniqueInput
+  }
+
+  /**
+   * ReturnRequestItem findUniqueOrThrow
+   */
+  export type ReturnRequestItemFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequestItem to fetch.
+     */
+    where: ReturnRequestItemWhereUniqueInput
+  }
+
+  /**
+   * ReturnRequestItem findFirst
+   */
+  export type ReturnRequestItemFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequestItem to fetch.
+     */
+    where?: ReturnRequestItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReturnRequestItems to fetch.
+     */
+    orderBy?: ReturnRequestItemOrderByWithRelationInput | ReturnRequestItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReturnRequestItems.
+     */
+    cursor?: ReturnRequestItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReturnRequestItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReturnRequestItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReturnRequestItems.
+     */
+    distinct?: ReturnRequestItemScalarFieldEnum | ReturnRequestItemScalarFieldEnum[]
+  }
+
+  /**
+   * ReturnRequestItem findFirstOrThrow
+   */
+  export type ReturnRequestItemFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequestItem to fetch.
+     */
+    where?: ReturnRequestItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReturnRequestItems to fetch.
+     */
+    orderBy?: ReturnRequestItemOrderByWithRelationInput | ReturnRequestItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReturnRequestItems.
+     */
+    cursor?: ReturnRequestItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReturnRequestItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReturnRequestItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReturnRequestItems.
+     */
+    distinct?: ReturnRequestItemScalarFieldEnum | ReturnRequestItemScalarFieldEnum[]
+  }
+
+  /**
+   * ReturnRequestItem findMany
+   */
+  export type ReturnRequestItemFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * Filter, which ReturnRequestItems to fetch.
+     */
+    where?: ReturnRequestItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReturnRequestItems to fetch.
+     */
+    orderBy?: ReturnRequestItemOrderByWithRelationInput | ReturnRequestItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ReturnRequestItems.
+     */
+    cursor?: ReturnRequestItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReturnRequestItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReturnRequestItems.
+     */
+    skip?: number
+    distinct?: ReturnRequestItemScalarFieldEnum | ReturnRequestItemScalarFieldEnum[]
+  }
+
+  /**
+   * ReturnRequestItem create
+   */
+  export type ReturnRequestItemCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReturnRequestItem.
+     */
+    data: XOR<ReturnRequestItemCreateInput, ReturnRequestItemUncheckedCreateInput>
+  }
+
+  /**
+   * ReturnRequestItem createMany
+   */
+  export type ReturnRequestItemCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReturnRequestItems.
+     */
+    data: ReturnRequestItemCreateManyInput | ReturnRequestItemCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReturnRequestItem createManyAndReturn
+   */
+  export type ReturnRequestItemCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * The data used to create many ReturnRequestItems.
+     */
+    data: ReturnRequestItemCreateManyInput | ReturnRequestItemCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReturnRequestItem update
+   */
+  export type ReturnRequestItemUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReturnRequestItem.
+     */
+    data: XOR<ReturnRequestItemUpdateInput, ReturnRequestItemUncheckedUpdateInput>
+    /**
+     * Choose, which ReturnRequestItem to update.
+     */
+    where: ReturnRequestItemWhereUniqueInput
+  }
+
+  /**
+   * ReturnRequestItem updateMany
+   */
+  export type ReturnRequestItemUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReturnRequestItems.
+     */
+    data: XOR<ReturnRequestItemUpdateManyMutationInput, ReturnRequestItemUncheckedUpdateManyInput>
+    /**
+     * Filter which ReturnRequestItems to update
+     */
+    where?: ReturnRequestItemWhereInput
+    /**
+     * Limit how many ReturnRequestItems to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReturnRequestItem updateManyAndReturn
+   */
+  export type ReturnRequestItemUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * The data used to update ReturnRequestItems.
+     */
+    data: XOR<ReturnRequestItemUpdateManyMutationInput, ReturnRequestItemUncheckedUpdateManyInput>
+    /**
+     * Filter which ReturnRequestItems to update
+     */
+    where?: ReturnRequestItemWhereInput
+    /**
+     * Limit how many ReturnRequestItems to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReturnRequestItem upsert
+   */
+  export type ReturnRequestItemUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReturnRequestItem to update in case it exists.
+     */
+    where: ReturnRequestItemWhereUniqueInput
+    /**
+     * In case the ReturnRequestItem found by the `where` argument doesn't exist, create a new ReturnRequestItem with this data.
+     */
+    create: XOR<ReturnRequestItemCreateInput, ReturnRequestItemUncheckedCreateInput>
+    /**
+     * In case the ReturnRequestItem was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReturnRequestItemUpdateInput, ReturnRequestItemUncheckedUpdateInput>
+  }
+
+  /**
+   * ReturnRequestItem delete
+   */
+  export type ReturnRequestItemDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+    /**
+     * Filter which ReturnRequestItem to delete.
+     */
+    where: ReturnRequestItemWhereUniqueInput
+  }
+
+  /**
+   * ReturnRequestItem deleteMany
+   */
+  export type ReturnRequestItemDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReturnRequestItems to delete
+     */
+    where?: ReturnRequestItemWhereInput
+    /**
+     * Limit how many ReturnRequestItems to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReturnRequestItem without action
+   */
+  export type ReturnRequestItemDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReturnRequestItem
+     */
+    select?: ReturnRequestItemSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReturnRequestItem
+     */
+    omit?: ReturnRequestItemOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReturnRequestItemInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -24748,7 +28572,9 @@ export namespace Prisma {
     guestEmail: 'guestEmail',
     guestFirstName: 'guestFirstName',
     guestLastName: 'guestLastName',
-    guestPhone: 'guestPhone'
+    guestPhone: 'guestPhone',
+    couponCode: 'couponCode',
+    discountAmount: 'discountAmount'
   };
 
   export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
@@ -24928,6 +28754,23 @@ export namespace Prisma {
   export type SiteSettingsScalarFieldEnum = (typeof SiteSettingsScalarFieldEnum)[keyof typeof SiteSettingsScalarFieldEnum]
 
 
+  export const CouponScalarFieldEnum: {
+    id: 'id',
+    code: 'code',
+    type: 'type',
+    value: 'value',
+    minOrderAmount: 'minOrderAmount',
+    maxUses: 'maxUses',
+    usedCount: 'usedCount',
+    expiresAt: 'expiresAt',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CouponScalarFieldEnum = (typeof CouponScalarFieldEnum)[keyof typeof CouponScalarFieldEnum]
+
+
   export const NewsletterSubscriberScalarFieldEnum: {
     id: 'id',
     email: 'email',
@@ -24935,6 +28778,30 @@ export namespace Prisma {
   };
 
   export type NewsletterSubscriberScalarFieldEnum = (typeof NewsletterSubscriberScalarFieldEnum)[keyof typeof NewsletterSubscriberScalarFieldEnum]
+
+
+  export const ReturnRequestScalarFieldEnum: {
+    id: 'id',
+    orderId: 'orderId',
+    customerId: 'customerId',
+    status: 'status',
+    adminNotes: 'adminNotes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ReturnRequestScalarFieldEnum = (typeof ReturnRequestScalarFieldEnum)[keyof typeof ReturnRequestScalarFieldEnum]
+
+
+  export const ReturnRequestItemScalarFieldEnum: {
+    id: 'id',
+    returnRequestId: 'returnRequestId',
+    orderItemId: 'orderItemId',
+    quantity: 'quantity',
+    reason: 'reason'
+  };
+
+  export type ReturnRequestItemScalarFieldEnum = (typeof ReturnRequestItemScalarFieldEnum)[keyof typeof ReturnRequestItemScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -25149,6 +29016,20 @@ export namespace Prisma {
    */
   export type ListEnumShipmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShipmentStatus[]'>
     
+
+
+  /**
+   * Reference to a field of type 'ReturnStatus'
+   */
+  export type EnumReturnStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReturnStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ReturnStatus[]'
+   */
+  export type ListEnumReturnStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReturnStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -25272,6 +29153,7 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     reviews?: ReviewListRelationFilter
     wishlist?: WishlistListRelationFilter
+    returnRequests?: ReturnRequestListRelationFilter
   }
 
   export type CustomerOrderByWithRelationInput = {
@@ -25284,6 +29166,7 @@ export namespace Prisma {
     orders?: OrderOrderByRelationAggregateInput
     reviews?: ReviewOrderByRelationAggregateInput
     wishlist?: WishlistOrderByRelationAggregateInput
+    returnRequests?: ReturnRequestOrderByRelationAggregateInput
   }
 
   export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -25299,6 +29182,7 @@ export namespace Prisma {
     orders?: OrderListRelationFilter
     reviews?: ReviewListRelationFilter
     wishlist?: WishlistListRelationFilter
+    returnRequests?: ReturnRequestListRelationFilter
   }, "id" | "userId">
 
   export type CustomerOrderByWithAggregationInput = {
@@ -25781,10 +29665,13 @@ export namespace Prisma {
     guestFirstName?: StringNullableFilter<"Order"> | string | null
     guestLastName?: StringNullableFilter<"Order"> | string | null
     guestPhone?: StringNullableFilter<"Order"> | string | null
+    couponCode?: StringNullableFilter<"Order"> | string | null
+    discountAmount?: FloatNullableFilter<"Order"> | number | null
     customer?: XOR<CustomerNullableScalarRelationFilter, CustomerWhereInput> | null
     address?: XOR<AddressScalarRelationFilter, AddressWhereInput>
     items?: OrderItemListRelationFilter
     shipments?: ShipmentListRelationFilter
+    returnRequests?: ReturnRequestListRelationFilter
   }
 
   export type OrderOrderByWithRelationInput = {
@@ -25812,10 +29699,13 @@ export namespace Prisma {
     guestFirstName?: SortOrderInput | SortOrder
     guestLastName?: SortOrderInput | SortOrder
     guestPhone?: SortOrderInput | SortOrder
+    couponCode?: SortOrderInput | SortOrder
+    discountAmount?: SortOrderInput | SortOrder
     customer?: CustomerOrderByWithRelationInput
     address?: AddressOrderByWithRelationInput
     items?: OrderItemOrderByRelationAggregateInput
     shipments?: ShipmentOrderByRelationAggregateInput
+    returnRequests?: ReturnRequestOrderByRelationAggregateInput
   }
 
   export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -25846,10 +29736,13 @@ export namespace Prisma {
     guestFirstName?: StringNullableFilter<"Order"> | string | null
     guestLastName?: StringNullableFilter<"Order"> | string | null
     guestPhone?: StringNullableFilter<"Order"> | string | null
+    couponCode?: StringNullableFilter<"Order"> | string | null
+    discountAmount?: FloatNullableFilter<"Order"> | number | null
     customer?: XOR<CustomerNullableScalarRelationFilter, CustomerWhereInput> | null
     address?: XOR<AddressScalarRelationFilter, AddressWhereInput>
     items?: OrderItemListRelationFilter
     shipments?: ShipmentListRelationFilter
+    returnRequests?: ReturnRequestListRelationFilter
   }, "id" | "orderNumber">
 
   export type OrderOrderByWithAggregationInput = {
@@ -25877,6 +29770,8 @@ export namespace Prisma {
     guestFirstName?: SortOrderInput | SortOrder
     guestLastName?: SortOrderInput | SortOrder
     guestPhone?: SortOrderInput | SortOrder
+    couponCode?: SortOrderInput | SortOrder
+    discountAmount?: SortOrderInput | SortOrder
     _count?: OrderCountOrderByAggregateInput
     _avg?: OrderAvgOrderByAggregateInput
     _max?: OrderMaxOrderByAggregateInput
@@ -25912,6 +29807,8 @@ export namespace Prisma {
     guestFirstName?: StringNullableWithAggregatesFilter<"Order"> | string | null
     guestLastName?: StringNullableWithAggregatesFilter<"Order"> | string | null
     guestPhone?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    couponCode?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    discountAmount?: FloatNullableWithAggregatesFilter<"Order"> | number | null
   }
 
   export type OrderItemWhereInput = {
@@ -25929,6 +29826,7 @@ export namespace Prisma {
     shipment?: XOR<ShipmentNullableScalarRelationFilter, ShipmentWhereInput> | null
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
     variant?: XOR<ProductVariantNullableScalarRelationFilter, ProductVariantWhereInput> | null
+    returnRequestItems?: ReturnRequestItemListRelationFilter
   }
 
   export type OrderItemOrderByWithRelationInput = {
@@ -25943,6 +29841,7 @@ export namespace Prisma {
     shipment?: ShipmentOrderByWithRelationInput
     product?: ProductOrderByWithRelationInput
     variant?: ProductVariantOrderByWithRelationInput
+    returnRequestItems?: ReturnRequestItemOrderByRelationAggregateInput
   }
 
   export type OrderItemWhereUniqueInput = Prisma.AtLeast<{
@@ -25960,6 +29859,7 @@ export namespace Prisma {
     shipment?: XOR<ShipmentNullableScalarRelationFilter, ShipmentWhereInput> | null
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
     variant?: XOR<ProductVariantNullableScalarRelationFilter, ProductVariantWhereInput> | null
+    returnRequestItems?: ReturnRequestItemListRelationFilter
   }, "id">
 
   export type OrderItemOrderByWithAggregationInput = {
@@ -26822,6 +30722,90 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"SiteSettings"> | Date | string
   }
 
+  export type CouponWhereInput = {
+    AND?: CouponWhereInput | CouponWhereInput[]
+    OR?: CouponWhereInput[]
+    NOT?: CouponWhereInput | CouponWhereInput[]
+    id?: StringFilter<"Coupon"> | string
+    code?: StringFilter<"Coupon"> | string
+    type?: StringFilter<"Coupon"> | string
+    value?: FloatFilter<"Coupon"> | number
+    minOrderAmount?: FloatNullableFilter<"Coupon"> | number | null
+    maxUses?: IntNullableFilter<"Coupon"> | number | null
+    usedCount?: IntFilter<"Coupon"> | number
+    expiresAt?: DateTimeNullableFilter<"Coupon"> | Date | string | null
+    isActive?: BoolFilter<"Coupon"> | boolean
+    createdAt?: DateTimeFilter<"Coupon"> | Date | string
+    updatedAt?: DateTimeFilter<"Coupon"> | Date | string
+  }
+
+  export type CouponOrderByWithRelationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    type?: SortOrder
+    value?: SortOrder
+    minOrderAmount?: SortOrderInput | SortOrder
+    maxUses?: SortOrderInput | SortOrder
+    usedCount?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CouponWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    code?: string
+    AND?: CouponWhereInput | CouponWhereInput[]
+    OR?: CouponWhereInput[]
+    NOT?: CouponWhereInput | CouponWhereInput[]
+    type?: StringFilter<"Coupon"> | string
+    value?: FloatFilter<"Coupon"> | number
+    minOrderAmount?: FloatNullableFilter<"Coupon"> | number | null
+    maxUses?: IntNullableFilter<"Coupon"> | number | null
+    usedCount?: IntFilter<"Coupon"> | number
+    expiresAt?: DateTimeNullableFilter<"Coupon"> | Date | string | null
+    isActive?: BoolFilter<"Coupon"> | boolean
+    createdAt?: DateTimeFilter<"Coupon"> | Date | string
+    updatedAt?: DateTimeFilter<"Coupon"> | Date | string
+  }, "id" | "code">
+
+  export type CouponOrderByWithAggregationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    type?: SortOrder
+    value?: SortOrder
+    minOrderAmount?: SortOrderInput | SortOrder
+    maxUses?: SortOrderInput | SortOrder
+    usedCount?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CouponCountOrderByAggregateInput
+    _avg?: CouponAvgOrderByAggregateInput
+    _max?: CouponMaxOrderByAggregateInput
+    _min?: CouponMinOrderByAggregateInput
+    _sum?: CouponSumOrderByAggregateInput
+  }
+
+  export type CouponScalarWhereWithAggregatesInput = {
+    AND?: CouponScalarWhereWithAggregatesInput | CouponScalarWhereWithAggregatesInput[]
+    OR?: CouponScalarWhereWithAggregatesInput[]
+    NOT?: CouponScalarWhereWithAggregatesInput | CouponScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Coupon"> | string
+    code?: StringWithAggregatesFilter<"Coupon"> | string
+    type?: StringWithAggregatesFilter<"Coupon"> | string
+    value?: FloatWithAggregatesFilter<"Coupon"> | number
+    minOrderAmount?: FloatNullableWithAggregatesFilter<"Coupon"> | number | null
+    maxUses?: IntNullableWithAggregatesFilter<"Coupon"> | number | null
+    usedCount?: IntWithAggregatesFilter<"Coupon"> | number
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"Coupon"> | Date | string | null
+    isActive?: BoolWithAggregatesFilter<"Coupon"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Coupon"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Coupon"> | Date | string
+  }
+
   export type NewsletterSubscriberWhereInput = {
     AND?: NewsletterSubscriberWhereInput | NewsletterSubscriberWhereInput[]
     OR?: NewsletterSubscriberWhereInput[]
@@ -26862,6 +30846,137 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"NewsletterSubscriber"> | string
     email?: StringWithAggregatesFilter<"NewsletterSubscriber"> | string
     subscribedAt?: DateTimeWithAggregatesFilter<"NewsletterSubscriber"> | Date | string
+  }
+
+  export type ReturnRequestWhereInput = {
+    AND?: ReturnRequestWhereInput | ReturnRequestWhereInput[]
+    OR?: ReturnRequestWhereInput[]
+    NOT?: ReturnRequestWhereInput | ReturnRequestWhereInput[]
+    id?: StringFilter<"ReturnRequest"> | string
+    orderId?: StringFilter<"ReturnRequest"> | string
+    customerId?: StringFilter<"ReturnRequest"> | string
+    status?: EnumReturnStatusFilter<"ReturnRequest"> | $Enums.ReturnStatus
+    adminNotes?: StringNullableFilter<"ReturnRequest"> | string | null
+    createdAt?: DateTimeFilter<"ReturnRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"ReturnRequest"> | Date | string
+    order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    items?: ReturnRequestItemListRelationFilter
+  }
+
+  export type ReturnRequestOrderByWithRelationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerId?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    order?: OrderOrderByWithRelationInput
+    customer?: CustomerOrderByWithRelationInput
+    items?: ReturnRequestItemOrderByRelationAggregateInput
+  }
+
+  export type ReturnRequestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ReturnRequestWhereInput | ReturnRequestWhereInput[]
+    OR?: ReturnRequestWhereInput[]
+    NOT?: ReturnRequestWhereInput | ReturnRequestWhereInput[]
+    orderId?: StringFilter<"ReturnRequest"> | string
+    customerId?: StringFilter<"ReturnRequest"> | string
+    status?: EnumReturnStatusFilter<"ReturnRequest"> | $Enums.ReturnStatus
+    adminNotes?: StringNullableFilter<"ReturnRequest"> | string | null
+    createdAt?: DateTimeFilter<"ReturnRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"ReturnRequest"> | Date | string
+    order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    items?: ReturnRequestItemListRelationFilter
+  }, "id">
+
+  export type ReturnRequestOrderByWithAggregationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerId?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ReturnRequestCountOrderByAggregateInput
+    _max?: ReturnRequestMaxOrderByAggregateInput
+    _min?: ReturnRequestMinOrderByAggregateInput
+  }
+
+  export type ReturnRequestScalarWhereWithAggregatesInput = {
+    AND?: ReturnRequestScalarWhereWithAggregatesInput | ReturnRequestScalarWhereWithAggregatesInput[]
+    OR?: ReturnRequestScalarWhereWithAggregatesInput[]
+    NOT?: ReturnRequestScalarWhereWithAggregatesInput | ReturnRequestScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ReturnRequest"> | string
+    orderId?: StringWithAggregatesFilter<"ReturnRequest"> | string
+    customerId?: StringWithAggregatesFilter<"ReturnRequest"> | string
+    status?: EnumReturnStatusWithAggregatesFilter<"ReturnRequest"> | $Enums.ReturnStatus
+    adminNotes?: StringNullableWithAggregatesFilter<"ReturnRequest"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ReturnRequest"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ReturnRequest"> | Date | string
+  }
+
+  export type ReturnRequestItemWhereInput = {
+    AND?: ReturnRequestItemWhereInput | ReturnRequestItemWhereInput[]
+    OR?: ReturnRequestItemWhereInput[]
+    NOT?: ReturnRequestItemWhereInput | ReturnRequestItemWhereInput[]
+    id?: StringFilter<"ReturnRequestItem"> | string
+    returnRequestId?: StringFilter<"ReturnRequestItem"> | string
+    orderItemId?: StringFilter<"ReturnRequestItem"> | string
+    quantity?: IntFilter<"ReturnRequestItem"> | number
+    reason?: StringFilter<"ReturnRequestItem"> | string
+    returnRequest?: XOR<ReturnRequestScalarRelationFilter, ReturnRequestWhereInput>
+    orderItem?: XOR<OrderItemScalarRelationFilter, OrderItemWhereInput>
+  }
+
+  export type ReturnRequestItemOrderByWithRelationInput = {
+    id?: SortOrder
+    returnRequestId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrder
+    returnRequest?: ReturnRequestOrderByWithRelationInput
+    orderItem?: OrderItemOrderByWithRelationInput
+  }
+
+  export type ReturnRequestItemWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ReturnRequestItemWhereInput | ReturnRequestItemWhereInput[]
+    OR?: ReturnRequestItemWhereInput[]
+    NOT?: ReturnRequestItemWhereInput | ReturnRequestItemWhereInput[]
+    returnRequestId?: StringFilter<"ReturnRequestItem"> | string
+    orderItemId?: StringFilter<"ReturnRequestItem"> | string
+    quantity?: IntFilter<"ReturnRequestItem"> | number
+    reason?: StringFilter<"ReturnRequestItem"> | string
+    returnRequest?: XOR<ReturnRequestScalarRelationFilter, ReturnRequestWhereInput>
+    orderItem?: XOR<OrderItemScalarRelationFilter, OrderItemWhereInput>
+  }, "id">
+
+  export type ReturnRequestItemOrderByWithAggregationInput = {
+    id?: SortOrder
+    returnRequestId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrder
+    _count?: ReturnRequestItemCountOrderByAggregateInput
+    _avg?: ReturnRequestItemAvgOrderByAggregateInput
+    _max?: ReturnRequestItemMaxOrderByAggregateInput
+    _min?: ReturnRequestItemMinOrderByAggregateInput
+    _sum?: ReturnRequestItemSumOrderByAggregateInput
+  }
+
+  export type ReturnRequestItemScalarWhereWithAggregatesInput = {
+    AND?: ReturnRequestItemScalarWhereWithAggregatesInput | ReturnRequestItemScalarWhereWithAggregatesInput[]
+    OR?: ReturnRequestItemScalarWhereWithAggregatesInput[]
+    NOT?: ReturnRequestItemScalarWhereWithAggregatesInput | ReturnRequestItemScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ReturnRequestItem"> | string
+    returnRequestId?: StringWithAggregatesFilter<"ReturnRequestItem"> | string
+    orderItemId?: StringWithAggregatesFilter<"ReturnRequestItem"> | string
+    quantity?: IntWithAggregatesFilter<"ReturnRequestItem"> | number
+    reason?: StringWithAggregatesFilter<"ReturnRequestItem"> | string
   }
 
   export type UserCreateInput = {
@@ -27000,6 +31115,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutCustomerInput
     reviews?: ReviewCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateInput = {
@@ -27011,6 +31127,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistUncheckedCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUpdateInput = {
@@ -27022,6 +31139,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateInput = {
@@ -27033,6 +31151,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUncheckedUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateManyInput = {
@@ -27571,10 +31690,13 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     customer?: CustomerCreateNestedOneWithoutOrdersInput
     address: AddressCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateInput = {
@@ -27602,8 +31724,11 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUpdateInput = {
@@ -27629,10 +31754,13 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
     address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateInput = {
@@ -27660,8 +31788,11 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderCreateManyInput = {
@@ -27689,6 +31820,8 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
   }
 
   export type OrderUpdateManyMutationInput = {
@@ -27714,6 +31847,8 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type OrderUncheckedUpdateManyInput = {
@@ -27741,6 +31876,8 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type OrderItemCreateInput = {
@@ -27751,6 +31888,7 @@ export namespace Prisma {
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
     variant?: ProductVariantCreateNestedOneWithoutOrderItemsInput
+    returnRequestItems?: ReturnRequestItemCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUncheckedCreateInput = {
@@ -27761,6 +31899,7 @@ export namespace Prisma {
     variantId?: string | null
     quantity: number
     price: number
+    returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUpdateInput = {
@@ -27771,6 +31910,7 @@ export namespace Prisma {
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
     variant?: ProductVariantUpdateOneWithoutOrderItemsNestedInput
+    returnRequestItems?: ReturnRequestItemUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateInput = {
@@ -27781,6 +31921,7 @@ export namespace Prisma {
     variantId?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
+    returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemCreateManyInput = {
@@ -28753,6 +32894,104 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CouponCreateInput = {
+    id?: string
+    code: string
+    type: string
+    value: number
+    minOrderAmount?: number | null
+    maxUses?: number | null
+    usedCount?: number
+    expiresAt?: Date | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CouponUncheckedCreateInput = {
+    id?: string
+    code: string
+    type: string
+    value: number
+    minOrderAmount?: number | null
+    maxUses?: number | null
+    usedCount?: number
+    expiresAt?: Date | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CouponUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    value?: FloatFieldUpdateOperationsInput | number
+    minOrderAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxUses?: NullableIntFieldUpdateOperationsInput | number | null
+    usedCount?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CouponUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    value?: FloatFieldUpdateOperationsInput | number
+    minOrderAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxUses?: NullableIntFieldUpdateOperationsInput | number | null
+    usedCount?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CouponCreateManyInput = {
+    id?: string
+    code: string
+    type: string
+    value: number
+    minOrderAmount?: number | null
+    maxUses?: number | null
+    usedCount?: number
+    expiresAt?: Date | string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CouponUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    value?: FloatFieldUpdateOperationsInput | number
+    minOrderAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxUses?: NullableIntFieldUpdateOperationsInput | number | null
+    usedCount?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CouponUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    value?: FloatFieldUpdateOperationsInput | number
+    minOrderAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    maxUses?: NullableIntFieldUpdateOperationsInput | number | null
+    usedCount?: IntFieldUpdateOperationsInput | number
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type NewsletterSubscriberCreateInput = {
     id?: string
     email: string
@@ -28793,6 +33032,132 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     subscribedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReturnRequestCreateInput = {
+    id?: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    order: OrderCreateNestedOneWithoutReturnRequestsInput
+    customer: CustomerCreateNestedOneWithoutReturnRequestsInput
+    items?: ReturnRequestItemCreateNestedManyWithoutReturnRequestInput
+  }
+
+  export type ReturnRequestUncheckedCreateInput = {
+    id?: string
+    orderId: string
+    customerId: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: ReturnRequestItemUncheckedCreateNestedManyWithoutReturnRequestInput
+  }
+
+  export type ReturnRequestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: OrderUpdateOneRequiredWithoutReturnRequestsNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutReturnRequestsNestedInput
+    items?: ReturnRequestItemUpdateManyWithoutReturnRequestNestedInput
+  }
+
+  export type ReturnRequestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: ReturnRequestItemUncheckedUpdateManyWithoutReturnRequestNestedInput
+  }
+
+  export type ReturnRequestCreateManyInput = {
+    id?: string
+    orderId: string
+    customerId: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ReturnRequestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReturnRequestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReturnRequestItemCreateInput = {
+    id?: string
+    quantity: number
+    reason: string
+    returnRequest: ReturnRequestCreateNestedOneWithoutItemsInput
+    orderItem: OrderItemCreateNestedOneWithoutReturnRequestItemsInput
+  }
+
+  export type ReturnRequestItemUncheckedCreateInput = {
+    id?: string
+    returnRequestId: string
+    orderItemId: string
+    quantity: number
+    reason: string
+  }
+
+  export type ReturnRequestItemUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
+    returnRequest?: ReturnRequestUpdateOneRequiredWithoutItemsNestedInput
+    orderItem?: OrderItemUpdateOneRequiredWithoutReturnRequestItemsNestedInput
+  }
+
+  export type ReturnRequestItemUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    returnRequestId?: StringFieldUpdateOperationsInput | string
+    orderItemId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReturnRequestItemCreateManyInput = {
+    id?: string
+    returnRequestId: string
+    orderItemId: string
+    quantity: number
+    reason: string
+  }
+
+  export type ReturnRequestItemUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReturnRequestItemUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    returnRequestId?: StringFieldUpdateOperationsInput | string
+    orderItemId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -29082,6 +33447,12 @@ export namespace Prisma {
     none?: WishlistWhereInput
   }
 
+  export type ReturnRequestListRelationFilter = {
+    every?: ReturnRequestWhereInput
+    some?: ReturnRequestWhereInput
+    none?: ReturnRequestWhereInput
+  }
+
   export type CartItemOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -29099,6 +33470,10 @@ export namespace Prisma {
   }
 
   export type WishlistOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ReturnRequestOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -29571,6 +33946,8 @@ export namespace Prisma {
     guestFirstName?: SortOrder
     guestLastName?: SortOrder
     guestPhone?: SortOrder
+    couponCode?: SortOrder
+    discountAmount?: SortOrder
   }
 
   export type OrderAvgOrderByAggregateInput = {
@@ -29578,6 +33955,7 @@ export namespace Prisma {
     tax?: SortOrder
     shippingCost?: SortOrder
     total?: SortOrder
+    discountAmount?: SortOrder
   }
 
   export type OrderMaxOrderByAggregateInput = {
@@ -29604,6 +33982,8 @@ export namespace Prisma {
     guestFirstName?: SortOrder
     guestLastName?: SortOrder
     guestPhone?: SortOrder
+    couponCode?: SortOrder
+    discountAmount?: SortOrder
   }
 
   export type OrderMinOrderByAggregateInput = {
@@ -29630,6 +34010,8 @@ export namespace Prisma {
     guestFirstName?: SortOrder
     guestLastName?: SortOrder
     guestPhone?: SortOrder
+    couponCode?: SortOrder
+    discountAmount?: SortOrder
   }
 
   export type OrderSumOrderByAggregateInput = {
@@ -29637,6 +34019,7 @@ export namespace Prisma {
     tax?: SortOrder
     shippingCost?: SortOrder
     total?: SortOrder
+    discountAmount?: SortOrder
   }
 
   export type EnumOrderStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -29683,6 +34066,16 @@ export namespace Prisma {
   export type ShipmentNullableScalarRelationFilter = {
     is?: ShipmentWhereInput | null
     isNot?: ShipmentWhereInput | null
+  }
+
+  export type ReturnRequestItemListRelationFilter = {
+    every?: ReturnRequestItemWhereInput
+    some?: ReturnRequestItemWhereInput
+    none?: ReturnRequestItemWhereInput
+  }
+
+  export type ReturnRequestItemOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type OrderItemCountOrderByAggregateInput = {
@@ -30301,6 +34694,62 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type CouponCountOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    type?: SortOrder
+    value?: SortOrder
+    minOrderAmount?: SortOrder
+    maxUses?: SortOrder
+    usedCount?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CouponAvgOrderByAggregateInput = {
+    value?: SortOrder
+    minOrderAmount?: SortOrder
+    maxUses?: SortOrder
+    usedCount?: SortOrder
+  }
+
+  export type CouponMaxOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    type?: SortOrder
+    value?: SortOrder
+    minOrderAmount?: SortOrder
+    maxUses?: SortOrder
+    usedCount?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CouponMinOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    type?: SortOrder
+    value?: SortOrder
+    minOrderAmount?: SortOrder
+    maxUses?: SortOrder
+    usedCount?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CouponSumOrderByAggregateInput = {
+    value?: SortOrder
+    minOrderAmount?: SortOrder
+    maxUses?: SortOrder
+    usedCount?: SortOrder
+  }
+
   export type NewsletterSubscriberCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
@@ -30317,6 +34766,95 @@ export namespace Prisma {
     id?: SortOrder
     email?: SortOrder
     subscribedAt?: SortOrder
+  }
+
+  export type EnumReturnStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReturnStatus | EnumReturnStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReturnStatus[] | ListEnumReturnStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReturnStatus[] | ListEnumReturnStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReturnStatusFilter<$PrismaModel> | $Enums.ReturnStatus
+  }
+
+  export type ReturnRequestCountOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerId?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ReturnRequestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerId?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ReturnRequestMinOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerId?: SortOrder
+    status?: SortOrder
+    adminNotes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumReturnStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReturnStatus | EnumReturnStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReturnStatus[] | ListEnumReturnStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReturnStatus[] | ListEnumReturnStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReturnStatusWithAggregatesFilter<$PrismaModel> | $Enums.ReturnStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReturnStatusFilter<$PrismaModel>
+    _max?: NestedEnumReturnStatusFilter<$PrismaModel>
+  }
+
+  export type ReturnRequestScalarRelationFilter = {
+    is?: ReturnRequestWhereInput
+    isNot?: ReturnRequestWhereInput
+  }
+
+  export type OrderItemScalarRelationFilter = {
+    is?: OrderItemWhereInput
+    isNot?: OrderItemWhereInput
+  }
+
+  export type ReturnRequestItemCountOrderByAggregateInput = {
+    id?: SortOrder
+    returnRequestId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrder
+  }
+
+  export type ReturnRequestItemAvgOrderByAggregateInput = {
+    quantity?: SortOrder
+  }
+
+  export type ReturnRequestItemMaxOrderByAggregateInput = {
+    id?: SortOrder
+    returnRequestId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrder
+  }
+
+  export type ReturnRequestItemMinOrderByAggregateInput = {
+    id?: SortOrder
+    returnRequestId?: SortOrder
+    orderItemId?: SortOrder
+    quantity?: SortOrder
+    reason?: SortOrder
+  }
+
+  export type ReturnRequestItemSumOrderByAggregateInput = {
+    quantity?: SortOrder
   }
 
   export type NotificationCreateNestedManyWithoutUserInput = {
@@ -30466,6 +35004,13 @@ export namespace Prisma {
     connect?: WishlistWhereUniqueInput | WishlistWhereUniqueInput[]
   }
 
+  export type ReturnRequestCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ReturnRequestCreateWithoutCustomerInput, ReturnRequestUncheckedCreateWithoutCustomerInput> | ReturnRequestCreateWithoutCustomerInput[] | ReturnRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutCustomerInput | ReturnRequestCreateOrConnectWithoutCustomerInput[]
+    createMany?: ReturnRequestCreateManyCustomerInputEnvelope
+    connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+  }
+
   export type CartItemUncheckedCreateNestedManyWithoutCustomerInput = {
     create?: XOR<CartItemCreateWithoutCustomerInput, CartItemUncheckedCreateWithoutCustomerInput> | CartItemCreateWithoutCustomerInput[] | CartItemUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: CartItemCreateOrConnectWithoutCustomerInput | CartItemCreateOrConnectWithoutCustomerInput[]
@@ -30499,6 +35044,13 @@ export namespace Prisma {
     connectOrCreate?: WishlistCreateOrConnectWithoutCustomerInput | WishlistCreateOrConnectWithoutCustomerInput[]
     createMany?: WishlistCreateManyCustomerInputEnvelope
     connect?: WishlistWhereUniqueInput | WishlistWhereUniqueInput[]
+  }
+
+  export type ReturnRequestUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ReturnRequestCreateWithoutCustomerInput, ReturnRequestUncheckedCreateWithoutCustomerInput> | ReturnRequestCreateWithoutCustomerInput[] | ReturnRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutCustomerInput | ReturnRequestCreateOrConnectWithoutCustomerInput[]
+    createMany?: ReturnRequestCreateManyCustomerInputEnvelope
+    connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
   }
 
   export type UserUpdateOneRequiredWithoutCustomerNestedInput = {
@@ -30579,6 +35131,20 @@ export namespace Prisma {
     deleteMany?: WishlistScalarWhereInput | WishlistScalarWhereInput[]
   }
 
+  export type ReturnRequestUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ReturnRequestCreateWithoutCustomerInput, ReturnRequestUncheckedCreateWithoutCustomerInput> | ReturnRequestCreateWithoutCustomerInput[] | ReturnRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutCustomerInput | ReturnRequestCreateOrConnectWithoutCustomerInput[]
+    upsert?: ReturnRequestUpsertWithWhereUniqueWithoutCustomerInput | ReturnRequestUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ReturnRequestCreateManyCustomerInputEnvelope
+    set?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    disconnect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    delete?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    update?: ReturnRequestUpdateWithWhereUniqueWithoutCustomerInput | ReturnRequestUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ReturnRequestUpdateManyWithWhereWithoutCustomerInput | ReturnRequestUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
+  }
+
   export type CartItemUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?: XOR<CartItemCreateWithoutCustomerInput, CartItemUncheckedCreateWithoutCustomerInput> | CartItemCreateWithoutCustomerInput[] | CartItemUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: CartItemCreateOrConnectWithoutCustomerInput | CartItemCreateOrConnectWithoutCustomerInput[]
@@ -30647,6 +35213,20 @@ export namespace Prisma {
     update?: WishlistUpdateWithWhereUniqueWithoutCustomerInput | WishlistUpdateWithWhereUniqueWithoutCustomerInput[]
     updateMany?: WishlistUpdateManyWithWhereWithoutCustomerInput | WishlistUpdateManyWithWhereWithoutCustomerInput[]
     deleteMany?: WishlistScalarWhereInput | WishlistScalarWhereInput[]
+  }
+
+  export type ReturnRequestUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ReturnRequestCreateWithoutCustomerInput, ReturnRequestUncheckedCreateWithoutCustomerInput> | ReturnRequestCreateWithoutCustomerInput[] | ReturnRequestUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutCustomerInput | ReturnRequestCreateOrConnectWithoutCustomerInput[]
+    upsert?: ReturnRequestUpsertWithWhereUniqueWithoutCustomerInput | ReturnRequestUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ReturnRequestCreateManyCustomerInputEnvelope
+    set?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    disconnect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    delete?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    update?: ReturnRequestUpdateWithWhereUniqueWithoutCustomerInput | ReturnRequestUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ReturnRequestUpdateManyWithWhereWithoutCustomerInput | ReturnRequestUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
   }
 
   export type CustomerCreateNestedOneWithoutAddressesInput = {
@@ -31185,6 +35765,13 @@ export namespace Prisma {
     connect?: ShipmentWhereUniqueInput | ShipmentWhereUniqueInput[]
   }
 
+  export type ReturnRequestCreateNestedManyWithoutOrderInput = {
+    create?: XOR<ReturnRequestCreateWithoutOrderInput, ReturnRequestUncheckedCreateWithoutOrderInput> | ReturnRequestCreateWithoutOrderInput[] | ReturnRequestUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutOrderInput | ReturnRequestCreateOrConnectWithoutOrderInput[]
+    createMany?: ReturnRequestCreateManyOrderInputEnvelope
+    connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+  }
+
   export type OrderItemUncheckedCreateNestedManyWithoutOrderInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -31197,6 +35784,13 @@ export namespace Prisma {
     connectOrCreate?: ShipmentCreateOrConnectWithoutOrderInput | ShipmentCreateOrConnectWithoutOrderInput[]
     createMany?: ShipmentCreateManyOrderInputEnvelope
     connect?: ShipmentWhereUniqueInput | ShipmentWhereUniqueInput[]
+  }
+
+  export type ReturnRequestUncheckedCreateNestedManyWithoutOrderInput = {
+    create?: XOR<ReturnRequestCreateWithoutOrderInput, ReturnRequestUncheckedCreateWithoutOrderInput> | ReturnRequestCreateWithoutOrderInput[] | ReturnRequestUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutOrderInput | ReturnRequestCreateOrConnectWithoutOrderInput[]
+    createMany?: ReturnRequestCreateManyOrderInputEnvelope
+    connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
   }
 
   export type EnumOrderStatusFieldUpdateOperationsInput = {
@@ -31261,6 +35855,20 @@ export namespace Prisma {
     deleteMany?: ShipmentScalarWhereInput | ShipmentScalarWhereInput[]
   }
 
+  export type ReturnRequestUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<ReturnRequestCreateWithoutOrderInput, ReturnRequestUncheckedCreateWithoutOrderInput> | ReturnRequestCreateWithoutOrderInput[] | ReturnRequestUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutOrderInput | ReturnRequestCreateOrConnectWithoutOrderInput[]
+    upsert?: ReturnRequestUpsertWithWhereUniqueWithoutOrderInput | ReturnRequestUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: ReturnRequestCreateManyOrderInputEnvelope
+    set?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    disconnect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    delete?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    update?: ReturnRequestUpdateWithWhereUniqueWithoutOrderInput | ReturnRequestUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: ReturnRequestUpdateManyWithWhereWithoutOrderInput | ReturnRequestUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
+  }
+
   export type OrderItemUncheckedUpdateManyWithoutOrderNestedInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -31289,6 +35897,20 @@ export namespace Prisma {
     deleteMany?: ShipmentScalarWhereInput | ShipmentScalarWhereInput[]
   }
 
+  export type ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<ReturnRequestCreateWithoutOrderInput, ReturnRequestUncheckedCreateWithoutOrderInput> | ReturnRequestCreateWithoutOrderInput[] | ReturnRequestUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutOrderInput | ReturnRequestCreateOrConnectWithoutOrderInput[]
+    upsert?: ReturnRequestUpsertWithWhereUniqueWithoutOrderInput | ReturnRequestUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: ReturnRequestCreateManyOrderInputEnvelope
+    set?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    disconnect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    delete?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+    update?: ReturnRequestUpdateWithWhereUniqueWithoutOrderInput | ReturnRequestUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: ReturnRequestUpdateManyWithWhereWithoutOrderInput | ReturnRequestUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
+  }
+
   export type OrderCreateNestedOneWithoutItemsInput = {
     create?: XOR<OrderCreateWithoutItemsInput, OrderUncheckedCreateWithoutItemsInput>
     connectOrCreate?: OrderCreateOrConnectWithoutItemsInput
@@ -31311,6 +35933,20 @@ export namespace Prisma {
     create?: XOR<ProductVariantCreateWithoutOrderItemsInput, ProductVariantUncheckedCreateWithoutOrderItemsInput>
     connectOrCreate?: ProductVariantCreateOrConnectWithoutOrderItemsInput
     connect?: ProductVariantWhereUniqueInput
+  }
+
+  export type ReturnRequestItemCreateNestedManyWithoutOrderItemInput = {
+    create?: XOR<ReturnRequestItemCreateWithoutOrderItemInput, ReturnRequestItemUncheckedCreateWithoutOrderItemInput> | ReturnRequestItemCreateWithoutOrderItemInput[] | ReturnRequestItemUncheckedCreateWithoutOrderItemInput[]
+    connectOrCreate?: ReturnRequestItemCreateOrConnectWithoutOrderItemInput | ReturnRequestItemCreateOrConnectWithoutOrderItemInput[]
+    createMany?: ReturnRequestItemCreateManyOrderItemInputEnvelope
+    connect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+  }
+
+  export type ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput = {
+    create?: XOR<ReturnRequestItemCreateWithoutOrderItemInput, ReturnRequestItemUncheckedCreateWithoutOrderItemInput> | ReturnRequestItemCreateWithoutOrderItemInput[] | ReturnRequestItemUncheckedCreateWithoutOrderItemInput[]
+    connectOrCreate?: ReturnRequestItemCreateOrConnectWithoutOrderItemInput | ReturnRequestItemCreateOrConnectWithoutOrderItemInput[]
+    createMany?: ReturnRequestItemCreateManyOrderItemInputEnvelope
+    connect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
   }
 
   export type OrderUpdateOneRequiredWithoutItemsNestedInput = {
@@ -31347,6 +35983,34 @@ export namespace Prisma {
     delete?: ProductVariantWhereInput | boolean
     connect?: ProductVariantWhereUniqueInput
     update?: XOR<XOR<ProductVariantUpdateToOneWithWhereWithoutOrderItemsInput, ProductVariantUpdateWithoutOrderItemsInput>, ProductVariantUncheckedUpdateWithoutOrderItemsInput>
+  }
+
+  export type ReturnRequestItemUpdateManyWithoutOrderItemNestedInput = {
+    create?: XOR<ReturnRequestItemCreateWithoutOrderItemInput, ReturnRequestItemUncheckedCreateWithoutOrderItemInput> | ReturnRequestItemCreateWithoutOrderItemInput[] | ReturnRequestItemUncheckedCreateWithoutOrderItemInput[]
+    connectOrCreate?: ReturnRequestItemCreateOrConnectWithoutOrderItemInput | ReturnRequestItemCreateOrConnectWithoutOrderItemInput[]
+    upsert?: ReturnRequestItemUpsertWithWhereUniqueWithoutOrderItemInput | ReturnRequestItemUpsertWithWhereUniqueWithoutOrderItemInput[]
+    createMany?: ReturnRequestItemCreateManyOrderItemInputEnvelope
+    set?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    disconnect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    delete?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    connect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    update?: ReturnRequestItemUpdateWithWhereUniqueWithoutOrderItemInput | ReturnRequestItemUpdateWithWhereUniqueWithoutOrderItemInput[]
+    updateMany?: ReturnRequestItemUpdateManyWithWhereWithoutOrderItemInput | ReturnRequestItemUpdateManyWithWhereWithoutOrderItemInput[]
+    deleteMany?: ReturnRequestItemScalarWhereInput | ReturnRequestItemScalarWhereInput[]
+  }
+
+  export type ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput = {
+    create?: XOR<ReturnRequestItemCreateWithoutOrderItemInput, ReturnRequestItemUncheckedCreateWithoutOrderItemInput> | ReturnRequestItemCreateWithoutOrderItemInput[] | ReturnRequestItemUncheckedCreateWithoutOrderItemInput[]
+    connectOrCreate?: ReturnRequestItemCreateOrConnectWithoutOrderItemInput | ReturnRequestItemCreateOrConnectWithoutOrderItemInput[]
+    upsert?: ReturnRequestItemUpsertWithWhereUniqueWithoutOrderItemInput | ReturnRequestItemUpsertWithWhereUniqueWithoutOrderItemInput[]
+    createMany?: ReturnRequestItemCreateManyOrderItemInputEnvelope
+    set?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    disconnect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    delete?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    connect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    update?: ReturnRequestItemUpdateWithWhereUniqueWithoutOrderItemInput | ReturnRequestItemUpdateWithWhereUniqueWithoutOrderItemInput[]
+    updateMany?: ReturnRequestItemUpdateManyWithWhereWithoutOrderItemInput | ReturnRequestItemUpdateManyWithWhereWithoutOrderItemInput[]
+    deleteMany?: ReturnRequestItemScalarWhereInput | ReturnRequestItemScalarWhereInput[]
   }
 
   export type OrderCreateNestedOneWithoutShipmentsInput = {
@@ -31679,6 +36343,108 @@ export namespace Prisma {
     delete?: IntegrationProviderWhereInput | boolean
     connect?: IntegrationProviderWhereUniqueInput
     update?: XOR<XOR<IntegrationProviderUpdateToOneWithWhereWithoutSyncLogsInput, IntegrationProviderUpdateWithoutSyncLogsInput>, IntegrationProviderUncheckedUpdateWithoutSyncLogsInput>
+  }
+
+  export type OrderCreateNestedOneWithoutReturnRequestsInput = {
+    create?: XOR<OrderCreateWithoutReturnRequestsInput, OrderUncheckedCreateWithoutReturnRequestsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutReturnRequestsInput
+    connect?: OrderWhereUniqueInput
+  }
+
+  export type CustomerCreateNestedOneWithoutReturnRequestsInput = {
+    create?: XOR<CustomerCreateWithoutReturnRequestsInput, CustomerUncheckedCreateWithoutReturnRequestsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutReturnRequestsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type ReturnRequestItemCreateNestedManyWithoutReturnRequestInput = {
+    create?: XOR<ReturnRequestItemCreateWithoutReturnRequestInput, ReturnRequestItemUncheckedCreateWithoutReturnRequestInput> | ReturnRequestItemCreateWithoutReturnRequestInput[] | ReturnRequestItemUncheckedCreateWithoutReturnRequestInput[]
+    connectOrCreate?: ReturnRequestItemCreateOrConnectWithoutReturnRequestInput | ReturnRequestItemCreateOrConnectWithoutReturnRequestInput[]
+    createMany?: ReturnRequestItemCreateManyReturnRequestInputEnvelope
+    connect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+  }
+
+  export type ReturnRequestItemUncheckedCreateNestedManyWithoutReturnRequestInput = {
+    create?: XOR<ReturnRequestItemCreateWithoutReturnRequestInput, ReturnRequestItemUncheckedCreateWithoutReturnRequestInput> | ReturnRequestItemCreateWithoutReturnRequestInput[] | ReturnRequestItemUncheckedCreateWithoutReturnRequestInput[]
+    connectOrCreate?: ReturnRequestItemCreateOrConnectWithoutReturnRequestInput | ReturnRequestItemCreateOrConnectWithoutReturnRequestInput[]
+    createMany?: ReturnRequestItemCreateManyReturnRequestInputEnvelope
+    connect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+  }
+
+  export type EnumReturnStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ReturnStatus
+  }
+
+  export type OrderUpdateOneRequiredWithoutReturnRequestsNestedInput = {
+    create?: XOR<OrderCreateWithoutReturnRequestsInput, OrderUncheckedCreateWithoutReturnRequestsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutReturnRequestsInput
+    upsert?: OrderUpsertWithoutReturnRequestsInput
+    connect?: OrderWhereUniqueInput
+    update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutReturnRequestsInput, OrderUpdateWithoutReturnRequestsInput>, OrderUncheckedUpdateWithoutReturnRequestsInput>
+  }
+
+  export type CustomerUpdateOneRequiredWithoutReturnRequestsNestedInput = {
+    create?: XOR<CustomerCreateWithoutReturnRequestsInput, CustomerUncheckedCreateWithoutReturnRequestsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutReturnRequestsInput
+    upsert?: CustomerUpsertWithoutReturnRequestsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutReturnRequestsInput, CustomerUpdateWithoutReturnRequestsInput>, CustomerUncheckedUpdateWithoutReturnRequestsInput>
+  }
+
+  export type ReturnRequestItemUpdateManyWithoutReturnRequestNestedInput = {
+    create?: XOR<ReturnRequestItemCreateWithoutReturnRequestInput, ReturnRequestItemUncheckedCreateWithoutReturnRequestInput> | ReturnRequestItemCreateWithoutReturnRequestInput[] | ReturnRequestItemUncheckedCreateWithoutReturnRequestInput[]
+    connectOrCreate?: ReturnRequestItemCreateOrConnectWithoutReturnRequestInput | ReturnRequestItemCreateOrConnectWithoutReturnRequestInput[]
+    upsert?: ReturnRequestItemUpsertWithWhereUniqueWithoutReturnRequestInput | ReturnRequestItemUpsertWithWhereUniqueWithoutReturnRequestInput[]
+    createMany?: ReturnRequestItemCreateManyReturnRequestInputEnvelope
+    set?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    disconnect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    delete?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    connect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    update?: ReturnRequestItemUpdateWithWhereUniqueWithoutReturnRequestInput | ReturnRequestItemUpdateWithWhereUniqueWithoutReturnRequestInput[]
+    updateMany?: ReturnRequestItemUpdateManyWithWhereWithoutReturnRequestInput | ReturnRequestItemUpdateManyWithWhereWithoutReturnRequestInput[]
+    deleteMany?: ReturnRequestItemScalarWhereInput | ReturnRequestItemScalarWhereInput[]
+  }
+
+  export type ReturnRequestItemUncheckedUpdateManyWithoutReturnRequestNestedInput = {
+    create?: XOR<ReturnRequestItemCreateWithoutReturnRequestInput, ReturnRequestItemUncheckedCreateWithoutReturnRequestInput> | ReturnRequestItemCreateWithoutReturnRequestInput[] | ReturnRequestItemUncheckedCreateWithoutReturnRequestInput[]
+    connectOrCreate?: ReturnRequestItemCreateOrConnectWithoutReturnRequestInput | ReturnRequestItemCreateOrConnectWithoutReturnRequestInput[]
+    upsert?: ReturnRequestItemUpsertWithWhereUniqueWithoutReturnRequestInput | ReturnRequestItemUpsertWithWhereUniqueWithoutReturnRequestInput[]
+    createMany?: ReturnRequestItemCreateManyReturnRequestInputEnvelope
+    set?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    disconnect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    delete?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    connect?: ReturnRequestItemWhereUniqueInput | ReturnRequestItemWhereUniqueInput[]
+    update?: ReturnRequestItemUpdateWithWhereUniqueWithoutReturnRequestInput | ReturnRequestItemUpdateWithWhereUniqueWithoutReturnRequestInput[]
+    updateMany?: ReturnRequestItemUpdateManyWithWhereWithoutReturnRequestInput | ReturnRequestItemUpdateManyWithWhereWithoutReturnRequestInput[]
+    deleteMany?: ReturnRequestItemScalarWhereInput | ReturnRequestItemScalarWhereInput[]
+  }
+
+  export type ReturnRequestCreateNestedOneWithoutItemsInput = {
+    create?: XOR<ReturnRequestCreateWithoutItemsInput, ReturnRequestUncheckedCreateWithoutItemsInput>
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutItemsInput
+    connect?: ReturnRequestWhereUniqueInput
+  }
+
+  export type OrderItemCreateNestedOneWithoutReturnRequestItemsInput = {
+    create?: XOR<OrderItemCreateWithoutReturnRequestItemsInput, OrderItemUncheckedCreateWithoutReturnRequestItemsInput>
+    connectOrCreate?: OrderItemCreateOrConnectWithoutReturnRequestItemsInput
+    connect?: OrderItemWhereUniqueInput
+  }
+
+  export type ReturnRequestUpdateOneRequiredWithoutItemsNestedInput = {
+    create?: XOR<ReturnRequestCreateWithoutItemsInput, ReturnRequestUncheckedCreateWithoutItemsInput>
+    connectOrCreate?: ReturnRequestCreateOrConnectWithoutItemsInput
+    upsert?: ReturnRequestUpsertWithoutItemsInput
+    connect?: ReturnRequestWhereUniqueInput
+    update?: XOR<XOR<ReturnRequestUpdateToOneWithWhereWithoutItemsInput, ReturnRequestUpdateWithoutItemsInput>, ReturnRequestUncheckedUpdateWithoutItemsInput>
+  }
+
+  export type OrderItemUpdateOneRequiredWithoutReturnRequestItemsNestedInput = {
+    create?: XOR<OrderItemCreateWithoutReturnRequestItemsInput, OrderItemUncheckedCreateWithoutReturnRequestItemsInput>
+    connectOrCreate?: OrderItemCreateOrConnectWithoutReturnRequestItemsInput
+    upsert?: OrderItemUpsertWithoutReturnRequestItemsInput
+    connect?: OrderItemWhereUniqueInput
+    update?: XOR<XOR<OrderItemUpdateToOneWithWhereWithoutReturnRequestItemsInput, OrderItemUpdateWithoutReturnRequestItemsInput>, OrderItemUncheckedUpdateWithoutReturnRequestItemsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -32062,6 +36828,23 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumReturnStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReturnStatus | EnumReturnStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReturnStatus[] | ListEnumReturnStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReturnStatus[] | ListEnumReturnStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReturnStatusFilter<$PrismaModel> | $Enums.ReturnStatus
+  }
+
+  export type NestedEnumReturnStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReturnStatus | EnumReturnStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReturnStatus[] | ListEnumReturnStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReturnStatus[] | ListEnumReturnStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReturnStatusWithAggregatesFilter<$PrismaModel> | $Enums.ReturnStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReturnStatusFilter<$PrismaModel>
+    _max?: NestedEnumReturnStatusFilter<$PrismaModel>
+  }
+
   export type NotificationCreateWithoutUserInput = {
     id?: string
     type: string
@@ -32100,6 +36883,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutCustomerInput
     reviews?: ReviewCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutUserInput = {
@@ -32110,6 +36894,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistUncheckedCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutUserInput = {
@@ -32166,6 +36951,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutUserInput = {
@@ -32176,6 +36962,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUncheckedUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type UserCreateWithoutCustomerInput = {
@@ -32304,9 +37091,12 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     address: AddressCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutCustomerInput = {
@@ -32333,8 +37123,11 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutCustomerInput = {
@@ -32392,6 +37185,36 @@ export namespace Prisma {
 
   export type WishlistCreateManyCustomerInputEnvelope = {
     data: WishlistCreateManyCustomerInput | WishlistCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReturnRequestCreateWithoutCustomerInput = {
+    id?: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    order: OrderCreateNestedOneWithoutReturnRequestsInput
+    items?: ReturnRequestItemCreateNestedManyWithoutReturnRequestInput
+  }
+
+  export type ReturnRequestUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    orderId: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: ReturnRequestItemUncheckedCreateNestedManyWithoutReturnRequestInput
+  }
+
+  export type ReturnRequestCreateOrConnectWithoutCustomerInput = {
+    where: ReturnRequestWhereUniqueInput
+    create: XOR<ReturnRequestCreateWithoutCustomerInput, ReturnRequestUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ReturnRequestCreateManyCustomerInputEnvelope = {
+    data: ReturnRequestCreateManyCustomerInput | ReturnRequestCreateManyCustomerInput[]
     skipDuplicates?: boolean
   }
 
@@ -32546,6 +37369,8 @@ export namespace Prisma {
     guestFirstName?: StringNullableFilter<"Order"> | string | null
     guestLastName?: StringNullableFilter<"Order"> | string | null
     guestPhone?: StringNullableFilter<"Order"> | string | null
+    couponCode?: StringNullableFilter<"Order"> | string | null
+    discountAmount?: FloatNullableFilter<"Order"> | number | null
   }
 
   export type ReviewUpsertWithWhereUniqueWithoutCustomerInput = {
@@ -32602,6 +37427,35 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Wishlist"> | Date | string
   }
 
+  export type ReturnRequestUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: ReturnRequestWhereUniqueInput
+    update: XOR<ReturnRequestUpdateWithoutCustomerInput, ReturnRequestUncheckedUpdateWithoutCustomerInput>
+    create: XOR<ReturnRequestCreateWithoutCustomerInput, ReturnRequestUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ReturnRequestUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: ReturnRequestWhereUniqueInput
+    data: XOR<ReturnRequestUpdateWithoutCustomerInput, ReturnRequestUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type ReturnRequestUpdateManyWithWhereWithoutCustomerInput = {
+    where: ReturnRequestScalarWhereInput
+    data: XOR<ReturnRequestUpdateManyMutationInput, ReturnRequestUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type ReturnRequestScalarWhereInput = {
+    AND?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
+    OR?: ReturnRequestScalarWhereInput[]
+    NOT?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
+    id?: StringFilter<"ReturnRequest"> | string
+    orderId?: StringFilter<"ReturnRequest"> | string
+    customerId?: StringFilter<"ReturnRequest"> | string
+    status?: EnumReturnStatusFilter<"ReturnRequest"> | $Enums.ReturnStatus
+    adminNotes?: StringNullableFilter<"ReturnRequest"> | string | null
+    createdAt?: DateTimeFilter<"ReturnRequest"> | Date | string
+    updatedAt?: DateTimeFilter<"ReturnRequest"> | Date | string
+  }
+
   export type CustomerCreateWithoutAddressesInput = {
     id?: string
     stripeCustomerId?: string | null
@@ -32610,6 +37464,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutCustomerInput
     reviews?: ReviewCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutAddressesInput = {
@@ -32620,6 +37475,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistUncheckedCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutAddressesInput = {
@@ -32650,9 +37506,12 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     customer?: CustomerCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutAddressInput = {
@@ -32679,8 +37538,11 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutAddressInput = {
@@ -32712,6 +37574,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutAddressesInput = {
@@ -32722,6 +37585,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUncheckedUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type OrderUpsertWithWhereUniqueWithoutAddressInput = {
@@ -33172,6 +38036,7 @@ export namespace Prisma {
     order: OrderCreateNestedOneWithoutItemsInput
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     variant?: ProductVariantCreateNestedOneWithoutOrderItemsInput
+    returnRequestItems?: ReturnRequestItemCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUncheckedCreateWithoutProductInput = {
@@ -33181,6 +38046,7 @@ export namespace Prisma {
     variantId?: string | null
     quantity: number
     price: number
+    returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemCreateOrConnectWithoutProductInput = {
@@ -33603,6 +38469,7 @@ export namespace Prisma {
     orders?: OrderCreateNestedManyWithoutCustomerInput
     reviews?: ReviewCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutCartItemsInput = {
@@ -33613,6 +38480,7 @@ export namespace Prisma {
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistUncheckedCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutCartItemsInput = {
@@ -33797,6 +38665,7 @@ export namespace Prisma {
     orders?: OrderUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutCartItemsInput = {
@@ -33807,6 +38676,7 @@ export namespace Prisma {
     orders?: OrderUncheckedUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUncheckedUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ProductUpsertWithoutCartItemsInput = {
@@ -33987,6 +38857,7 @@ export namespace Prisma {
     addresses?: AddressCreateNestedManyWithoutCustomerInput
     reviews?: ReviewCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutOrdersInput = {
@@ -33997,6 +38868,7 @@ export namespace Prisma {
     addresses?: AddressUncheckedCreateNestedManyWithoutCustomerInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistUncheckedCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutOrdersInput = {
@@ -34042,6 +38914,7 @@ export namespace Prisma {
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
     variant?: ProductVariantCreateNestedOneWithoutOrderItemsInput
+    returnRequestItems?: ReturnRequestItemCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUncheckedCreateWithoutOrderInput = {
@@ -34051,6 +38924,7 @@ export namespace Prisma {
     variantId?: string | null
     quantity: number
     price: number
+    returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemCreateOrConnectWithoutOrderInput = {
@@ -34103,6 +38977,36 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ReturnRequestCreateWithoutOrderInput = {
+    id?: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutReturnRequestsInput
+    items?: ReturnRequestItemCreateNestedManyWithoutReturnRequestInput
+  }
+
+  export type ReturnRequestUncheckedCreateWithoutOrderInput = {
+    id?: string
+    customerId: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: ReturnRequestItemUncheckedCreateNestedManyWithoutReturnRequestInput
+  }
+
+  export type ReturnRequestCreateOrConnectWithoutOrderInput = {
+    where: ReturnRequestWhereUniqueInput
+    create: XOR<ReturnRequestCreateWithoutOrderInput, ReturnRequestUncheckedCreateWithoutOrderInput>
+  }
+
+  export type ReturnRequestCreateManyOrderInputEnvelope = {
+    data: ReturnRequestCreateManyOrderInput | ReturnRequestCreateManyOrderInput[]
+    skipDuplicates?: boolean
+  }
+
   export type CustomerUpsertWithoutOrdersInput = {
     update: XOR<CustomerUpdateWithoutOrdersInput, CustomerUncheckedUpdateWithoutOrdersInput>
     create: XOR<CustomerCreateWithoutOrdersInput, CustomerUncheckedCreateWithoutOrdersInput>
@@ -34122,6 +39026,7 @@ export namespace Prisma {
     addresses?: AddressUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutOrdersInput = {
@@ -34132,6 +39037,7 @@ export namespace Prisma {
     addresses?: AddressUncheckedUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUncheckedUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type AddressUpsertWithoutOrdersInput = {
@@ -34221,6 +39127,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Shipment"> | Date | string
   }
 
+  export type ReturnRequestUpsertWithWhereUniqueWithoutOrderInput = {
+    where: ReturnRequestWhereUniqueInput
+    update: XOR<ReturnRequestUpdateWithoutOrderInput, ReturnRequestUncheckedUpdateWithoutOrderInput>
+    create: XOR<ReturnRequestCreateWithoutOrderInput, ReturnRequestUncheckedCreateWithoutOrderInput>
+  }
+
+  export type ReturnRequestUpdateWithWhereUniqueWithoutOrderInput = {
+    where: ReturnRequestWhereUniqueInput
+    data: XOR<ReturnRequestUpdateWithoutOrderInput, ReturnRequestUncheckedUpdateWithoutOrderInput>
+  }
+
+  export type ReturnRequestUpdateManyWithWhereWithoutOrderInput = {
+    where: ReturnRequestScalarWhereInput
+    data: XOR<ReturnRequestUpdateManyMutationInput, ReturnRequestUncheckedUpdateManyWithoutOrderInput>
+  }
+
   export type OrderCreateWithoutItemsInput = {
     id?: string
     orderNumber: string
@@ -34244,9 +39166,12 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     customer?: CustomerCreateNestedOneWithoutOrdersInput
     address: AddressCreateNestedOneWithoutOrdersInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutItemsInput = {
@@ -34274,7 +39199,10 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutItemsInput = {
@@ -34475,6 +39403,30 @@ export namespace Prisma {
     create: XOR<ProductVariantCreateWithoutOrderItemsInput, ProductVariantUncheckedCreateWithoutOrderItemsInput>
   }
 
+  export type ReturnRequestItemCreateWithoutOrderItemInput = {
+    id?: string
+    quantity: number
+    reason: string
+    returnRequest: ReturnRequestCreateNestedOneWithoutItemsInput
+  }
+
+  export type ReturnRequestItemUncheckedCreateWithoutOrderItemInput = {
+    id?: string
+    returnRequestId: string
+    quantity: number
+    reason: string
+  }
+
+  export type ReturnRequestItemCreateOrConnectWithoutOrderItemInput = {
+    where: ReturnRequestItemWhereUniqueInput
+    create: XOR<ReturnRequestItemCreateWithoutOrderItemInput, ReturnRequestItemUncheckedCreateWithoutOrderItemInput>
+  }
+
+  export type ReturnRequestItemCreateManyOrderItemInputEnvelope = {
+    data: ReturnRequestItemCreateManyOrderItemInput | ReturnRequestItemCreateManyOrderItemInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrderUpsertWithoutItemsInput = {
     update: XOR<OrderUpdateWithoutItemsInput, OrderUncheckedUpdateWithoutItemsInput>
     create: XOR<OrderCreateWithoutItemsInput, OrderUncheckedCreateWithoutItemsInput>
@@ -34509,9 +39461,12 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
     address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutItemsInput = {
@@ -34539,7 +39494,10 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type ShipmentUpsertWithoutItemsInput = {
@@ -34753,6 +39711,33 @@ export namespace Prisma {
     cartItems?: CartItemUncheckedUpdateManyWithoutVariantNestedInput
   }
 
+  export type ReturnRequestItemUpsertWithWhereUniqueWithoutOrderItemInput = {
+    where: ReturnRequestItemWhereUniqueInput
+    update: XOR<ReturnRequestItemUpdateWithoutOrderItemInput, ReturnRequestItemUncheckedUpdateWithoutOrderItemInput>
+    create: XOR<ReturnRequestItemCreateWithoutOrderItemInput, ReturnRequestItemUncheckedCreateWithoutOrderItemInput>
+  }
+
+  export type ReturnRequestItemUpdateWithWhereUniqueWithoutOrderItemInput = {
+    where: ReturnRequestItemWhereUniqueInput
+    data: XOR<ReturnRequestItemUpdateWithoutOrderItemInput, ReturnRequestItemUncheckedUpdateWithoutOrderItemInput>
+  }
+
+  export type ReturnRequestItemUpdateManyWithWhereWithoutOrderItemInput = {
+    where: ReturnRequestItemScalarWhereInput
+    data: XOR<ReturnRequestItemUpdateManyMutationInput, ReturnRequestItemUncheckedUpdateManyWithoutOrderItemInput>
+  }
+
+  export type ReturnRequestItemScalarWhereInput = {
+    AND?: ReturnRequestItemScalarWhereInput | ReturnRequestItemScalarWhereInput[]
+    OR?: ReturnRequestItemScalarWhereInput[]
+    NOT?: ReturnRequestItemScalarWhereInput | ReturnRequestItemScalarWhereInput[]
+    id?: StringFilter<"ReturnRequestItem"> | string
+    returnRequestId?: StringFilter<"ReturnRequestItem"> | string
+    orderItemId?: StringFilter<"ReturnRequestItem"> | string
+    quantity?: IntFilter<"ReturnRequestItem"> | number
+    reason?: StringFilter<"ReturnRequestItem"> | string
+  }
+
   export type OrderCreateWithoutShipmentsInput = {
     id?: string
     orderNumber: string
@@ -34776,9 +39761,12 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     customer?: CustomerCreateNestedOneWithoutOrdersInput
     address: AddressCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutShipmentsInput = {
@@ -34806,7 +39794,10 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutShipmentsInput = {
@@ -34821,6 +39812,7 @@ export namespace Prisma {
     order: OrderCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
     variant?: ProductVariantCreateNestedOneWithoutOrderItemsInput
+    returnRequestItems?: ReturnRequestItemCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUncheckedCreateWithoutShipmentInput = {
@@ -34830,6 +39822,7 @@ export namespace Prisma {
     variantId?: string | null
     quantity: number
     price: number
+    returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemCreateOrConnectWithoutShipmentInput = {
@@ -34876,9 +39869,12 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
     address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutShipmentsInput = {
@@ -34906,7 +39902,10 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutShipmentInput = {
@@ -35014,6 +40013,7 @@ export namespace Prisma {
     addresses?: AddressCreateNestedManyWithoutCustomerInput
     orders?: OrderCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutReviewsInput = {
@@ -35024,6 +40024,7 @@ export namespace Prisma {
     addresses?: AddressUncheckedCreateNestedManyWithoutCustomerInput
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerInput
     wishlist?: WishlistUncheckedCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutReviewsInput = {
@@ -35137,6 +40138,7 @@ export namespace Prisma {
     addresses?: AddressUpdateManyWithoutCustomerNestedInput
     orders?: OrderUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutReviewsInput = {
@@ -35147,6 +40149,7 @@ export namespace Prisma {
     addresses?: AddressUncheckedUpdateManyWithoutCustomerNestedInput
     orders?: OrderUncheckedUpdateManyWithoutCustomerNestedInput
     wishlist?: WishlistUncheckedUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutWishlistInput = {
@@ -35157,6 +40160,7 @@ export namespace Prisma {
     addresses?: AddressCreateNestedManyWithoutCustomerInput
     orders?: OrderCreateNestedManyWithoutCustomerInput
     reviews?: ReviewCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutWishlistInput = {
@@ -35167,6 +40171,7 @@ export namespace Prisma {
     addresses?: AddressUncheckedCreateNestedManyWithoutCustomerInput
     orders?: OrderUncheckedCreateNestedManyWithoutCustomerInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutCustomerInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutWishlistInput = {
@@ -35274,6 +40279,7 @@ export namespace Prisma {
     addresses?: AddressUpdateManyWithoutCustomerNestedInput
     orders?: OrderUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutWishlistInput = {
@@ -35284,6 +40290,7 @@ export namespace Prisma {
     addresses?: AddressUncheckedUpdateManyWithoutCustomerNestedInput
     orders?: OrderUncheckedUpdateManyWithoutCustomerNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutCustomerNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ProductUpsertWithoutWishlistItemsInput = {
@@ -35575,6 +40582,7 @@ export namespace Prisma {
     order: OrderCreateNestedOneWithoutItemsInput
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
+    returnRequestItems?: ReturnRequestItemCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemUncheckedCreateWithoutVariantInput = {
@@ -35584,6 +40592,7 @@ export namespace Prisma {
     productId: string
     quantity: number
     price: number
+    returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
   export type OrderItemCreateOrConnectWithoutVariantInput = {
@@ -36092,6 +41101,358 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type OrderCreateWithoutReturnRequestsInput = {
+    id?: string
+    orderNumber: string
+    status?: $Enums.OrderStatus
+    subtotal: number
+    tax?: number
+    shippingCost?: number
+    total: number
+    stripePaymentId?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    source?: string
+    externalOrderId?: string | null
+    externalData?: NullableJsonNullValueInput | InputJsonValue
+    stripePaymentIntentId?: string | null
+    paymentStatus?: $Enums.PaymentStatus
+    guestEmail?: string | null
+    guestFirstName?: string | null
+    guestLastName?: string | null
+    guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
+    customer?: CustomerCreateNestedOneWithoutOrdersInput
+    address: AddressCreateNestedOneWithoutOrdersInput
+    items?: OrderItemCreateNestedManyWithoutOrderInput
+    shipments?: ShipmentCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderUncheckedCreateWithoutReturnRequestsInput = {
+    id?: string
+    customerId?: string | null
+    addressId: string
+    orderNumber: string
+    status?: $Enums.OrderStatus
+    subtotal: number
+    tax?: number
+    shippingCost?: number
+    total: number
+    stripePaymentId?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    source?: string
+    externalOrderId?: string | null
+    externalData?: NullableJsonNullValueInput | InputJsonValue
+    stripePaymentIntentId?: string | null
+    paymentStatus?: $Enums.PaymentStatus
+    guestEmail?: string | null
+    guestFirstName?: string | null
+    guestLastName?: string | null
+    guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
+    items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+    shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderCreateOrConnectWithoutReturnRequestsInput = {
+    where: OrderWhereUniqueInput
+    create: XOR<OrderCreateWithoutReturnRequestsInput, OrderUncheckedCreateWithoutReturnRequestsInput>
+  }
+
+  export type CustomerCreateWithoutReturnRequestsInput = {
+    id?: string
+    stripeCustomerId?: string | null
+    user: UserCreateNestedOneWithoutCustomerInput
+    cartItems?: CartItemCreateNestedManyWithoutCustomerInput
+    addresses?: AddressCreateNestedManyWithoutCustomerInput
+    orders?: OrderCreateNestedManyWithoutCustomerInput
+    reviews?: ReviewCreateNestedManyWithoutCustomerInput
+    wishlist?: WishlistCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutReturnRequestsInput = {
+    id?: string
+    userId: string
+    stripeCustomerId?: string | null
+    cartItems?: CartItemUncheckedCreateNestedManyWithoutCustomerInput
+    addresses?: AddressUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: OrderUncheckedCreateNestedManyWithoutCustomerInput
+    reviews?: ReviewUncheckedCreateNestedManyWithoutCustomerInput
+    wishlist?: WishlistUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutReturnRequestsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutReturnRequestsInput, CustomerUncheckedCreateWithoutReturnRequestsInput>
+  }
+
+  export type ReturnRequestItemCreateWithoutReturnRequestInput = {
+    id?: string
+    quantity: number
+    reason: string
+    orderItem: OrderItemCreateNestedOneWithoutReturnRequestItemsInput
+  }
+
+  export type ReturnRequestItemUncheckedCreateWithoutReturnRequestInput = {
+    id?: string
+    orderItemId: string
+    quantity: number
+    reason: string
+  }
+
+  export type ReturnRequestItemCreateOrConnectWithoutReturnRequestInput = {
+    where: ReturnRequestItemWhereUniqueInput
+    create: XOR<ReturnRequestItemCreateWithoutReturnRequestInput, ReturnRequestItemUncheckedCreateWithoutReturnRequestInput>
+  }
+
+  export type ReturnRequestItemCreateManyReturnRequestInputEnvelope = {
+    data: ReturnRequestItemCreateManyReturnRequestInput | ReturnRequestItemCreateManyReturnRequestInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type OrderUpsertWithoutReturnRequestsInput = {
+    update: XOR<OrderUpdateWithoutReturnRequestsInput, OrderUncheckedUpdateWithoutReturnRequestsInput>
+    create: XOR<OrderCreateWithoutReturnRequestsInput, OrderUncheckedCreateWithoutReturnRequestsInput>
+    where?: OrderWhereInput
+  }
+
+  export type OrderUpdateToOneWithWhereWithoutReturnRequestsInput = {
+    where?: OrderWhereInput
+    data: XOR<OrderUpdateWithoutReturnRequestsInput, OrderUncheckedUpdateWithoutReturnRequestsInput>
+  }
+
+  export type OrderUpdateWithoutReturnRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderNumber?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    subtotal?: FloatFieldUpdateOperationsInput | number
+    tax?: FloatFieldUpdateOperationsInput | number
+    shippingCost?: FloatFieldUpdateOperationsInput | number
+    total?: FloatFieldUpdateOperationsInput | number
+    stripePaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    source?: StringFieldUpdateOperationsInput | string
+    externalOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalData?: NullableJsonNullValueInput | InputJsonValue
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    guestEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
+    items?: OrderItemUpdateManyWithoutOrderNestedInput
+    shipments?: ShipmentUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateWithoutReturnRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressId?: StringFieldUpdateOperationsInput | string
+    orderNumber?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    subtotal?: FloatFieldUpdateOperationsInput | number
+    tax?: FloatFieldUpdateOperationsInput | number
+    shippingCost?: FloatFieldUpdateOperationsInput | number
+    total?: FloatFieldUpdateOperationsInput | number
+    stripePaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    source?: StringFieldUpdateOperationsInput | string
+    externalOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalData?: NullableJsonNullValueInput | InputJsonValue
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    guestEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+    shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type CustomerUpsertWithoutReturnRequestsInput = {
+    update: XOR<CustomerUpdateWithoutReturnRequestsInput, CustomerUncheckedUpdateWithoutReturnRequestsInput>
+    create: XOR<CustomerCreateWithoutReturnRequestsInput, CustomerUncheckedCreateWithoutReturnRequestsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutReturnRequestsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutReturnRequestsInput, CustomerUncheckedUpdateWithoutReturnRequestsInput>
+  }
+
+  export type CustomerUpdateWithoutReturnRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    user?: UserUpdateOneRequiredWithoutCustomerNestedInput
+    cartItems?: CartItemUpdateManyWithoutCustomerNestedInput
+    addresses?: AddressUpdateManyWithoutCustomerNestedInput
+    orders?: OrderUpdateManyWithoutCustomerNestedInput
+    reviews?: ReviewUpdateManyWithoutCustomerNestedInput
+    wishlist?: WishlistUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutReturnRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    cartItems?: CartItemUncheckedUpdateManyWithoutCustomerNestedInput
+    addresses?: AddressUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutCustomerNestedInput
+    reviews?: ReviewUncheckedUpdateManyWithoutCustomerNestedInput
+    wishlist?: WishlistUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type ReturnRequestItemUpsertWithWhereUniqueWithoutReturnRequestInput = {
+    where: ReturnRequestItemWhereUniqueInput
+    update: XOR<ReturnRequestItemUpdateWithoutReturnRequestInput, ReturnRequestItemUncheckedUpdateWithoutReturnRequestInput>
+    create: XOR<ReturnRequestItemCreateWithoutReturnRequestInput, ReturnRequestItemUncheckedCreateWithoutReturnRequestInput>
+  }
+
+  export type ReturnRequestItemUpdateWithWhereUniqueWithoutReturnRequestInput = {
+    where: ReturnRequestItemWhereUniqueInput
+    data: XOR<ReturnRequestItemUpdateWithoutReturnRequestInput, ReturnRequestItemUncheckedUpdateWithoutReturnRequestInput>
+  }
+
+  export type ReturnRequestItemUpdateManyWithWhereWithoutReturnRequestInput = {
+    where: ReturnRequestItemScalarWhereInput
+    data: XOR<ReturnRequestItemUpdateManyMutationInput, ReturnRequestItemUncheckedUpdateManyWithoutReturnRequestInput>
+  }
+
+  export type ReturnRequestCreateWithoutItemsInput = {
+    id?: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    order: OrderCreateNestedOneWithoutReturnRequestsInput
+    customer: CustomerCreateNestedOneWithoutReturnRequestsInput
+  }
+
+  export type ReturnRequestUncheckedCreateWithoutItemsInput = {
+    id?: string
+    orderId: string
+    customerId: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ReturnRequestCreateOrConnectWithoutItemsInput = {
+    where: ReturnRequestWhereUniqueInput
+    create: XOR<ReturnRequestCreateWithoutItemsInput, ReturnRequestUncheckedCreateWithoutItemsInput>
+  }
+
+  export type OrderItemCreateWithoutReturnRequestItemsInput = {
+    id?: string
+    quantity: number
+    price: number
+    order: OrderCreateNestedOneWithoutItemsInput
+    shipment?: ShipmentCreateNestedOneWithoutItemsInput
+    product: ProductCreateNestedOneWithoutOrderItemsInput
+    variant?: ProductVariantCreateNestedOneWithoutOrderItemsInput
+  }
+
+  export type OrderItemUncheckedCreateWithoutReturnRequestItemsInput = {
+    id?: string
+    orderId: string
+    shipmentId?: string | null
+    productId: string
+    variantId?: string | null
+    quantity: number
+    price: number
+  }
+
+  export type OrderItemCreateOrConnectWithoutReturnRequestItemsInput = {
+    where: OrderItemWhereUniqueInput
+    create: XOR<OrderItemCreateWithoutReturnRequestItemsInput, OrderItemUncheckedCreateWithoutReturnRequestItemsInput>
+  }
+
+  export type ReturnRequestUpsertWithoutItemsInput = {
+    update: XOR<ReturnRequestUpdateWithoutItemsInput, ReturnRequestUncheckedUpdateWithoutItemsInput>
+    create: XOR<ReturnRequestCreateWithoutItemsInput, ReturnRequestUncheckedCreateWithoutItemsInput>
+    where?: ReturnRequestWhereInput
+  }
+
+  export type ReturnRequestUpdateToOneWithWhereWithoutItemsInput = {
+    where?: ReturnRequestWhereInput
+    data: XOR<ReturnRequestUpdateWithoutItemsInput, ReturnRequestUncheckedUpdateWithoutItemsInput>
+  }
+
+  export type ReturnRequestUpdateWithoutItemsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: OrderUpdateOneRequiredWithoutReturnRequestsNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutReturnRequestsNestedInput
+  }
+
+  export type ReturnRequestUncheckedUpdateWithoutItemsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderItemUpsertWithoutReturnRequestItemsInput = {
+    update: XOR<OrderItemUpdateWithoutReturnRequestItemsInput, OrderItemUncheckedUpdateWithoutReturnRequestItemsInput>
+    create: XOR<OrderItemCreateWithoutReturnRequestItemsInput, OrderItemUncheckedCreateWithoutReturnRequestItemsInput>
+    where?: OrderItemWhereInput
+  }
+
+  export type OrderItemUpdateToOneWithWhereWithoutReturnRequestItemsInput = {
+    where?: OrderItemWhereInput
+    data: XOR<OrderItemUpdateWithoutReturnRequestItemsInput, OrderItemUncheckedUpdateWithoutReturnRequestItemsInput>
+  }
+
+  export type OrderItemUpdateWithoutReturnRequestItemsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    price?: FloatFieldUpdateOperationsInput | number
+    order?: OrderUpdateOneRequiredWithoutItemsNestedInput
+    shipment?: ShipmentUpdateOneWithoutItemsNestedInput
+    product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
+    variant?: ProductVariantUpdateOneWithoutOrderItemsNestedInput
+  }
+
+  export type OrderItemUncheckedUpdateWithoutReturnRequestItemsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    shipmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    productId?: StringFieldUpdateOperationsInput | string
+    variantId?: NullableStringFieldUpdateOperationsInput | string | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    price?: FloatFieldUpdateOperationsInput | number
+  }
+
   export type NotificationCreateManyUserInput = {
     id?: string
     type: string
@@ -36176,6 +41537,8 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
   }
 
   export type ReviewCreateManyCustomerInput = {
@@ -36190,6 +41553,15 @@ export namespace Prisma {
     id?: string
     productId: string
     createdAt?: Date | string
+  }
+
+  export type ReturnRequestCreateManyCustomerInput = {
+    id?: string
+    orderId: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type CartItemUpdateWithoutCustomerInput = {
@@ -36277,9 +41649,12 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutCustomerInput = {
@@ -36306,8 +41681,11 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutCustomerInput = {
@@ -36334,6 +41712,8 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type ReviewUpdateWithoutCustomerInput = {
@@ -36378,6 +41758,35 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ReturnRequestUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: OrderUpdateOneRequiredWithoutReturnRequestsNestedInput
+    items?: ReturnRequestItemUpdateManyWithoutReturnRequestNestedInput
+  }
+
+  export type ReturnRequestUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: ReturnRequestItemUncheckedUpdateManyWithoutReturnRequestNestedInput
+  }
+
+  export type ReturnRequestUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrderCreateManyAddressInput = {
     id?: string
     customerId?: string | null
@@ -36402,6 +41811,8 @@ export namespace Prisma {
     guestFirstName?: string | null
     guestLastName?: string | null
     guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
   }
 
   export type OrderUpdateWithoutAddressInput = {
@@ -36427,9 +41838,12 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     customer?: CustomerUpdateOneWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutAddressInput = {
@@ -36456,8 +41870,11 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutAddressInput = {
@@ -36484,6 +41901,8 @@ export namespace Prisma {
     guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
     guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
   }
 
   export type CategoryCreateManyParentInput = {
@@ -36856,6 +42275,7 @@ export namespace Prisma {
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     variant?: ProductVariantUpdateOneWithoutOrderItemsNestedInput
+    returnRequestItems?: ReturnRequestItemUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateWithoutProductInput = {
@@ -36865,6 +42285,7 @@ export namespace Prisma {
     variantId?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
+    returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateManyWithoutProductInput = {
@@ -37047,6 +42468,15 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ReturnRequestCreateManyOrderInput = {
+    id?: string
+    customerId: string
+    status?: $Enums.ReturnStatus
+    adminNotes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type OrderItemUpdateWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
     quantity?: IntFieldUpdateOperationsInput | number
@@ -37054,6 +42484,7 @@ export namespace Prisma {
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
     variant?: ProductVariantUpdateOneWithoutOrderItemsNestedInput
+    returnRequestItems?: ReturnRequestItemUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateWithoutOrderInput = {
@@ -37063,6 +42494,7 @@ export namespace Prisma {
     variantId?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
+    returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateManyWithoutOrderInput = {
@@ -37118,6 +42550,63 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ReturnRequestUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutReturnRequestsNestedInput
+    items?: ReturnRequestItemUpdateManyWithoutReturnRequestNestedInput
+  }
+
+  export type ReturnRequestUncheckedUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: ReturnRequestItemUncheckedUpdateManyWithoutReturnRequestNestedInput
+  }
+
+  export type ReturnRequestUncheckedUpdateManyWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
+    adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReturnRequestItemCreateManyOrderItemInput = {
+    id?: string
+    returnRequestId: string
+    quantity: number
+    reason: string
+  }
+
+  export type ReturnRequestItemUpdateWithoutOrderItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
+    returnRequest?: ReturnRequestUpdateOneRequiredWithoutItemsNestedInput
+  }
+
+  export type ReturnRequestItemUncheckedUpdateWithoutOrderItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    returnRequestId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReturnRequestItemUncheckedUpdateManyWithoutOrderItemInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    returnRequestId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
+  }
+
   export type OrderItemCreateManyShipmentInput = {
     id?: string
     orderId: string
@@ -37134,6 +42623,7 @@ export namespace Prisma {
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
     variant?: ProductVariantUpdateOneWithoutOrderItemsNestedInput
+    returnRequestItems?: ReturnRequestItemUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateWithoutShipmentInput = {
@@ -37143,6 +42633,7 @@ export namespace Prisma {
     variantId?: NullableStringFieldUpdateOperationsInput | string | null
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
+    returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateManyWithoutShipmentInput = {
@@ -37202,6 +42693,7 @@ export namespace Prisma {
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
+    returnRequestItems?: ReturnRequestItemUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateWithoutVariantInput = {
@@ -37211,6 +42703,7 @@ export namespace Prisma {
     productId?: StringFieldUpdateOperationsInput | string
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
+    returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
   export type OrderItemUncheckedUpdateManyWithoutVariantInput = {
@@ -37272,6 +42765,34 @@ export namespace Prisma {
     errors?: NullableJsonNullValueInput | InputJsonValue
     data?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReturnRequestItemCreateManyReturnRequestInput = {
+    id?: string
+    orderItemId: string
+    quantity: number
+    reason: string
+  }
+
+  export type ReturnRequestItemUpdateWithoutReturnRequestInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
+    orderItem?: OrderItemUpdateOneRequiredWithoutReturnRequestItemsNestedInput
+  }
+
+  export type ReturnRequestItemUncheckedUpdateWithoutReturnRequestInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderItemId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ReturnRequestItemUncheckedUpdateManyWithoutReturnRequestInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderItemId?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    reason?: StringFieldUpdateOperationsInput | string
   }
 
 

@@ -39,3 +39,11 @@ export async function processRefund(orderId, amount, reason) {
   const { data } = await api.post('/payments/refund', { orderId, amount, reason });
   return data;
 }
+
+export async function updateReturnRequest(returnRequestId, status, adminNotes) {
+  const { data } = await api.patch(`/admin/return-requests/${returnRequestId}`, {
+    status,
+    ...(adminNotes && { adminNotes }),
+  });
+  return data;
+}

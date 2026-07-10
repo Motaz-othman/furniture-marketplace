@@ -1,7 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { notifyOrderPlaced, notifyOrderStatusChanged, notifyOrderCancelled } from '../../shared/services/notification.service.js';
 import { createPaymentIntent, cancelPaymentIntent } from '../../shared/services/stripe.service.js';
-import { sendReturnRequestEmail } from '../../shared/services/email.service.js';
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
@@ -212,7 +211,7 @@ export const getOrderById = async (req, res) => {
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
-        items: { include: { product: true, variant: true } },
+        items: { include: { product: true, variant: true, shipment: true } },
         customer: { include: { user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } } } },
         address: true
       }
@@ -328,34 +327,3 @@ export const cancelOrder = async (req, res) => {
   }
 };
 
-// Request return (customer only, DELIVERED orders)
-export const requestReturn = async (req, res) => {
-  try {
-    const customerId = req.user.customer.id;
-    const { id } = req.params;
-    const { reason, selectedItems } = req.body;
-
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        items: { include: { product: true, variant: true } },
-        address: true,
-        customer: { include: { user: true } },
-      },
-    });
-
-    if (!order || order.customerId !== customerId) {
-      return res.status(403).json({ error: 'You do not have permission to return this order' });
-    }
-    if (order.status !== 'DELIVERED') {
-      return res.status(400).json({ error: 'Only delivered orders can be returned' });
-    }
-
-    sendReturnRequestEmail(order, reason, selectedItems).catch((err) => console.error('Return request email error:', err));
-
-    res.json({ message: 'Return request submitted. Our team will contact you within 1-2 business days.' });
-  } catch (error) {
-    console.error('Request return error:', error);
-    res.status(500).json({ error: 'Failed to submit return request' });
-  }
-};

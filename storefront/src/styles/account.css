@@ -664,7 +664,8 @@
   color: #fff;
 }
 
-.order-return-btn {
+.order-return-btn,
+.order-view-btn {
   background: none;
   border: 1px solid var(--text-light);
   color: var(--text-light);
@@ -677,11 +678,22 @@
   font-family: var(--font-sans);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.order-return-btn:hover {
+.order-return-btn:hover,
+.order-view-btn:hover {
   border-color: var(--text-main);
   color: var(--text-main);
+}
+
+.order-number-link {
+  text-decoration: none;
+  color: inherit;
+}
+.order-number-link:hover {
+  text-decoration: underline;
 }
 
 .order-return-reason {

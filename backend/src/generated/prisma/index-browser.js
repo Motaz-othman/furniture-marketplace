@@ -234,7 +234,9 @@ exports.Prisma.OrderScalarFieldEnum = {
   guestEmail: 'guestEmail',
   guestFirstName: 'guestFirstName',
   guestLastName: 'guestLastName',
-  guestPhone: 'guestPhone'
+  guestPhone: 'guestPhone',
+  couponCode: 'couponCode',
+  discountAmount: 'discountAmount'
 };
 
 exports.Prisma.OrderItemScalarFieldEnum = {
@@ -381,10 +383,42 @@ exports.Prisma.SiteSettingsScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.CouponScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  type: 'type',
+  value: 'value',
+  minOrderAmount: 'minOrderAmount',
+  maxUses: 'maxUses',
+  usedCount: 'usedCount',
+  expiresAt: 'expiresAt',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.NewsletterSubscriberScalarFieldEnum = {
   id: 'id',
   email: 'email',
   subscribedAt: 'subscribedAt'
+};
+
+exports.Prisma.ReturnRequestScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  customerId: 'customerId',
+  status: 'status',
+  adminNotes: 'adminNotes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReturnRequestItemScalarFieldEnum = {
+  id: 'id',
+  returnRequestId: 'returnRequestId',
+  orderItemId: 'orderItemId',
+  quantity: 'quantity',
+  reason: 'reason'
 };
 
 exports.Prisma.SortOrder = {
@@ -461,6 +495,13 @@ exports.ShipmentStatus = exports.$Enums.ShipmentStatus = {
   FAILED: 'FAILED'
 };
 
+exports.ReturnStatus = exports.$Enums.ReturnStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  REFUNDED: 'REFUNDED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Customer: 'Customer',
@@ -479,7 +520,10 @@ exports.Prisma.ModelName = {
   IntegrationProvider: 'IntegrationProvider',
   SyncLog: 'SyncLog',
   SiteSettings: 'SiteSettings',
-  NewsletterSubscriber: 'NewsletterSubscriber'
+  Coupon: 'Coupon',
+  NewsletterSubscriber: 'NewsletterSubscriber',
+  ReturnRequest: 'ReturnRequest',
+  ReturnRequestItem: 'ReturnRequestItem'
 };
 
 /**

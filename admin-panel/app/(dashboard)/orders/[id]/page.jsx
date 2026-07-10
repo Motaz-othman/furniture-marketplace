@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getOrder, updateOrderStatus,
   createShipment, updateShipment, deleteShipment, assignShipmentItems, processRefund,
+  updateReturnRequest,
 } from '@/lib/services/orders';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -528,6 +529,151 @@ function ShipmentCard({ orderId, shipment, onEdit }) {
   );
 }
 
+// ─── Return Requests Card ──────────────────────────────────────────────────────
+
+const RETURN_STATUS_COLOR = {
+  PENDING:  'text-yellow-600 border-yellow-300',
+  APPROVED: 'text-green-600 border-green-300',
+  REJECTED: '',
+  REFUNDED: '',
+};
+const RETURN_STATUS_VARIANT = {
+  PENDING:  'outline',
+  APPROVED: 'default',
+  REJECTED: 'destructive',
+  REFUNDED: 'secondary',
+};
+
+function ReturnRequestsCard({ orderId, returnRequests }) {
+  const queryClient = useQueryClient();
+  const [notesMap, setNotesMap] = useState({});
+
+  const mutation = useMutation({
+    mutationFn: ({ id, status, adminNotes }) => updateReturnRequest(id, status, adminNotes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-order', orderId] });
+      toast.success('Return request updated');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update return request'),
+  });
+
+  if (!returnRequests?.length) {
+    return (
+      <Card>
+        <CardHeader><CardTitle className="text-base">Return Requests</CardTitle></CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-4">No return requests for this order.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Return Requests ({returnRequests.length})</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {returnRequests.map((rr) => {
+          const refundTotal = rr.items.reduce((sum, ri) => {
+            const price = ri.orderItem?.price || 0;
+            return sum + price * ri.quantity;
+          }, 0);
+
+          return (
+            <div key={rr.id} className="border rounded-lg p-4 space-y-3">
+              {/* Header */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge
+                  variant={RETURN_STATUS_VARIANT[rr.status] || 'outline'}
+                  className={`text-xs ${RETURN_STATUS_COLOR[rr.status] || ''}`}
+                >
+                  {rr.status}
+                </Badge>
+                <span className="text-xs text-muted-foreground">{formatDate(rr.createdAt)}</span>
+                <span className="ml-auto text-xs font-medium">
+                  Refund: {formatCurrency(refundTotal)}
+                </span>
+              </div>
+
+              {/* Items */}
+              <div className="space-y-2">
+                {rr.items.map((ri) => {
+                  const item = ri.orderItem;
+                  const name = item?.product?.name || '—';
+                  const variant = item?.variant?.name;
+                  return (
+                    <div key={ri.id} className="flex items-center gap-2 text-sm">
+                      {item?.product?.mainImage ? (
+                        <img src={item.product.mainImage} alt="" className="w-8 h-8 rounded object-cover border shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center border shrink-0">
+                          <Package className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="truncate font-medium">{name}{variant ? ` — ${variant}` : ''} ×{ri.quantity}</div>
+                        <div className="text-xs text-muted-foreground truncate">{ri.reason}</div>
+                      </div>
+                      <span className="text-xs shrink-0">{formatCurrency((item?.price || 0) * ri.quantity)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Admin notes */}
+              {rr.status === 'PENDING' && (
+                <Textarea
+                  rows={2}
+                  placeholder="Admin note (optional)…"
+                  value={notesMap[rr.id] || ''}
+                  onChange={(e) => setNotesMap((m) => ({ ...m, [rr.id]: e.target.value }))}
+                />
+              )}
+              {rr.adminNotes && rr.status !== 'PENDING' && (
+                <p className="text-xs text-muted-foreground italic">Note: {rr.adminNotes}</p>
+              )}
+
+              {/* Actions */}
+              {rr.status === 'PENDING' && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    disabled={mutation.isPending}
+                    onClick={() => mutation.mutate({ id: rr.id, status: 'APPROVED', adminNotes: notesMap[rr.id] })}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="flex-1"
+                    disabled={mutation.isPending}
+                    onClick={() => mutation.mutate({ id: rr.id, status: 'REJECTED', adminNotes: notesMap[rr.id] })}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              )}
+              {rr.status === 'APPROVED' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={mutation.isPending}
+                  onClick={() => mutation.mutate({ id: rr.id, status: 'REFUNDED' })}
+                >
+                  Mark as Refunded
+                </Button>
+              )}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function OrderDetailPage() {
@@ -687,6 +833,12 @@ export default function OrderDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Return Requests */}
+          <ReturnRequestsCard
+            orderId={id}
+            returnRequests={order.returnRequests}
+          />
 
           {/* Order totals */}
           <Card>

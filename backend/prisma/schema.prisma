@@ -74,13 +74,14 @@ model Customer {
   userId           String     @unique
   stripeCustomerId String?
   
-  user             User       @relation(fields: [userId], references: [id])
+  user             User            @relation(fields: [userId], references: [id])
   cartItems        CartItem[]
   addresses        Address[]
   orders           Order[]
-  reviews          Review[]  
-  wishlist       Wishlist[] 
-  
+  reviews          Review[]
+  wishlist         Wishlist[]
+  returnRequests   ReturnRequest[]
+
   @@index([userId])
 }
 
@@ -245,6 +246,7 @@ model Order {
   address               Address       @relation(fields: [addressId], references: [id])
   items                 OrderItem[]
   shipments             Shipment[]
+  returnRequests        ReturnRequest[]
 
   @@index([customerId])
   @@index([orderNumber])
@@ -263,10 +265,11 @@ model OrderItem {
   quantity   Int
   price      Float
 
-  order    Order           @relation(fields: [orderId], references: [id])
-  shipment Shipment?       @relation(fields: [shipmentId], references: [id])
-  product  Product         @relation(fields: [productId], references: [id])
-  variant  ProductVariant? @relation(fields: [variantId], references: [id])
+  order              Order             @relation(fields: [orderId], references: [id])
+  shipment           Shipment?         @relation(fields: [shipmentId], references: [id])
+  product            Product           @relation(fields: [productId], references: [id])
+  variant            ProductVariant?   @relation(fields: [variantId], references: [id])
+  returnRequestItems ReturnRequestItem[]
 
   @@index([orderId])
   @@index([shipmentId])
@@ -343,6 +346,13 @@ enum PaymentStatus {
   PROCESSING
   SUCCEEDED
   FAILED
+  REFUNDED
+}
+
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
   REFUNDED
 }
 
@@ -514,9 +524,41 @@ model Coupon {
 }
 
 model NewsletterSubscriber {
-  id          String   @id @default(cuid())
-  email       String   @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   subscribedAt DateTime @default(now())
 
   @@index([email])
+}
+
+model ReturnRequest {
+  id          String       @id @default(uuid())
+  orderId     String
+  customerId  String
+  status      ReturnStatus @default(PENDING)
+  adminNotes  String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  order    Order             @relation(fields: [orderId], references: [id])
+  customer Customer          @relation(fields: [customerId], references: [id])
+  items    ReturnRequestItem[]
+
+  @@index([orderId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model ReturnRequestItem {
+  id              String @id @default(uuid())
+  returnRequestId String
+  orderItemId     String
+  quantity        Int
+  reason          String
+
+  returnRequest ReturnRequest @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
+  orderItem     OrderItem     @relation(fields: [orderItemId], references: [id])
+
+  @@index([returnRequestId])
+  @@index([orderItemId])
 }
