@@ -11,7 +11,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { useCart } from '@/lib/hooks';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { formatPrice } from '@/lib/utils';
-import { guestCheckout } from '@/lib/api/checkout';
+import { guestCheckout, validateCoupon } from '@/lib/api/checkout';
 import { getAddresses } from '@/lib/api/addresses';
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -80,6 +80,11 @@ export default function CheckoutContent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Coupon state
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, type, value, discountAmount }
+  const [couponLoading, setCouponLoading] = useState(false);
+
   // Payment state
   const [clientSecret, setClientSecret] = useState(null);
   const [orderData, setOrderData] = useState(null);
@@ -125,7 +130,31 @@ export default function CheckoutContent() {
   const shipping = useMemo(() => (total >= 500 ? 0 : 49.99), [total]);
   const taxRate = 0.08;
   const tax = useMemo(() => Math.round(total * taxRate * 100) / 100, [total]);
-  const grandTotal = useMemo(() => Math.round((total + shipping + tax) * 100) / 100, [total, shipping, tax]);
+  const discount = appliedCoupon?.discountAmount ?? 0;
+  const grandTotal = useMemo(() => Math.round(Math.max(0, total + shipping + tax - discount) * 100) / 100, [total, shipping, tax, discount]);
+
+  async function handleApplyCoupon() {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    try {
+      const res = await validateCoupon(code, total);
+      const data = res.data || res;
+      setAppliedCoupon(data);
+      toast.success(`Coupon "${data.code}" applied — ${data.type === 'PERCENTAGE' ? `${data.value}%` : `$${data.value.toFixed(2)}`} off`);
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Invalid coupon code';
+      toast.error(msg);
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCoupon(null);
+    setCouponInput('');
+  }
 
   function updateContact(field, value) {
     setContact((c) => ({ ...c, [field]: value }));
@@ -197,6 +226,7 @@ export default function CheckoutContent() {
         },
         items: orderItems,
         notes: notes.trim() || undefined,
+        couponCode: appliedCoupon?.code || undefined,
       });
 
       // Backend returns a single order: { order: {..., clientSecret} }
@@ -510,6 +540,41 @@ export default function CheckoutContent() {
                   />
                 </section>
 
+                {/* Coupon Code */}
+                <section className="checkout-section">
+                  <label className="checkout-notes-label">Coupon Code</label>
+                  {appliedCoupon ? (
+                    <div className="checkout-coupon-applied">
+                      <span className="checkout-coupon-badge">{appliedCoupon.code}</span>
+                      <span className="checkout-coupon-saving">
+                        −{formatPrice(appliedCoupon.discountAmount)}
+                      </span>
+                      <button type="button" className="checkout-coupon-remove" onClick={handleRemoveCoupon}>
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="checkout-coupon-row">
+                      <input
+                        type="text"
+                        className="checkout-coupon-input"
+                        placeholder="Enter coupon code"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                      />
+                      <button
+                        type="button"
+                        className="checkout-coupon-btn"
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                      >
+                        {couponLoading ? 'Applying...' : 'Apply'}
+                      </button>
+                    </div>
+                  )}
+                </section>
+
                 <button
                   className="checkout-continue-btn"
                   onClick={handlePlaceOrder}
@@ -566,6 +631,12 @@ export default function CheckoutContent() {
               <span>Tax (est.)</span>
               <span>{formatPrice(tax)}</span>
             </div>
+            {discount > 0 && (
+              <div className="summary-row summary-discount">
+                <span>Discount {appliedCoupon?.code ? `(${appliedCoupon.code})` : ''}</span>
+                <span>−{formatPrice(discount)}</span>
+              </div>
+            )}
             <div className="summary-divider" />
             <div className="summary-row summary-total">
               <span>Total</span>

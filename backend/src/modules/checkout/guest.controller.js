@@ -11,9 +11,33 @@ const generateOrderNumber = () => {
 // Creates a SINGLE order regardless of how many brands the items come from.
 // Delivery/shipment assignment is handled by admin after the order is placed.
 
+export const validateCouponPublic = async (req, res) => {
+  try {
+    const { code, subtotal } = req.body;
+    if (!code) return res.status(400).json({ error: 'Coupon code is required' });
+
+    const coupon = await prisma.coupon.findUnique({ where: { code: code.toUpperCase() } });
+    if (!coupon || !coupon.isActive) return res.status(404).json({ error: 'Invalid or inactive coupon code' });
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return res.status(400).json({ error: 'This coupon has expired' });
+    if (coupon.maxUses != null && coupon.usedCount >= coupon.maxUses) return res.status(400).json({ error: 'This coupon has reached its usage limit' });
+    if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) {
+      return res.status(400).json({ error: `Minimum order of $${coupon.minOrderAmount.toFixed(2)} required for this coupon` });
+    }
+
+    const discountAmount = coupon.type === 'PERCENTAGE'
+      ? Math.round((coupon.value / 100) * subtotal * 100) / 100
+      : Math.min(coupon.value, subtotal);
+
+    res.json({ valid: true, code: coupon.code, type: coupon.type, value: coupon.value, discountAmount });
+  } catch (error) {
+    console.error('Validate coupon error:', error);
+    res.status(500).json({ error: 'Failed to validate coupon' });
+  }
+};
+
 export const guestCheckout = async (req, res) => {
   try {
-    const { email, firstName, lastName, phone, address, items, notes } = req.body;
+    const { email, firstName, lastName, phone, address, items, notes, couponCode } = req.body;
     const customerId = req.user?.customer?.id || null;
 
     // ── Load all products + variants referenced in items ──────────────────
@@ -88,7 +112,31 @@ export const guestCheckout = async (req, res) => {
     const taxRate = parseFloat(process.env.TAX_RATE ?? '0.08');
     const shippingCost = parseFloat(process.env.SHIPPING_COST ?? '0');
     const tax = Math.round(subtotal * taxRate * 100) / 100;
-    const total = subtotal + tax + shippingCost;
+
+    // ── Validate and apply coupon ─────────────────────────────────────
+    let appliedCoupon = null;
+    let discountAmount = 0;
+    if (couponCode) {
+      const coupon = await prisma.coupon.findUnique({ where: { code: couponCode.toUpperCase() } });
+      if (!coupon || !coupon.isActive) {
+        return res.status(400).json({ error: 'Invalid or inactive coupon code' });
+      }
+      if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+        return res.status(400).json({ error: 'This coupon has expired' });
+      }
+      if (coupon.maxUses != null && coupon.usedCount >= coupon.maxUses) {
+        return res.status(400).json({ error: 'This coupon has reached its usage limit' });
+      }
+      if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) {
+        return res.status(400).json({ error: `Minimum order of $${coupon.minOrderAmount.toFixed(2)} required for this coupon` });
+      }
+      discountAmount = coupon.type === 'PERCENTAGE'
+        ? Math.round((coupon.value / 100) * subtotal * 100) / 100
+        : Math.min(coupon.value, subtotal);
+      appliedCoupon = coupon;
+    }
+
+    const total = Math.max(0, subtotal + tax + shippingCost - discountAmount);
 
     // ── Create Stripe payment intent FIRST — if this fails, no order is created ─
     let paymentIntent;
@@ -130,6 +178,8 @@ export const guestCheckout = async (req, res) => {
           subtotal,
           tax,
           shippingCost,
+          discountAmount,
+          couponCode: appliedCoupon?.code || null,
           total,
           notes: notes || null,
           stripePaymentIntentId: paymentIntent.id,
@@ -179,6 +229,14 @@ export const guestCheckout = async (req, res) => {
         console.error('Failed to cancel orphaned PaymentIntent:', cancelError);
       }
       throw txError;
+    }
+
+    // Increment coupon usage (best-effort, doesn't fail the order)
+    if (appliedCoupon) {
+      prisma.coupon.update({
+        where: { id: appliedCoupon.id },
+        data: { usedCount: { increment: 1 } },
+      }).catch((err) => console.error('Failed to increment coupon usedCount:', err));
     }
 
     // Attach the real orderId so the webhook handler can look up the order

@@ -189,6 +189,7 @@ export const guestCheckoutSchema = z.object({
     quantity: z.number().int().positive('Quantity must be at least 1').max(100),
   })).min(1, 'At least one item is required'),
   notes: z.string().max(500).optional(),
+  couponCode: z.string().max(50).optional(),
 });
 
 // Password reset validation schemas
