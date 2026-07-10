@@ -34,3 +34,8 @@ export async function assignShipmentItems(orderId, shipmentId, itemIds) {
   const { data } = await api.patch(`/admin/orders/${orderId}/shipments/${shipmentId}/items`, { itemIds });
   return data;
 }
+
+export async function processRefund(orderId, amount, reason) {
+  const { data } = await api.post('/payments/refund', { orderId, amount, reason });
+  return data;
+}

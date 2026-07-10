@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getCustomerOrders, cancelOrder } from '@/lib/api/orders';
+import { getCustomerOrders, cancelOrder, requestReturn } from '@/lib/api/orders';
 import { Package } from '@/components/ui/Icons';
 import { getAuthError } from '@/lib/api/auth';
 import ConfirmDialog from './ConfirmDialog';
@@ -28,6 +28,9 @@ export default function OrdersTab() {
   const [cancelConfirmId, setCancelConfirmId] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [returnOrderId, setReturnOrderId] = useState(null);
+  const [returnReason, setReturnReason] = useState('');
+  const [submittingReturn, setSubmittingReturn] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -46,6 +49,20 @@ export default function OrdersTab() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  const handleReturnSubmit = async () => {
+    setSubmittingReturn(true);
+    try {
+      const res = await requestReturn(returnOrderId, returnReason);
+      toast.success(res.message || 'Return request submitted');
+      setReturnOrderId(null);
+      setReturnReason('');
+    } catch (err) {
+      toast.error(getAuthError(err, 'Failed to submit return request'));
+    } finally {
+      setSubmittingReturn(false);
+    }
+  };
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -144,6 +161,11 @@ export default function OrdersTab() {
                           Cancel
                         </button>
                       )}
+                      {order.status === 'DELIVERED' && order.paymentStatus !== 'REFUNDED' && (
+                        <button className="order-return-btn" onClick={() => setReturnOrderId(order.id)}>
+                          Request Return
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -175,6 +197,39 @@ export default function OrdersTab() {
           onConfirm={handleCancel}
           onCancel={() => setCancelConfirmId(null)}
         />
+      )}
+
+      {returnOrderId && (
+        <div className="confirm-dialog-overlay">
+          <div className="confirm-dialog">
+            <h3 className="confirm-dialog-title">Request Return</h3>
+            <p className="confirm-dialog-message">
+              Tell us why you&apos;d like to return this order. Our team will contact you within 1–2 business days.
+            </p>
+            <textarea
+              className="order-return-reason"
+              rows={3}
+              placeholder="Reason for return (optional)"
+              value={returnReason}
+              onChange={(e) => setReturnReason(e.target.value)}
+            />
+            <div className="confirm-dialog-actions">
+              <button
+                className="confirm-dialog-confirm"
+                disabled={submittingReturn}
+                onClick={handleReturnSubmit}
+              >
+                {submittingReturn ? 'Submitting…' : 'Submit Request'}
+              </button>
+              <button
+                className="confirm-dialog-cancel"
+                onClick={() => { setReturnOrderId(null); setReturnReason(''); }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

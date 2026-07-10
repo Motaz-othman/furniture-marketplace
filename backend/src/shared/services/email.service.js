@@ -312,3 +312,73 @@ export const sendAdminOrderNotificationEmail = async (order) => {
     console.error('Admin order notification email error:', error);
   }
 };
+// Send return request notification to admin
+export const sendReturnRequestEmail = async (order, reason) => {
+  const { from, fromName, adminEmail } = await getEmailConfig();
+
+  const fmt = (n) => `$${Number(n || 0).toFixed(2)}`;
+  const customerName = order.customer?.user
+    ? `${order.customer.user.firstName} ${order.customer.user.lastName}`.trim()
+    : order.guestFirstName ? `${order.guestFirstName} ${order.guestLastName || ''}`.trim() : 'Customer';
+  const customerEmail = order.customer?.user?.email || order.guestEmail || '—';
+  const adminPanelUrl = process.env.ADMIN_URL || 'https://admin-panel-lvwp25rft-mutaz-othmans-projects.vercel.app';
+
+  const itemsHtml = (order.items || []).map((i) => {
+    const name = i.product?.name || 'Product';
+    const variant = i.variant?.name ? ` — ${i.variant.name}` : '';
+    return `<tr>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px;">${name}${variant}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:center;font-size:14px;">×${i.quantity}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:right;font-size:14px;">${fmt(i.price * i.quantity)}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `
+<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+        <tr><td style="background:#dc2626;padding:20px 32px;">
+          <p style="margin:0;font-size:16px;font-weight:bold;color:#fff;">Return Request</p>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <h2 style="margin:0 0 20px;font-size:20px;color:#111;">Order #${order.orderNumber}</h2>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;background:#fef2f2;border-radius:6px;padding:16px;">
+            <tr><td style="font-size:13px;color:#555;padding:4px 0;width:120px;">Customer</td><td style="font-size:13px;color:#111;font-weight:600;">${customerName}</td></tr>
+            <tr><td style="font-size:13px;color:#555;padding:4px 0;">Email</td><td style="font-size:13px;color:#111;">${customerEmail}</td></tr>
+            <tr><td style="font-size:13px;color:#555;padding:4px 0;">Order Total</td><td style="font-size:13px;font-weight:700;color:#111;">${fmt(order.total)}</td></tr>
+            ${reason ? `<tr><td style="font-size:13px;color:#555;padding:4px 0;vertical-align:top;">Reason</td><td style="font-size:13px;color:#111;">${reason}</td></tr>` : ''}
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <thead>
+              <tr>
+                <th style="text-align:left;font-size:11px;color:#888;text-transform:uppercase;padding-bottom:8px;border-bottom:2px solid #f0f0f0;">Item</th>
+                <th style="text-align:center;font-size:11px;color:#888;text-transform:uppercase;padding-bottom:8px;border-bottom:2px solid #f0f0f0;">Qty</th>
+                <th style="text-align:right;font-size:11px;color:#888;text-transform:uppercase;padding-bottom:8px;border-bottom:2px solid #f0f0f0;">Price</th>
+              </tr>
+            </thead>
+            <tbody>${itemsHtml}</tbody>
+          </table>
+          <div style="margin-top:28px;text-align:center;">
+            <a href="${adminPanelUrl}/orders/${order.id}" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+              Process Return in Admin Panel
+            </a>
+          </div>
+        </td></tr>
+        <tr><td style="padding:16px 32px;border-top:1px solid #f0f0f0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">Automated return request from ${fromName}.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+
+  await createTransporter().sendMail({
+    from: `"${fromName}" <${from}>`,
+    to: adminEmail,
+    subject: `Return Request — Order #${order.orderNumber} — ${customerName}`,
+    html,
+  });
+  console.log(`Return request email sent for order ${order.orderNumber}`);
+};

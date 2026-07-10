@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getOrder, updateOrderStatus,
-  createShipment, updateShipment, deleteShipment, assignShipmentItems,
+  createShipment, updateShipment, deleteShipment, assignShipmentItems, processRefund,
 } from '@/lib/services/orders';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -537,6 +537,9 @@ export default function OrderDetailPage() {
   const [newStatus, setNewStatus] = useState('');
   const [showAddShipment, setShowAddShipment] = useState(false);
   const [editingShipment, setEditingShipment] = useState(null);
+  const [showRefund, setShowRefund] = useState(false);
+  const [refundAmount, setRefundAmount] = useState('');
+  const [refundReason, setRefundReason] = useState('requested_by_customer');
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-order', id],
@@ -552,6 +555,17 @@ export default function OrderDetailPage() {
       setNewStatus('');
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to update status'),
+  });
+
+  const refundMutation = useMutation({
+    mutationFn: ({ amount, reason }) => processRefund(id, amount || undefined, reason),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
+      toast.success(data.message || 'Refund processed');
+      setShowRefund(false);
+      setRefundAmount('');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to process refund'),
   });
 
   if (isLoading) return <div className="text-muted-foreground">Loading...</div>;
@@ -779,6 +793,60 @@ export default function OrderDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Refund */}
+          {order.paymentStatus === 'SUCCEEDED' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Issue Refund</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {!showRefund ? (
+                  <Button variant="destructive" className="w-full" onClick={() => setShowRefund(true)}>
+                    Process Refund
+                  </Button>
+                ) : (
+                  <>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Amount (leave blank for full refund)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder={`Max $${Number(order.total).toFixed(2)}`}
+                        value={refundAmount}
+                        onChange={(e) => setRefundAmount(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Reason</Label>
+                      <Select value={refundReason} onValueChange={setRefundReason}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="requested_by_customer">Requested by customer</SelectItem>
+                          <SelectItem value="fraudulent">Fraudulent</SelectItem>
+                          <SelectItem value="duplicate">Duplicate</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="destructive"
+                        className="flex-1"
+                        disabled={refundMutation.isPending}
+                        onClick={() => refundMutation.mutate({ amount: refundAmount ? parseFloat(refundAmount) : undefined, reason: refundReason })}
+                      >
+                        {refundMutation.isPending ? 'Processing…' : 'Confirm Refund'}
+                      </Button>
+                      <Button variant="outline" onClick={() => { setShowRefund(false); setRefundAmount(''); }}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Notes */}
           {order.notes && (
