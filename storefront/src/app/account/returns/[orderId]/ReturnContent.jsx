@@ -56,8 +56,9 @@ export default function ReturnContent({ orderId }) {
         });
         setItemStates(init);
       })
-      .catch(() => {
-        toast.error('Order not found');
+      .catch((err) => {
+        const msg = err?.response?.data?.error || 'Order not found';
+        toast.error(msg);
         router.push('/account#orders');
       })
       .finally(() => setLoadingOrder(false));

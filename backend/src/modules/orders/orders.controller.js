@@ -208,21 +208,20 @@ export const getCustomerOrders = async (req, res) => {
 export const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
 
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
         items: { include: { product: true, variant: true } },
-        customer: { include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } } },
+        customer: { include: { user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } } } },
         address: true
       }
     });
 
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
-    const isCustomer = order.customer?.user?.id === userId || order.customer?.userId === userId;
     const isAdmin = req.user.role === 'ADMIN';
+    const isCustomer = req.user.customer?.id && req.user.customer.id === order.customerId;
 
     if (!isCustomer && !isAdmin) {
       return res.status(403).json({ error: 'Access denied' });
@@ -346,7 +345,7 @@ export const requestReturn = async (req, res) => {
     });
 
     if (!order || order.customerId !== customerId) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(403).json({ error: 'You do not have permission to return this order' });
     }
     if (order.status !== 'DELIVERED') {
       return res.status(400).json({ error: 'Only delivered orders can be returned' });
