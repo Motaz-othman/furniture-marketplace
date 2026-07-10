@@ -334,7 +334,7 @@ export const requestReturn = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
     const { id } = req.params;
-    const { reason } = req.body;
+    const { reason, selectedItems } = req.body;
 
     const order = await prisma.order.findUnique({
       where: { id },
@@ -352,7 +352,7 @@ export const requestReturn = async (req, res) => {
       return res.status(400).json({ error: 'Only delivered orders can be returned' });
     }
 
-    sendReturnRequestEmail(order, reason).catch((err) => console.error('Return request email error:', err));
+    sendReturnRequestEmail(order, reason, selectedItems).catch((err) => console.error('Return request email error:', err));
 
     res.json({ message: 'Return request submitted. Our team will contact you within 1-2 business days.' });
   } catch (error) {

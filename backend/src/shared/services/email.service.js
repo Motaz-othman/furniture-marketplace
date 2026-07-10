@@ -313,7 +313,7 @@ export const sendAdminOrderNotificationEmail = async (order) => {
   }
 };
 // Send return request notification to admin
-export const sendReturnRequestEmail = async (order, reason) => {
+export const sendReturnRequestEmail = async (order, reason, selectedItems) => {
   const { from, fromName, adminEmail } = await getEmailConfig();
 
   const fmt = (n) => `$${Number(n || 0).toFixed(2)}`;
@@ -323,13 +323,23 @@ export const sendReturnRequestEmail = async (order, reason) => {
   const customerEmail = order.customer?.user?.email || order.guestEmail || '—';
   const adminPanelUrl = process.env.ADMIN_URL || 'https://admin-panel-lvwp25rft-mutaz-othmans-projects.vercel.app';
 
-  const itemsHtml = (order.items || []).map((i) => {
-    const name = i.product?.name || 'Product';
-    const variant = i.variant?.name ? ` — ${i.variant.name}` : '';
+  // Use only the items the customer selected for return; fall back to all items
+  const returnItems = Array.isArray(selectedItems) && selectedItems.length > 0
+    ? selectedItems
+    : (order.items || []).map((i) => ({
+        name: i.product?.name || 'Product',
+        quantity: i.quantity,
+        price: i.price,
+      }));
+
+  const itemsHtml = returnItems.map((i) => {
+    const name = i.name || 'Product';
+    const qty = i.quantity || 1;
+    const price = i.price || 0;
     return `<tr>
-      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px;">${name}${variant}</td>
-      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:center;font-size:14px;">×${i.quantity}</td>
-      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:right;font-size:14px;">${fmt(i.price * i.quantity)}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:14px;">${name}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:center;font-size:14px;">×${qty}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:right;font-size:14px;">${fmt(price * qty)}</td>
     </tr>`;
   }).join('');
 

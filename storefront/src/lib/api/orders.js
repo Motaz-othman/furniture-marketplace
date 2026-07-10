@@ -12,6 +12,6 @@ export async function cancelOrder(id) {
   return patch(`/orders/${id}/cancel`);
 }
 
-export async function requestReturn(id, reason) {
-  return post(`/orders/${id}/request-return`, { reason });
+export async function requestReturn(id, reason, selectedItems) {
+  return post(`/orders/${id}/request-return`, { reason, selectedItems });
 }
