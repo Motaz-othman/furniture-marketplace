@@ -2,7 +2,7 @@
 
 import '@/styles/order-detail.css';
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import MainLayout from '@/components/layout/MainLayout';
 import { getOrderById, getOrderReturnRequests } from '@/lib/api/orders';
@@ -94,7 +94,6 @@ export default function OrderDetailContent({ orderId }) {
 
   if (!order) return null;
 
-  const customer = order.customer?.user;
   const address = order.address;
 
   // Build a map of orderItemId → return request item for quick lookup
@@ -106,13 +105,10 @@ export default function OrderDetailContent({ orderId }) {
     });
   });
 
-  const canReturnOrder = order.status === 'DELIVERED' && order.paymentStatus !== 'REFUNDED';
-
-  // Item can be returned if delivered and no PENDING/APPROVED return already for it
+  // Item can be returned if its own shipment is DELIVERED and no active return exists for it
   const itemCanReturn = (item) => {
-    if (!canReturnOrder) return false;
-    const itemShipmentDelivered = item.shipment ? item.shipment.status === 'DELIVERED' : true;
-    if (!itemShipmentDelivered) return false;
+    if (order.paymentStatus === 'REFUNDED') return false;
+    if (!item.shipment || item.shipment.status !== 'DELIVERED') return false;
     const existing = returnedItemMap[item.id] || [];
     return !existing.some((ri) => ri.requestStatus === 'PENDING' || ri.requestStatus === 'APPROVED');
   };
