@@ -499,7 +499,7 @@ export default function CheckoutContent() {
                   <h2>Items ({itemCount})</h2>
                   <div className="checkout-items">
                     {items.map((item) => {
-                      const imageUrl = item.product?.images?.[0]?.imageUrl;
+                      const imageUrl = item.product?.mainImage || item.product?.images?.[0]?.imageUrl;
                       const name = item.product?.name || 'Product';
                       const variantName = item.variant?.name || item.variant?.variantName || null;
 
