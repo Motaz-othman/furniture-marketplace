@@ -90,7 +90,7 @@ export default function CartPageContent() {
             {items.map((item) => {
               const product = item.product;
               const variant = item.variant;
-              const imageUrl = product?.images?.[0]?.imageUrl;
+              const imageUrl = product?.mainImage;
               const price =
                 variant?.price?.retailPrice ??
                 (typeof variant?.price === 'number' ? variant.price : null) ??
