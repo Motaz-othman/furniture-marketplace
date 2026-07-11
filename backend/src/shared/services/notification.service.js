@@ -66,3 +66,23 @@ export const notifyOrderCancelled = async (customerUserId, order) => {
   });
 };
 
+export const notifyReturnUpdated = async (customerUserId, order, returnStatus) => {
+  const TITLES = {
+    APPROVED: 'Return Approved',
+    REJECTED: 'Return Not Approved',
+    REFUNDED: 'Refund Processed',
+  };
+  const MESSAGES = {
+    APPROVED: `Your return request for order #${order.orderNumber} has been approved. We will arrange collection shortly.`,
+    REJECTED: `Your return request for order #${order.orderNumber} could not be approved. Please contact support for more information.`,
+    REFUNDED: `Your refund for order #${order.orderNumber} has been processed and will appear within 5–10 business days.`,
+  };
+  return createNotification({
+    userId: customerUserId,
+    type: 'RETURN_STATUS_CHANGED',
+    title: TITLES[returnStatus] || `Return Update — Order #${order.orderNumber}`,
+    message: MESSAGES[returnStatus] || `Return status updated to ${returnStatus}`,
+    data: { orderId: order.id, orderNumber: order.orderNumber, returnStatus },
+  });
+};
+

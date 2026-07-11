@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import MainLayout from '@/components/layout/MainLayout';
-import { getOrderById } from '@/lib/api/orders';
+import { getOrderById, cancelOrder } from '@/lib/api/orders';
 import { getItemStatus, ITEM_STATUS_LABEL, ITEM_STATUS_STYLE } from '@/lib/itemStatus';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -51,6 +51,7 @@ export default function OrderDetailContent({ orderId }) {
 
   const [order, setOrder] = useState(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -83,6 +84,20 @@ export default function OrderDetailContent({ orderId }) {
 
   const itemCanReturn = (item) => item.status === 'DELIVERED';
 
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      await cancelOrder(orderId);
+      toast.success('Order cancelled');
+      const updated = await getOrderById(orderId);
+      setOrder(updated);
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to cancel order');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <MainLayout>
       <div className="od-container">
@@ -98,7 +113,18 @@ export default function OrderDetailContent({ orderId }) {
             <h1>{order.orderNumber}</h1>
             <p className="od-header-date">Placed {fmtDate(order.createdAt)}</p>
           </div>
-          <StatusBadge status={order.status} className="od-header-status" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <StatusBadge status={order.status} className="od-header-status" />
+            {order.status === 'PENDING' && (
+              <button
+                className="od-cancel-btn"
+                onClick={handleCancel}
+                disabled={cancelling}
+              >
+                {cancelling ? 'Cancelling…' : 'Cancel Order'}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="od-layout">

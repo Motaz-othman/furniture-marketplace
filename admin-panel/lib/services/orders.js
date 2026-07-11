@@ -10,8 +10,8 @@ export async function getOrder(id) {
   return data;
 }
 
-export async function updateOrderStatus(id, status, note) {
-  const { data } = await api.patch(`/admin/orders/${id}/status`, { status, ...(note && { note }) });
+export async function updateOrderStatus(id, status, note, force = false) {
+  const { data } = await api.patch(`/admin/orders/${id}/status`, { status, ...(note && { note }), ...(force && { force: true }) });
   return data;
 }
 

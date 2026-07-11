@@ -253,6 +253,20 @@
 }
 .od-return-btn:hover { background: var(--od-return-btn-hover); }
 
+.od-cancel-btn {
+  font-size: 0.82rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  background: transparent;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.od-cancel-btn:hover { background: #dc2626; color: #fff; }
+.od-cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* Return requests */
 .od-rr-list { display: flex; flex-direction: column; gap: 0.875rem; }
 .od-rr-item {

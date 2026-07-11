@@ -1,4 +1,5 @@
 import prisma from '../../shared/config/db.js';
+import { notifyOrderStatusChanged } from '../../shared/services/notification.service.js';
 
 // ============================================
 // PLATFORM STATISTICS
@@ -359,18 +360,47 @@ export const getOrderDetails = async (req, res) => {
   }
 };
 
+const ALLOWED_TRANSITIONS = {
+  PENDING:    ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED:  ['PROCESSING', 'CANCELLED'],
+  PROCESSING: ['SHIPPED', 'CANCELLED'],
+  SHIPPED:    ['DELIVERED'],
+  DELIVERED:  ['REFUNDED'],
+  CANCELLED:  [],
+  REFUNDED:   [],
+};
+
 export const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, note } = req.body;
+    const { status, note, force } = req.body;
 
     const validStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+
+    const existing = await prisma.order.findUnique({
+      where: { id },
+      include: { customer: { include: { user: true } } },
+    });
+    if (!existing) return res.status(404).json({ error: 'Order not found' });
+
+    const allowed = ALLOWED_TRANSITIONS[existing.status] || [];
+    if (!force && !allowed.includes(status)) {
+      return res.status(400).json({
+        error: `Cannot move order from ${existing.status} to ${status}`,
+        allowedTransitions: allowed,
+      });
+    }
 
     const order = await prisma.order.update({
       where: { id },
       data: { status, ...(note && { notes: note }) },
     });
+
+    const userId = existing.customer?.user?.id;
+    if (userId) {
+      notifyOrderStatusChanged(userId, order, status).catch(console.error);
+    }
 
     res.json({ message: 'Order status updated', order });
   } catch (error) {
@@ -435,6 +465,14 @@ export const updateShipment = async (req, res) => {
         items: { include: { product: { select: { name: true, mainImage: true } }, variant: { select: { name: true, sku: true } } } }
       },
     });
+
+    // Auto-advance items to DELIVERED when shipment is marked delivered
+    if (status === 'DELIVERED') {
+      await prisma.orderItem.updateMany({
+        where: { shipmentId, status: { in: ['PENDING', 'IN_TRANSIT'] } },
+        data: { status: 'DELIVERED' },
+      });
+    }
 
     res.json({ shipment });
   } catch (error) {

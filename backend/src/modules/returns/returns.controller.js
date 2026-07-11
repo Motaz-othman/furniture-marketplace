@@ -1,6 +1,7 @@
 import prisma from '../../shared/config/db.js';
 import { sendReturnRequestEmail } from '../../shared/services/email.service.js';
 import { createRefund, listRefunds } from '../../shared/services/stripe.service.js';
+import { notifyReturnUpdated } from '../../shared/services/notification.service.js';
 
 const ORDER_INCLUDE = {
   items: { include: { product: true, variant: true } },
@@ -170,8 +171,8 @@ export const updateReturnRequestStatus = async (req, res) => {
         where: { id },
         data: { status, ...(adminNotes !== undefined && { adminNotes }) },
         include: {
-          order: { select: { orderNumber: true } },
-          customer: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
+          order: { select: { id: true, orderNumber: true } },
+          customer: { include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } } },
           items: { include: { orderItem: { include: { product: true, variant: true } } } },
         },
       }),
@@ -180,6 +181,11 @@ export const updateReturnRequestStatus = async (req, res) => {
         data: { status: itemStatus },
       }),
     ]);
+
+    const userId = updated.customer?.user?.id;
+    if (userId) {
+      notifyReturnUpdated(userId, updated.order, status).catch(console.error);
+    }
 
     res.json({ message: `Return request ${status.toLowerCase()}`, returnRequest: updated });
   } catch (error) {
@@ -233,6 +239,8 @@ export const refundReturnRequest = async (req, res) => {
         where: { id },
         data: { status: 'REFUNDED' },
         include: {
+          order: { select: { id: true, orderNumber: true } },
+          customer: { include: { user: { select: { id: true } } } },
           items: { include: { orderItem: { include: { product: true, variant: true } } } },
         },
       }),
@@ -247,6 +255,11 @@ export const refundReturnRequest = async (req, res) => {
         data: { status: 'REFUNDED' },
       }),
     ]);
+
+    const userId = updated.customer?.user?.id;
+    if (userId) {
+      notifyReturnUpdated(userId, updated.order, 'REFUNDED').catch(console.error);
+    }
 
     res.json({
       message: `Refund of $${refundAmount.toFixed(2)} processed successfully`,

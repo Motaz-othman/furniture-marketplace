@@ -38,6 +38,16 @@ import { toast } from 'sonner';
 
 const ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 
+const ALLOWED_TRANSITIONS = {
+  PENDING:    ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED:  ['PROCESSING', 'CANCELLED'],
+  PROCESSING: ['SHIPPED', 'CANCELLED'],
+  SHIPPED:    ['DELIVERED'],
+  DELIVERED:  ['REFUNDED'],
+  CANCELLED:  [],
+  REFUNDED:   [],
+};
+
 const ORDER_STATUS_COLOR = {
   PENDING:    'text-yellow-600 border-yellow-300',
   CONFIRMED:  'text-blue-600 border-blue-300',
@@ -183,8 +193,8 @@ function AddShipmentDialog({ open, onClose, orderId, unassignedItems }) {
                     )}
                     <label htmlFor={`item-${item.id}`} className="text-sm flex-1 cursor-pointer truncate">
                       {item.product?.name || '—'}
-                      {item.variant && (
-                        <span className="text-muted-foreground"> · {[item.variant.color, item.variant.size].filter(Boolean).join('/')}</span>
+                      {item.variant?.name && (
+                        <span className="text-muted-foreground"> · {item.variant.name}</span>
                       )}
                       <span className="text-muted-foreground"> × {item.quantity}</span>
                     </label>
@@ -464,7 +474,7 @@ function ShipmentCard({ orderId, shipment, onEdit }) {
               )}
               <span className="truncate text-muted-foreground">
                 {item.product?.name || '—'}
-                {item.variant && <span> · {[item.variant.color, item.variant.size].filter(Boolean).join('/')}</span>}
+                {item.variant?.name && <span> · {item.variant.name}</span>}
                 <span> × {item.quantity}</span>
               </span>
             </div>
@@ -666,6 +676,7 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [newStatus, setNewStatus] = useState('');
+  const [forceStatus, setForceStatus] = useState(false);
   const [showAddShipment, setShowAddShipment] = useState(false);
   const [editingShipment, setEditingShipment] = useState(null);
 
@@ -675,12 +686,13 @@ export default function OrderDetailPage() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: (status) => updateOrderStatus(id, status),
+    mutationFn: ({ status, force }) => updateOrderStatus(id, status, undefined, force),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       toast.success('Order status updated');
       setNewStatus('');
+      setForceStatus(false);
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to update status'),
   });
@@ -746,7 +758,7 @@ export default function OrderDetailPage() {
                     <div className="text-sm font-medium truncate">{item.product?.name || '—'}</div>
                     {item.variant && (
                       <div className="text-xs text-muted-foreground">
-                        {[item.variant.color, item.variant.size].filter(Boolean).join(' / ')}
+                        {item.variant.name || ''}
                         {item.variant.sku && ` · SKU: ${item.variant.sku}`}
                       </div>
                     )}
@@ -856,23 +868,45 @@ export default function OrderDetailPage() {
               <CardTitle className="text-base">Update Status</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder={`Current: ${order.status}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {ORDER_STATUSES.filter((s) => s !== order.status).map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                className="w-full"
-                disabled={!newStatus || statusMutation.isPending}
-                onClick={() => statusMutation.mutate(newStatus)}
-              >
-                {statusMutation.isPending ? 'Updating...' : 'Update Status'}
-              </Button>
+              {(() => {
+                const allowed = ALLOWED_TRANSITIONS[order.status] || [];
+                const others = ORDER_STATUSES.filter((s) => s !== order.status && !allowed.includes(s));
+                const isOverride = newStatus && !allowed.includes(newStatus);
+                return (
+                  <>
+                    <Select value={newStatus} onValueChange={(v) => { setNewStatus(v); setForceStatus(false); }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={`Current: ${order.status}`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allowed.map((s) => (
+                          <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>
+                        ))}
+                        {others.length > 0 && allowed.length > 0 && (
+                          <div className="px-2 py-1 text-xs text-muted-foreground border-t mt-1 pt-1">Override</div>
+                        )}
+                        {others.map((s) => (
+                          <SelectItem key={s} value={s} className="text-muted-foreground">
+                            {s.replace('_', ' ')} ⚠
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isOverride && (
+                      <p className="text-xs text-amber-600">
+                        This is a non-standard transition — it will be forced.
+                      </p>
+                    )}
+                    <Button
+                      className="w-full"
+                      disabled={!newStatus || statusMutation.isPending}
+                      onClick={() => statusMutation.mutate({ status: newStatus, force: isOverride })}
+                    >
+                      {statusMutation.isPending ? 'Updating...' : 'Update Status'}
+                    </Button>
+                  </>
+                );
+              })()}
             </CardContent>
           </Card>
 
