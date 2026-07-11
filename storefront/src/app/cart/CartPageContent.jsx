@@ -90,9 +90,11 @@ export default function CartPageContent() {
             {items.map((item) => {
               const product = item.product;
               const variant = item.variant;
+              const di = product?.storefront?.displayImages?.[0];
               const imageUrl = product?.mainImage
-                || product?.storefront?.displayImages?.[0]?.url
-                || product?.media?.mainImages?.[0]?.url;
+                || di?.imageUrl || di?.url
+                || product?.media?.mainImages?.[0]?.url
+                || product?.media?.additionalImages?.[0]?.url;
               const price =
                 variant?.price?.retailPrice ??
                 (typeof variant?.price === 'number' ? variant.price : null) ??

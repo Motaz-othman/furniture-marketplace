@@ -220,9 +220,6 @@ exports.Prisma.OrderScalarFieldEnum = {
   tax: 'tax',
   shippingCost: 'shippingCost',
   total: 'total',
-  stripePaymentId: 'stripePaymentId',
-  trackingNumber: 'trackingNumber',
-  trackingUrl: 'trackingUrl',
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -246,7 +243,8 @@ exports.Prisma.OrderItemScalarFieldEnum = {
   productId: 'productId',
   variantId: 'variantId',
   quantity: 'quantity',
-  price: 'price'
+  price: 'price',
+  status: 'status'
 };
 
 exports.Prisma.ShipmentScalarFieldEnum = {
@@ -471,6 +469,16 @@ exports.PaymentStatus = exports.$Enums.PaymentStatus = {
   SUCCEEDED: 'SUCCEEDED',
   FAILED: 'FAILED',
   PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
+  REFUNDED: 'REFUNDED'
+};
+
+exports.ItemStatus = exports.$Enums.ItemStatus = {
+  PENDING: 'PENDING',
+  IN_TRANSIT: 'IN_TRANSIT',
+  DELIVERED: 'DELIVERED',
+  RETURN_REQUESTED: 'RETURN_REQUESTED',
+  RETURN_APPROVED: 'RETURN_APPROVED',
+  RETURN_REJECTED: 'RETURN_REJECTED',
   REFUNDED: 'REFUNDED'
 };
 
