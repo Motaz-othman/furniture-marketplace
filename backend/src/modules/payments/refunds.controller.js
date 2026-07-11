@@ -34,8 +34,7 @@ export const processRefund = async (req, res) => {
     await prisma.order.update({
       where: { id: orderId },
       data: {
-        paymentStatus: isFullRefund ? 'REFUNDED' : 'SUCCEEDED',
-        status: isFullRefund ? 'REFUNDED' : order.status
+        paymentStatus: isFullRefund ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
       }
     });
 

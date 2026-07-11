@@ -470,6 +470,7 @@ exports.PaymentStatus = exports.$Enums.PaymentStatus = {
   PROCESSING: 'PROCESSING',
   SUCCEEDED: 'SUCCEEDED',
   FAILED: 'FAILED',
+  PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
   REFUNDED: 'REFUNDED'
 };
 
