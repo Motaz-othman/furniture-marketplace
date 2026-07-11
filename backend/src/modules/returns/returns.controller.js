@@ -11,7 +11,7 @@ const ORDER_INCLUDE = {
 export const createReturnRequest = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
-    const { id: orderId } = req.params;
+    const { orderId } = req.params;
     const { items: returnItems } = req.body; // [{ orderItemId, quantity, reason }]
 
     if (!Array.isArray(returnItems) || returnItems.length === 0) {
@@ -91,7 +91,7 @@ export const createReturnRequest = async (req, res) => {
 export const getOrderReturnRequests = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
-    const { id: orderId } = req.params;
+    const { orderId } = req.params;
 
     const order = await prisma.order.findUnique({ where: { id: orderId }, select: { customerId: true } });
     if (!order || order.customerId !== customerId) {
