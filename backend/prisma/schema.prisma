@@ -219,9 +219,6 @@ model Order {
   tax             Float       @default(0)
   shippingCost    Float       @default(0)
   total           Float
-  stripePaymentId String?
-  trackingNumber  String?
-  trackingUrl     String?
   notes           String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt

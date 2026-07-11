@@ -421,6 +421,16 @@ export const createShipment = async (req, res) => {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
+    if (itemIds?.length) {
+      const validItems = await prisma.orderItem.findMany({
+        where: { id: { in: itemIds }, orderId },
+        select: { id: true },
+      });
+      if (validItems.length !== itemIds.length) {
+        return res.status(400).json({ error: 'One or more items do not belong to this order' });
+      }
+    }
+
     const shipment = await prisma.shipment.create({
       data: {
         orderId,

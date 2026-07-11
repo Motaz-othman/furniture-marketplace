@@ -1,18 +1,11 @@
 import prisma from '../../shared/config/db.js';
-import { notifyOrderPlaced, notifyOrderStatusChanged, notifyOrderCancelled } from '../../shared/services/notification.service.js';
+import { notifyOrderPlaced, notifyOrderCancelled } from '../../shared/services/notification.service.js';
 import { createPaymentIntent, cancelPaymentIntent } from '../../shared/services/stripe.service.js';
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 7);
   return `ORD-${timestamp}-${random}`.toUpperCase();
-};
-
-const generateTrackingNumber = (orderId) => {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const orderSuffix = orderId.substring(0, 4).toUpperCase();
-  return `TRK-${timestamp}${random}-${orderSuffix}`;
 };
 
 // Create order from cart
@@ -256,47 +249,6 @@ export const getOrderById = async (req, res) => {
 };
 
 // Update order status (admin only)
-export const updateOrderStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status, trackingNumber, trackingUrl } = req.body;
-
-    const validStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
-    }
-
-    const order = await prisma.order.findUnique({ where: { id } });
-    if (!order) return res.status(404).json({ error: 'Order not found' });
-
-    const updateData = { status };
-    if (status === 'SHIPPED' && !order.trackingNumber) {
-      updateData.trackingNumber = trackingNumber || generateTrackingNumber(id);
-    }
-    if (trackingUrl) updateData.trackingUrl = trackingUrl;
-
-    const updatedOrder = await prisma.order.update({
-      where: { id },
-      data: updateData,
-      include: { items: { include: { product: true, variant: true } } }
-    });
-
-    if (updatedOrder.customerId) {
-      try {
-        const customer = await prisma.customer.findUnique({ where: { id: updatedOrder.customerId }, select: { userId: true } });
-        if (customer) await notifyOrderStatusChanged(customer.userId, updatedOrder, status);
-      } catch (notifError) {
-        console.error('Notification error:', notifError);
-      }
-    }
-
-    res.json({ message: 'Order status updated', order: updatedOrder });
-  } catch (error) {
-    console.error('Update order status error:', error);
-    res.status(500).json({ error: 'Failed to update order status' });
-  }
-};
-
 // Cancel order (customer only, PENDING status)
 export const cancelOrder = async (req, res) => {
   try {
