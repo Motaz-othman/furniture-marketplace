@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import MainLayout from '@/components/layout/MainLayout';
-import { getOrderById, getOrderReturnRequests } from '@/lib/api/orders';
+import { getOrderById } from '@/lib/api/orders';
 import { getItemStatus, ITEM_STATUS_LABEL, ITEM_STATUS_STYLE } from '@/lib/itemStatus';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -44,22 +44,12 @@ function StatusBadge({ status, className = '' }) {
   );
 }
 
-function ReturnStatusBadge({ status }) {
-  const MAP = {
-    PENDING:  'rr-badge-pending',
-    APPROVED: 'rr-badge-approved',
-    REJECTED: 'rr-badge-rejected',
-    REFUNDED: 'rr-badge-refunded',
-  };
-  return <span className={`rr-badge ${MAP[status] || 'rr-badge-pending'}`}>{status}</span>;
-}
 
 export default function OrderDetailContent({ orderId }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const [order, setOrder] = useState(null);
-  const [returnRequests, setReturnRequests] = useState([]);
   const [loadingOrder, setLoadingOrder] = useState(true);
 
   useEffect(() => {
@@ -70,14 +60,8 @@ export default function OrderDetailContent({ orderId }) {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    Promise.all([
-      getOrderById(orderId),
-      getOrderReturnRequests(orderId).catch(() => ({ returnRequests: [] })),
-    ])
-      .then(([orderData, rrData]) => {
-        setOrder(orderData);
-        setReturnRequests(rrData.returnRequests || []);
-      })
+    getOrderById(orderId)
+      .then((orderData) => setOrder(orderData))
       .catch(() => {
         toast.error('Order not found');
         router.push('/account#orders');
@@ -97,15 +81,7 @@ export default function OrderDetailContent({ orderId }) {
 
   const address = order.address;
 
-  // Item can be returned if its shipment is DELIVERED and no active return exists
-  const itemCanReturn = (item) => {
-    if (order.paymentStatus === 'REFUNDED') return false;
-    if (!item.shipment || item.shipment.status !== 'DELIVERED') return false;
-    const rri = item.returnRequestItems?.[0];
-    if (!rri) return true;
-    const s = rri.returnRequest?.status;
-    return s !== 'PENDING' && s !== 'APPROVED';
-  };
+  const itemCanReturn = (item) => item.status === 'DELIVERED';
 
   return (
     <MainLayout>
@@ -196,36 +172,6 @@ export default function OrderDetailContent({ orderId }) {
                 })}
               </div>
             </section>
-
-            {/* Return Requests */}
-            {returnRequests.length > 0 && (
-              <section className="od-card">
-                <h2 className="od-card-title">Return Requests</h2>
-                <div className="od-rr-list">
-                  {returnRequests.map((rr) => (
-                    <div key={rr.id} className="od-rr-item">
-                      <div className="od-rr-header">
-                        <span className="od-rr-date">Submitted {fmtDate(rr.createdAt)}</span>
-                        <ReturnStatusBadge status={rr.status} />
-                      </div>
-                      {(rr.items || []).map((ri) => (
-                        <div key={ri.id} className="od-rr-line">
-                          <span className="od-rr-item-name">
-                            {ri.orderItem?.product?.name || 'Product'}
-                            {ri.orderItem?.variant?.name ? ` — ${ri.orderItem.variant.name}` : ''}
-                            {' '}×{ri.quantity}
-                          </span>
-                          <span className="od-rr-reason">{ri.reason}</span>
-                        </div>
-                      ))}
-                      {rr.adminNotes && (
-                        <p className="od-rr-notes">Note: {rr.adminNotes}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
 
             {/* Order Summary */}
             <section className="od-card">

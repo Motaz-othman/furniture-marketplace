@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getOrder, updateOrderStatus,
   createShipment, updateShipment, deleteShipment,
+  updateItemStatus,
 } from '@/lib/services/orders';
 import { updateReturnRequest, refundReturnRequest } from '@/lib/services/returns';
 import { Button } from '@/components/ui/button';
@@ -92,28 +93,6 @@ function OrderStatusBadge({ status }) {
       {status}
     </Badge>
   );
-}
-
-function itemLifecycleStatus(item) {
-  const rri = item.returnRequestItems?.[0];
-  if (rri) {
-    const s = rri.returnRequest?.status;
-    if (s === 'REFUNDED')  return { label: 'Refunded',        variant: 'secondary', cls: '' };
-    if (s === 'REJECTED')  return { label: 'Return Rejected', variant: 'destructive', cls: '' };
-    if (s === 'APPROVED')  return { label: 'Return Approved', variant: 'outline', cls: 'text-green-600 border-green-300' };
-    if (s === 'PENDING')   return { label: 'Return Requested',variant: 'outline', cls: 'text-yellow-600 border-yellow-300' };
-  }
-  const s = item.shipment?.status;
-  const MAP = {
-    PENDING:    { label: 'Pending',     variant: 'outline', cls: 'text-yellow-600 border-yellow-300' },
-    QUOTED:     { label: 'Quoted',      variant: 'secondary', cls: 'text-blue-600 border-blue-300' },
-    ARRANGED:   { label: 'Arranged',    variant: 'secondary', cls: 'text-purple-600 border-purple-300' },
-    IN_TRANSIT: { label: 'In Transit',  variant: 'default',  cls: 'text-cyan-600 border-cyan-300' },
-    DELIVERED:  { label: 'Delivered',   variant: 'default',  cls: 'text-green-600 border-green-300' },
-    FAILED:     { label: 'Failed',      variant: 'destructive', cls: '' },
-  };
-  return s ? (MAP[s] || { label: s, variant: 'outline', cls: '' })
-           : { label: 'Pending', variant: 'outline', cls: 'text-yellow-600 border-yellow-300' };
 }
 
 // ─── Add Shipment Dialog ───────────────────────────────────────────────────────
@@ -706,6 +685,12 @@ export default function OrderDetailPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to update status'),
   });
 
+  const itemStatusMutation = useMutation({
+    mutationFn: ({ itemId, status }) => updateItemStatus(id, itemId, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-order', id] }),
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update item status'),
+  });
+
   if (isLoading) return <div className="text-muted-foreground">Loading...</div>;
 
   const order = data?.order;
@@ -748,41 +733,51 @@ export default function OrderDetailPage() {
               <CardTitle className="text-base">Items ({order.items?.length ?? 0})</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {order.items?.map((item) => {
-                const isUnassigned = !item.shipment;
-                const { label, variant, cls } = itemLifecycleStatus(item);
-                return (
-                  <div key={item.id} className="flex items-center gap-3">
-                    {item.product?.mainImage ? (
-                      <img src={item.product.mainImage} alt={item.product.name} className="w-14 h-14 rounded object-cover border shrink-0" />
-                    ) : (
-                      <div className="w-14 h-14 rounded bg-muted flex items-center justify-center border shrink-0">
-                        <Package className="h-5 w-5 text-muted-foreground" />
+              {order.items?.map((item) => (
+                <div key={item.id} className="flex items-center gap-3">
+                  {item.product?.mainImage ? (
+                    <img src={item.product.mainImage} alt={item.product.name} className="w-14 h-14 rounded object-cover border shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 rounded bg-muted flex items-center justify-center border shrink-0">
+                      <Package className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{item.product?.name || '—'}</div>
+                    {item.variant && (
+                      <div className="text-xs text-muted-foreground">
+                        {[item.variant.color, item.variant.size].filter(Boolean).join(' / ')}
+                        {item.variant.sku && ` · SKU: ${item.variant.sku}`}
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{item.product?.name || '—'}</div>
-                      {item.variant && (
-                        <div className="text-xs text-muted-foreground">
-                          {[item.variant.color, item.variant.size].filter(Boolean).join(' / ')}
-                          {item.variant.sku && ` · SKU: ${item.variant.sku}`}
-                        </div>
-                      )}
-                      <div className="text-xs text-muted-foreground">Qty: {item.quantity}</div>
-                      <div className="flex gap-1.5 mt-1 flex-wrap">
-                        <Badge variant={variant} className={`text-xs ${cls}`}>{label}</Badge>
-                        {isUnassigned && (
-                          <Badge variant="outline" className="text-xs text-orange-500 border-orange-300">Unassigned</Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-sm font-medium shrink-0 text-right">
-                      {formatCurrency(item.price * item.quantity)}
-                      <div className="text-xs text-muted-foreground">{formatCurrency(item.price)} each</div>
+                    <div className="text-xs text-muted-foreground">Qty: {item.quantity}</div>
+                    <div className="mt-1.5">
+                      <Select
+                        value={item.status || 'PENDING'}
+                        onValueChange={(status) => itemStatusMutation.mutate({ itemId: item.id, status })}
+                        disabled={itemStatusMutation.isPending}
+                      >
+                        <SelectTrigger className="h-7 text-xs w-44">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PENDING">Pending</SelectItem>
+                          <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+                          <SelectItem value="DELIVERED">Delivered</SelectItem>
+                          <SelectItem value="RETURN_REQUESTED">Return Requested</SelectItem>
+                          <SelectItem value="RETURN_APPROVED">Return Approved</SelectItem>
+                          <SelectItem value="RETURN_REJECTED">Return Rejected</SelectItem>
+                          <SelectItem value="REFUNDED">Refunded</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                );
-              })}
+                  <div className="text-sm font-medium shrink-0 text-right">
+                    {formatCurrency(item.price * item.quantity)}
+                    <div className="text-xs text-muted-foreground">{formatCurrency(item.price)} each</div>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
 

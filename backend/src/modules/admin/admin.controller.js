@@ -483,6 +483,30 @@ export const assignShipmentItems = async (req, res) => {
   }
 };
 
+export const updateItemStatus = async (req, res) => {
+  try {
+    const { id: orderId, itemId } = req.params;
+    const { status } = req.body;
+
+    const VALID = ['PENDING', 'IN_TRANSIT', 'DELIVERED', 'RETURN_REQUESTED', 'RETURN_APPROVED', 'RETURN_REJECTED', 'REFUNDED'];
+    if (!VALID.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+
+    const item = await prisma.orderItem.findFirst({ where: { id: itemId, orderId } });
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+
+    const updated = await prisma.orderItem.update({
+      where: { id: itemId },
+      data: { status },
+      include: { product: { select: { name: true } }, variant: { select: { name: true } } },
+    });
+
+    res.json({ item: updated });
+  } catch (error) {
+    console.error('Update item status error:', error);
+    res.status(500).json({ error: 'Failed to update item status' });
+  }
+};
+
 // ============================================
 // PRODUCT MANAGEMENT
 // ============================================

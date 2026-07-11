@@ -13,6 +13,7 @@ import {
   updateShipment,
   deleteShipment,
   assignShipmentItems,
+  updateItemStatus,
   getAllProducts,
   toggleProductActive,
   deleteProduct,
@@ -51,6 +52,7 @@ router.post('/orders/:id/shipments', validate(createShipmentSchema), createShipm
 router.patch('/orders/:id/shipments/:shipmentId', validate(updateShipmentSchema), updateShipment);
 router.delete('/orders/:id/shipments/:shipmentId', deleteShipment);
 router.patch('/orders/:id/shipments/:shipmentId/items', validate(assignShipmentItemsSchema), assignShipmentItems);
+router.patch('/orders/:id/items/:itemId/status', updateItemStatus);
 
 router.get('/products', getAllProducts);
 router.patch('/products/:id/toggle', toggleProductActive);

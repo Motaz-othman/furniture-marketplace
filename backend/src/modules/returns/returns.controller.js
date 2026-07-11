@@ -8,7 +8,7 @@ const ORDER_INCLUDE = {
   customer: { include: { user: true } },
 };
 
-// POST /orders/:id/request-return  — customer submits a return request
+// POST /orders/:orderId/request-return  — customer submits a return request
 export const createReturnRequest = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
@@ -27,11 +27,7 @@ export const createReturnRequest = async (req, res) => {
     if (!order || order.customerId !== customerId) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    if (order.status !== 'DELIVERED') {
-      return res.status(400).json({ error: 'Only delivered orders can be returned' });
-    }
 
-    // Validate each requested item belongs to this order
     const orderItemIds = new Set(order.items.map((i) => i.id));
     for (const ri of returnItems) {
       if (!orderItemIds.has(ri.orderItemId)) {
@@ -44,36 +40,38 @@ export const createReturnRequest = async (req, res) => {
       if (!ri.reason?.trim()) {
         return res.status(400).json({ error: 'Each item must have a reason' });
       }
+      // Block if item already has an active return in progress
+      if (['RETURN_REQUESTED', 'RETURN_APPROVED'].includes(orderItem.status)) {
+        return res.status(409).json({ error: 'A return is already in progress for one or more items' });
+      }
+      if (orderItem.status !== 'DELIVERED') {
+        return res.status(400).json({ error: 'Only delivered items can be returned' });
+      }
     }
 
-    // Check no pending/approved return already exists for these items
-    const existing = await prisma.returnRequest.findFirst({
-      where: {
-        orderId,
-        status: { in: ['PENDING', 'APPROVED'] },
-        items: { some: { orderItemId: { in: returnItems.map((i) => i.orderItemId) } } },
-      },
-    });
-    if (existing) {
-      return res.status(409).json({ error: 'A return request already exists for one or more of these items' });
-    }
+    const returnItemOrderItemIds = returnItems.map((i) => i.orderItemId);
 
-    const returnRequest = await prisma.returnRequest.create({
-      data: {
-        orderId,
-        customerId,
-        items: {
-          create: returnItems.map((ri) => ({
-            orderItemId: ri.orderItemId,
-            quantity: ri.quantity,
-            reason: ri.reason.trim(),
-          })),
+    const [returnRequest] = await prisma.$transaction([
+      prisma.returnRequest.create({
+        data: {
+          orderId,
+          customerId,
+          items: {
+            create: returnItems.map((ri) => ({
+              orderItemId: ri.orderItemId,
+              quantity: ri.quantity,
+              reason: ri.reason.trim(),
+            })),
+          },
         },
-      },
-      include: { items: { include: { orderItem: { include: { product: true, variant: true } } } } },
-    });
+        include: { items: { include: { orderItem: { include: { product: true, variant: true } } } } },
+      }),
+      prisma.orderItem.updateMany({
+        where: { id: { in: returnItemOrderItemIds } },
+        data: { status: 'RETURN_REQUESTED' },
+      }),
+    ]);
 
-    // Fire-and-forget email to admin
     sendReturnRequestEmail(order, returnRequest).catch((err) =>
       console.error('Return request email error:', err)
     );
@@ -88,7 +86,7 @@ export const createReturnRequest = async (req, res) => {
   }
 };
 
-// GET /orders/:id/return-requests  — customer views return requests for an order
+// GET /orders/:orderId/return-requests  — customer views return requests for an order
 export const getOrderReturnRequests = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
@@ -147,29 +145,41 @@ export const listReturnRequests = async (req, res) => {
   }
 };
 
-// PATCH /admin/return-requests/:id  — admin updates status (APPROVED / REJECTED / REFUNDED)
+// PATCH /admin/return-requests/:id  — admin approves or rejects
 export const updateReturnRequestStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, adminNotes } = req.body;
 
-    const valid = ['APPROVED', 'REJECTED', 'REFUNDED'];
+    const valid = ['APPROVED', 'REJECTED'];
     if (!valid.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status. Must be APPROVED, REJECTED, or REFUNDED' });
+      return res.status(400).json({ error: 'Invalid status. Must be APPROVED or REJECTED' });
     }
 
-    const returnRequest = await prisma.returnRequest.findUnique({ where: { id } });
+    const returnRequest = await prisma.returnRequest.findUnique({
+      where: { id },
+      include: { items: { select: { orderItemId: true } } },
+    });
     if (!returnRequest) return res.status(404).json({ error: 'Return request not found' });
 
-    const updated = await prisma.returnRequest.update({
-      where: { id },
-      data: { status, ...(adminNotes !== undefined && { adminNotes }) },
-      include: {
-        order: { select: { orderNumber: true } },
-        customer: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
-        items: { include: { orderItem: { include: { product: true, variant: true } } } },
-      },
-    });
+    const orderItemIds = returnRequest.items.map((i) => i.orderItemId);
+    const itemStatus = status === 'APPROVED' ? 'RETURN_APPROVED' : 'RETURN_REJECTED';
+
+    const [updated] = await prisma.$transaction([
+      prisma.returnRequest.update({
+        where: { id },
+        data: { status, ...(adminNotes !== undefined && { adminNotes }) },
+        include: {
+          order: { select: { orderNumber: true } },
+          customer: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
+          items: { include: { orderItem: { include: { product: true, variant: true } } } },
+        },
+      }),
+      prisma.orderItem.updateMany({
+        where: { id: { in: orderItemIds } },
+        data: { status: itemStatus },
+      }),
+    ]);
 
     res.json({ message: `Return request ${status.toLowerCase()}`, returnRequest: updated });
   } catch (error) {
@@ -204,9 +214,7 @@ export const refundReturnRequest = async (req, res) => {
     const refundAmount = returnRequest.items.reduce(
       (sum, ri) => sum + (ri.orderItem?.price || 0) * ri.quantity, 0
     );
-    if (refundAmount <= 0) {
-      return res.status(400).json({ error: 'Invalid refund amount' });
-    }
+    if (refundAmount <= 0) return res.status(400).json({ error: 'Invalid refund amount' });
 
     const existingRefunds = await listRefunds(order.stripePaymentIntentId);
     const alreadyRefunded = existingRefunds.reduce((sum, r) => sum + r.amount, 0) / 100;
@@ -217,6 +225,8 @@ export const refundReturnRequest = async (req, res) => {
     }
 
     const refund = await createRefund(order.stripePaymentIntentId, refundAmount, 'requested_by_customer');
+
+    const orderItemIds = returnRequest.items.map((i) => i.orderItemId);
 
     const [updated] = await prisma.$transaction([
       prisma.returnRequest.update({
@@ -231,6 +241,10 @@ export const refundReturnRequest = async (req, res) => {
         data: {
           paymentStatus: (alreadyRefunded + refundAmount) >= order.total ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
         },
+      }),
+      prisma.orderItem.updateMany({
+        where: { id: { in: orderItemIds } },
+        data: { status: 'REFUNDED' },
       }),
     ]);
 

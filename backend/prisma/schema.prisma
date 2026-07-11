@@ -257,13 +257,14 @@ model Order {
 
 
 model OrderItem {
-  id         String  @id @default(uuid())
+  id         String     @id @default(uuid())
   orderId    String
   shipmentId String?
   productId  String
   variantId  String?
   quantity   Int
   price      Float
+  status     ItemStatus @default(PENDING)
 
   order              Order             @relation(fields: [orderId], references: [id])
   shipment           Shipment?         @relation(fields: [shipmentId], references: [id])
@@ -273,6 +274,7 @@ model OrderItem {
 
   @@index([orderId])
   @@index([shipmentId])
+  @@index([status])
 }
 
 model Shipment {
@@ -354,6 +356,16 @@ enum ReturnStatus {
   PENDING
   APPROVED
   REJECTED
+  REFUNDED
+}
+
+enum ItemStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  RETURN_REQUESTED
+  RETURN_APPROVED
+  RETURN_REJECTED
   REFUNDED
 }
 
