@@ -49,7 +49,7 @@ function buildProductSnapshot(product) {
 }
 
 function buildVariantSnapshot(variant) {
-  return { id: variant.id, name: variant.variantName || variant.name, price: variant.price };
+  return { id: variant.id, name: variant.variantName || variant.name, price: variant.price, sku: variant.sku || null };
 }
 
 // Normalize a backend cart item to local shape

@@ -502,6 +502,7 @@ export default function CheckoutContent() {
                       const imageUrl = item.product?.mainImage || item.product?.images?.[0]?.imageUrl;
                       const name = item.product?.name || 'Product';
                       const variantName = item.variant?.name || item.variant?.variantName || null;
+                      const sku = item.variant?.sku || null;
 
                       return (
                         <div key={item.id} className="checkout-item">
@@ -516,8 +517,14 @@ export default function CheckoutContent() {
                           <div className="checkout-item-details">
                             <span className="checkout-item-name">{name}</span>
                             {variantName && <span className="checkout-item-variant">{variantName}</span>}
+                            {sku && <span className="checkout-item-sku">SKU: {sku}</span>}
                           </div>
-                          <span className="checkout-item-price">{formatPrice(item._price * item.quantity)}</span>
+                          <div className="checkout-item-pricing">
+                            {item.quantity > 1 && (
+                              <span className="checkout-item-unit-price">{formatPrice(item._price)} × {item.quantity}</span>
+                            )}
+                            <span className="checkout-item-price">{formatPrice(item._price * item.quantity)}</span>
+                          </div>
                         </div>
                       );
                     })}
@@ -622,8 +629,8 @@ export default function CheckoutContent() {
               <span>{formatPrice(total)}</span>
             </div>
             <div className="summary-row">
-              <span>Shipping</span>
-              <span>{formatPrice(shipping)}</span>
+              <span>{shipping === 0 ? 'Free Shipping' : 'Standard Delivery'}</span>
+              <span>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
             </div>
             <div className="summary-row">
               <span>Tax (est.)</span>
