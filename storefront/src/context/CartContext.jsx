@@ -27,12 +27,21 @@ function computeTotals(items) {
 }
 
 function buildProductSnapshot(product) {
+  const di = product.storefront?.displayImages?.[0];
+  const mainImage = product.mainImage
+    || di?.imageUrl || di?.url
+    || product.media?.mainImages?.[0]?.url
+    || product.media?.additionalImages?.[0]?.url
+    || product.images?.[0]?.imageUrl
+    || null;
+
   return {
     id: product.id,
     name: product.name,
     slug: product.slug,
     price: product.price,
     minPrice: product.minPrice ?? product.price,
+    mainImage,
     images: product.images?.slice(0, 1).map((img) =>
       typeof img === 'string' ? { imageUrl: img } : img
     ) || [],
