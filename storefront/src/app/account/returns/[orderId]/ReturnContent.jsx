@@ -162,9 +162,10 @@ function SingleItemReturn({ orderId, item, onSuccess }) {
 // ── Multi-item return form ─────────────────────────────────────────────────────
 
 function MultiItemReturn({ orderId, order, onSuccess }) {
+  const eligibleItems = (order.items || []).filter((i) => i.status === 'DELIVERED');
   const [itemStates, setItemStates] = useState(() => {
     const init = {};
-    (order.items || []).forEach((item) => {
+    eligibleItems.forEach((item) => {
       init[item.id] = { selected: false, returnQty: 1, reason: '', otherText: '' };
     });
     return init;
@@ -186,7 +187,7 @@ function MultiItemReturn({ orderId, order, onSuccess }) {
   };
 
   const handleSubmit = async () => {
-    const selectedItems = (order.items || [])
+    const selectedItems = eligibleItems
       .filter((item) => itemStates[item.id]?.selected)
       .map((item) => {
         const s = itemStates[item.id];
@@ -229,7 +230,7 @@ function MultiItemReturn({ orderId, order, onSuccess }) {
   return (
     <>
       <div className="return-items-section">
-        {(order.items || []).map((item) => {
+        {eligibleItems.map((item) => {
           const s = itemStates[item.id] || {};
           const name = item.product?.name || 'Product';
           const img = item.product?.mainImage || null;
@@ -377,11 +378,12 @@ export default function ReturnContent({ orderId }) {
 
   if (!order) return null;
 
-  if (order.status !== 'DELIVERED') {
+  const returnableItems = (order.items || []).filter((i) => i.status === 'DELIVERED');
+  if (returnableItems.length === 0) {
     return (
       <MainLayout>
         <div className="return-page-error">
-          <p>This order is not eligible for a return.</p>
+          <p>No items are eligible for a return yet.</p>
           <Link href={`/account/orders/${orderId}`}>← Back to Order</Link>
         </div>
       </MainLayout>
@@ -389,7 +391,7 @@ export default function ReturnContent({ orderId }) {
   }
 
   const singleItem = singleItemId
-    ? (order.items || []).find((i) => i.id === singleItemId)
+    ? (order.items || []).find((i) => i.id === singleItemId && i.status === 'DELIVERED')
     : null;
 
   const handleSuccess = () => router.push(`/account/orders/${orderId}`);
