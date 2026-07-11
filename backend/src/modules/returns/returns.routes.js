@@ -5,6 +5,7 @@ import {
   getOrderReturnRequests,
   listReturnRequests,
   updateReturnRequestStatus,
+  refundReturnRequest,
 } from './returns.controller.js';
 
 // Customer routes — mounted at /api/orders
@@ -16,3 +17,4 @@ customerReturnsRouter.get('/:orderId/return-requests', authenticate, customerOnl
 export const adminReturnsRouter = Router();
 adminReturnsRouter.get('/', authenticate, adminOnly, listReturnRequests);
 adminReturnsRouter.patch('/:id', authenticate, adminOnly, updateReturnRequestStatus);
+adminReturnsRouter.post('/:id/refund', authenticate, adminOnly, refundReturnRequest);

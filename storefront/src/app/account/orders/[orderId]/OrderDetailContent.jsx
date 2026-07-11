@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import MainLayout from '@/components/layout/MainLayout';
 import { getOrderById, getOrderReturnRequests } from '@/lib/api/orders';
+import { getItemStatus, ITEM_STATUS_LABEL, ITEM_STATUS_STYLE } from '@/lib/itemStatus';
 import Link from 'next/link';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -96,21 +97,14 @@ export default function OrderDetailContent({ orderId }) {
 
   const address = order.address;
 
-  // Build a map of orderItemId → return request item for quick lookup
-  const returnedItemMap = {};
-  returnRequests.forEach((rr) => {
-    (rr.items || []).forEach((ri) => {
-      if (!returnedItemMap[ri.orderItemId]) returnedItemMap[ri.orderItemId] = [];
-      returnedItemMap[ri.orderItemId].push({ ...ri, requestStatus: rr.status, requestId: rr.id });
-    });
-  });
-
-  // Item can be returned if its own shipment is DELIVERED and no active return exists for it
+  // Item can be returned if its shipment is DELIVERED and no active return exists
   const itemCanReturn = (item) => {
     if (order.paymentStatus === 'REFUNDED') return false;
     if (!item.shipment || item.shipment.status !== 'DELIVERED') return false;
-    const existing = returnedItemMap[item.id] || [];
-    return !existing.some((ri) => ri.requestStatus === 'PENDING' || ri.requestStatus === 'APPROVED');
+    const rri = item.returnRequestItems?.[0];
+    if (!rri) return true;
+    const s = rri.returnRequest?.status;
+    return s !== 'PENDING' && s !== 'APPROVED';
   };
 
   return (
@@ -143,11 +137,8 @@ export default function OrderDetailContent({ orderId }) {
                   const name = item.product?.name || 'Product';
                   const img = item.product?.mainImage || null;
                   const variant = item.variant?.name || null;
-                  const shipment = item.shipment;
-                  const returnEntries = returnedItemMap[item.id] || [];
-                  const hasActiveReturn = returnEntries.some(
-                    (r) => r.requestStatus === 'PENDING' || r.requestStatus === 'APPROVED'
-                  );
+                  const itemStatus = getItemStatus(item);
+                  const { bg, color } = ITEM_STATUS_STYLE[itemStatus] || ITEM_STATUS_STYLE.PENDING;
 
                   return (
                     <div key={item.id} className="od-item">
@@ -169,30 +160,23 @@ export default function OrderDetailContent({ orderId }) {
                           <span>{fmt(item.price)} each · Qty {item.quantity}</span>
                         </div>
 
-                        {/* Shipment status */}
-                        {shipment && (
-                          <div className="od-item-shipment">
-                            <StatusBadge status={shipment.status} />
-                            {shipment.trackingNumber && (
-                              <span className="od-item-tracking">
-                                {shipment.trackingUrl ? (
-                                  <a href={shipment.trackingUrl} target="_blank" rel="noopener noreferrer">
-                                    Track: {shipment.trackingNumber}
-                                  </a>
-                                ) : (
-                                  `Tracking: ${shipment.trackingNumber}`
-                                )}
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Return status tag */}
-                        {hasActiveReturn && (
-                          <div className="od-item-return-tag">
-                            Return requested
-                          </div>
-                        )}
+                        {/* Unified item status */}
+                        <div className="od-item-shipment">
+                          <span style={{ background: bg, color, borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 600 }}>
+                            {ITEM_STATUS_LABEL[itemStatus] || itemStatus}
+                          </span>
+                          {item.shipment?.trackingNumber && (
+                            <span className="od-item-tracking">
+                              {item.shipment.trackingUrl ? (
+                                <a href={item.shipment.trackingUrl} target="_blank" rel="noopener noreferrer">
+                                  Track: {item.shipment.trackingNumber}
+                                </a>
+                              ) : (
+                                `Tracking: ${item.shipment.trackingNumber}`
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Price + return button */}

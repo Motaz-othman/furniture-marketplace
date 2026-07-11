@@ -1,5 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { sendReturnRequestEmail } from '../../shared/services/email.service.js';
+import { createRefund, listRefunds } from '../../shared/services/stripe.service.js';
 
 const ORDER_INCLUDE = {
   items: { include: { product: true, variant: true } },
@@ -174,5 +175,72 @@ export const updateReturnRequestStatus = async (req, res) => {
   } catch (error) {
     console.error('Update return request error:', error);
     res.status(500).json({ error: 'Failed to update return request' });
+  }
+};
+
+// POST /admin/return-requests/:id/refund — issue Stripe partial refund + mark REFUNDED
+export const refundReturnRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const returnRequest = await prisma.returnRequest.findUnique({
+      where: { id },
+      include: {
+        order: true,
+        items: { include: { orderItem: true } },
+      },
+    });
+
+    if (!returnRequest) return res.status(404).json({ error: 'Return request not found' });
+    if (returnRequest.status !== 'APPROVED') {
+      return res.status(400).json({ error: 'Return request must be APPROVED before refunding' });
+    }
+
+    const order = returnRequest.order;
+    if (!order.stripePaymentIntentId) {
+      return res.status(400).json({ error: 'No payment found for this order' });
+    }
+
+    const refundAmount = returnRequest.items.reduce(
+      (sum, ri) => sum + (ri.orderItem?.price || 0) * ri.quantity, 0
+    );
+    if (refundAmount <= 0) {
+      return res.status(400).json({ error: 'Invalid refund amount' });
+    }
+
+    const existingRefunds = await listRefunds(order.stripePaymentIntentId);
+    const alreadyRefunded = existingRefunds.reduce((sum, r) => sum + r.amount, 0) / 100;
+    const maxRefundable = order.total - alreadyRefunded;
+
+    if (refundAmount > maxRefundable) {
+      return res.status(400).json({ error: `Maximum refundable is $${maxRefundable.toFixed(2)}` });
+    }
+
+    const refund = await createRefund(order.stripePaymentIntentId, refundAmount, 'requested_by_customer');
+
+    const [updated] = await prisma.$transaction([
+      prisma.returnRequest.update({
+        where: { id },
+        data: { status: 'REFUNDED' },
+        include: {
+          items: { include: { orderItem: { include: { product: true, variant: true } } } },
+        },
+      }),
+      prisma.order.update({
+        where: { id: order.id },
+        data: {
+          paymentStatus: (alreadyRefunded + refundAmount) >= order.total ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
+        },
+      }),
+    ]);
+
+    res.json({
+      message: `Refund of $${refundAmount.toFixed(2)} processed successfully`,
+      returnRequest: updated,
+      refund: { id: refund.id, amount: refund.amount / 100, status: refund.status },
+    });
+  } catch (error) {
+    console.error('Refund return request error:', error);
+    res.status(500).json({ error: 'Failed to process refund' });
   }
 };

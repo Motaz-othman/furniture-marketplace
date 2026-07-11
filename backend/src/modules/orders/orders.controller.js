@@ -186,8 +186,19 @@ export const getCustomerOrders = async (req, res) => {
       prisma.order.findMany({
         where,
         include: {
-          items: { include: { product: true, variant: true } },
-          address: true
+          items: {
+            include: {
+              product: true,
+              variant: true,
+              shipment: { select: { status: true } },
+              returnRequestItems: {
+                include: { returnRequest: { select: { status: true } } },
+                orderBy: { returnRequest: { createdAt: 'desc' } },
+                take: 1,
+              },
+            },
+          },
+          address: true,
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -211,7 +222,18 @@ export const getOrderById = async (req, res) => {
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
-        items: { include: { product: true, variant: true, shipment: true } },
+        items: {
+          include: {
+            product: true,
+            variant: true,
+            shipment: true,
+            returnRequestItems: {
+              include: { returnRequest: { select: { status: true } } },
+              orderBy: { returnRequest: { createdAt: 'desc' } },
+              take: 1,
+            },
+          },
+        },
         customer: { include: { user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } } } },
         address: true
       }

@@ -5,9 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getOrder, updateOrderStatus,
-  createShipment, updateShipment, deleteShipment, assignShipmentItems, processRefund,
-  updateReturnRequest,
+  createShipment, updateShipment, deleteShipment,
 } from '@/lib/services/orders';
+import { updateReturnRequest, refundReturnRequest } from '@/lib/services/returns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,23 +59,6 @@ const ORDER_STATUS_VARIANT = {
 
 const SHIPMENT_STATUSES = ['PENDING', 'QUOTED', 'ARRANGED', 'IN_TRANSIT', 'DELIVERED', 'FAILED'];
 
-const SHIPMENT_STATUS_COLOR = {
-  PENDING:    'text-yellow-600 border-yellow-300',
-  QUOTED:     'text-blue-600 border-blue-300',
-  ARRANGED:   'text-purple-600 border-purple-300',
-  IN_TRANSIT: 'text-cyan-600 border-cyan-300',
-  DELIVERED:  'text-green-600 border-green-300',
-  FAILED:     '',
-};
-
-const SHIPMENT_STATUS_VARIANT = {
-  PENDING:    'outline',
-  QUOTED:     'secondary',
-  ARRANGED:   'secondary',
-  IN_TRANSIT: 'default',
-  DELIVERED:  'default',
-  FAILED:     'destructive',
-};
 
 const PROVIDERS = ['DELIVERIGHT', 'GIGIGA', 'FEDEX', 'UPS', 'OTHER'];
 const TYPES = ['LTL', 'SMALL_PARCEL'];
@@ -111,12 +94,26 @@ function OrderStatusBadge({ status }) {
   );
 }
 
-function ShipmentStatusBadge({ status }) {
-  return (
-    <Badge variant={SHIPMENT_STATUS_VARIANT[status] || 'outline'} className={`text-xs ${SHIPMENT_STATUS_COLOR[status] || ''}`}>
-      {status}
-    </Badge>
-  );
+function itemLifecycleStatus(item) {
+  const rri = item.returnRequestItems?.[0];
+  if (rri) {
+    const s = rri.returnRequest?.status;
+    if (s === 'REFUNDED')  return { label: 'Refunded',        variant: 'secondary', cls: '' };
+    if (s === 'REJECTED')  return { label: 'Return Rejected', variant: 'destructive', cls: '' };
+    if (s === 'APPROVED')  return { label: 'Return Approved', variant: 'outline', cls: 'text-green-600 border-green-300' };
+    if (s === 'PENDING')   return { label: 'Return Requested',variant: 'outline', cls: 'text-yellow-600 border-yellow-300' };
+  }
+  const s = item.shipment?.status;
+  const MAP = {
+    PENDING:    { label: 'Pending',     variant: 'outline', cls: 'text-yellow-600 border-yellow-300' },
+    QUOTED:     { label: 'Quoted',      variant: 'secondary', cls: 'text-blue-600 border-blue-300' },
+    ARRANGED:   { label: 'Arranged',    variant: 'secondary', cls: 'text-purple-600 border-purple-300' },
+    IN_TRANSIT: { label: 'In Transit',  variant: 'default',  cls: 'text-cyan-600 border-cyan-300' },
+    DELIVERED:  { label: 'Delivered',   variant: 'default',  cls: 'text-green-600 border-green-300' },
+    FAILED:     { label: 'Failed',      variant: 'destructive', cls: '' },
+  };
+  return s ? (MAP[s] || { label: s, variant: 'outline', cls: '' })
+           : { label: 'Pending', variant: 'outline', cls: 'text-yellow-600 border-yellow-300' };
 }
 
 // ─── Add Shipment Dialog ───────────────────────────────────────────────────────
@@ -440,7 +437,7 @@ function ShipmentCard({ orderId, shipment, onEdit }) {
           onValueChange={(val) => statusMutation.mutate(val)}
           disabled={statusMutation.isPending}
         >
-          <SelectTrigger className={`h-7 w-auto text-xs px-2 border font-medium ${SHIPMENT_STATUS_COLOR[shipment.status] || ''}`}>
+          <SelectTrigger className="h-7 w-auto text-xs px-2 border font-medium">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -557,6 +554,15 @@ function ReturnRequestsCard({ orderId, returnRequests }) {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to update return request'),
   });
 
+  const refundMutation = useMutation({
+    mutationFn: (id) => refundReturnRequest(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-order', orderId] });
+      toast.success(data.message || 'Refund processed');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to process refund'),
+  });
+
   if (!returnRequests?.length) {
     return (
       <Card>
@@ -659,11 +665,11 @@ function ReturnRequestsCard({ orderId, returnRequests }) {
               {rr.status === 'APPROVED' && (
                 <Button
                   size="sm"
-                  variant="outline"
-                  disabled={mutation.isPending}
-                  onClick={() => mutation.mutate({ id: rr.id, status: 'REFUNDED' })}
+                  variant="default"
+                  disabled={refundMutation.isPending}
+                  onClick={() => refundMutation.mutate(rr.id)}
                 >
-                  Mark as Refunded
+                  {refundMutation.isPending ? 'Processing…' : `Refund ${formatCurrency(refundTotal)}`}
                 </Button>
               )}
             </div>
@@ -683,9 +689,6 @@ export default function OrderDetailPage() {
   const [newStatus, setNewStatus] = useState('');
   const [showAddShipment, setShowAddShipment] = useState(false);
   const [editingShipment, setEditingShipment] = useState(null);
-  const [showRefund, setShowRefund] = useState(false);
-  const [refundAmount, setRefundAmount] = useState('');
-  const [refundReason, setRefundReason] = useState('requested_by_customer');
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-order', id],
@@ -701,17 +704,6 @@ export default function OrderDetailPage() {
       setNewStatus('');
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to update status'),
-  });
-
-  const refundMutation = useMutation({
-    mutationFn: ({ amount, reason }) => processRefund(id, amount || undefined, reason),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
-      toast.success(data.message || 'Refund processed');
-      setShowRefund(false);
-      setRefundAmount('');
-    },
-    onError: (err) => toast.error(err.response?.data?.error || 'Failed to process refund'),
   });
 
   if (isLoading) return <div className="text-muted-foreground">Loading...</div>;
@@ -758,14 +750,11 @@ export default function OrderDetailPage() {
             <CardContent className="space-y-3">
               {order.items?.map((item) => {
                 const isUnassigned = !item.shipment;
+                const { label, variant, cls } = itemLifecycleStatus(item);
                 return (
                   <div key={item.id} className="flex items-center gap-3">
                     {item.product?.mainImage ? (
-                      <img
-                        src={item.product.mainImage}
-                        alt={item.product.name}
-                        className="w-14 h-14 rounded object-cover border shrink-0"
-                      />
+                      <img src={item.product.mainImage} alt={item.product.name} className="w-14 h-14 rounded object-cover border shrink-0" />
                     ) : (
                       <div className="w-14 h-14 rounded bg-muted flex items-center justify-center border shrink-0">
                         <Package className="h-5 w-5 text-muted-foreground" />
@@ -780,17 +769,16 @@ export default function OrderDetailPage() {
                         </div>
                       )}
                       <div className="text-xs text-muted-foreground">Qty: {item.quantity}</div>
-                      {isUnassigned && (
-                        <Badge variant="outline" className="text-xs text-orange-500 border-orange-300 mt-0.5">
-                          Unassigned
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-sm font-medium shrink-0">
-                      {formatCurrency(item.price * item.quantity)}
-                      <div className="text-xs text-muted-foreground text-right">
-                        {formatCurrency(item.price)} each
+                      <div className="flex gap-1.5 mt-1 flex-wrap">
+                        <Badge variant={variant} className={`text-xs ${cls}`}>{label}</Badge>
+                        {isUnassigned && (
+                          <Badge variant="outline" className="text-xs text-orange-500 border-orange-300">Unassigned</Badge>
+                        )}
                       </div>
+                    </div>
+                    <div className="text-sm font-medium shrink-0 text-right">
+                      {formatCurrency(item.price * item.quantity)}
+                      <div className="text-xs text-muted-foreground">{formatCurrency(item.price)} each</div>
                     </div>
                   </div>
                 );
@@ -945,60 +933,6 @@ export default function OrderDetailPage() {
               )}
             </CardContent>
           </Card>
-
-          {/* Refund */}
-          {order.paymentStatus === 'SUCCEEDED' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Issue Refund</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {!showRefund ? (
-                  <Button variant="destructive" className="w-full" onClick={() => setShowRefund(true)}>
-                    Process Refund
-                  </Button>
-                ) : (
-                  <>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Amount (leave blank for full refund)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder={`Max $${Number(order.total).toFixed(2)}`}
-                        value={refundAmount}
-                        onChange={(e) => setRefundAmount(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Reason</Label>
-                      <Select value={refundReason} onValueChange={setRefundReason}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="requested_by_customer">Requested by customer</SelectItem>
-                          <SelectItem value="fraudulent">Fraudulent</SelectItem>
-                          <SelectItem value="duplicate">Duplicate</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="destructive"
-                        className="flex-1"
-                        disabled={refundMutation.isPending}
-                        onClick={() => refundMutation.mutate({ amount: refundAmount ? parseFloat(refundAmount) : undefined, reason: refundReason })}
-                      >
-                        {refundMutation.isPending ? 'Processing…' : 'Confirm Refund'}
-                      </Button>
-                      <Button variant="outline" onClick={() => { setShowRefund(false); setRefundAmount(''); }}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
 
           {/* Notes */}
           {order.notes && (

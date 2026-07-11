@@ -310,7 +310,18 @@ export const getOrderDetails = async (req, res) => {
       include: {
         address: true,
         customer: { include: { user: { select: { firstName: true, lastName: true, email: true, phone: true } } } },
-        items: { include: { product: true, variant: true, shipment: { select: { id: true } } } },
+        items: {
+          include: {
+            product: true,
+            variant: true,
+            shipment: { select: { id: true, status: true } },
+            returnRequestItems: {
+              include: { returnRequest: { select: { id: true, status: true } } },
+              orderBy: { returnRequest: { createdAt: 'desc' } },
+              take: 1,
+            },
+          },
+        },
         shipments: {
           include: {
             items: {

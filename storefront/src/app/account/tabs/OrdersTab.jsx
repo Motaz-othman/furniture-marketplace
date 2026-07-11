@@ -4,20 +4,29 @@ import { useState, useEffect, useCallback } from 'react';
 import { getCustomerOrders, cancelOrder } from '@/lib/api/orders';
 import { Package } from '@/components/ui/Icons';
 import { getAuthError } from '@/lib/api/auth';
+import { getItemStatus, ITEM_STATUS_LABEL, ITEM_STATUS_STYLE } from '@/lib/itemStatus';
 import ConfirmDialog from './ConfirmDialog';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    year: 'numeric', month: 'short', day: 'numeric',
   });
 }
 
 function formatPrice(amount) {
   return `$${Number(amount).toFixed(2)}`;
+}
+
+function ItemStatusBadge({ item }) {
+  const status = getItemStatus(item);
+  const { bg, color } = ITEM_STATUS_STYLE[status] || ITEM_STATUS_STYLE.PENDING;
+  return (
+    <span style={{ background: bg, color, borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
+      {ITEM_STATUS_LABEL[status] || status}
+    </span>
+  );
 }
 
 export default function OrdersTab() {
@@ -91,17 +100,15 @@ export default function OrdersTab() {
                       </Link>
                       <span className="order-date">{formatDate(order.createdAt)}</span>
                     </div>
-                    <span className={`order-status status-${order.status.toLowerCase()}`}>
-                      {order.status}
-                    </span>
                   </div>
 
                   <div className="order-items">
                     {visibleItems.map((item) => (
                       <div key={item.id} className="order-item-row">
                         <span className="order-item-name">{item.product?.name || 'Product'}</span>
-                        <span className="order-item-qty">x{item.quantity}</span>
+                        <span className="order-item-qty">×{item.quantity}</span>
                         <span className="order-item-price">{formatPrice(item.price)}</span>
+                        <ItemStatusBadge item={item} />
                       </div>
                     ))}
                     {items.length > 2 && !isExpanded && (
@@ -134,21 +141,12 @@ export default function OrdersTab() {
                     )}
                     <span className="order-total">Total: {formatPrice(order.total)}</span>
                     <div className="order-footer-actions">
-                      {order.trackingNumber && (
-                        <span className="order-tracking">Tracking: {order.trackingNumber}</span>
-                      )}
                       {order.status === 'PENDING' && (
-                        <button
-                          className="order-cancel-btn"
-                          onClick={() => setCancelConfirmId(order.id)}
-                        >
+                        <button className="order-cancel-btn" onClick={() => setCancelConfirmId(order.id)}>
                           Cancel
                         </button>
                       )}
-                      <Link
-                        href={`/account/orders/${order.id}`}
-                        className="order-view-btn"
-                      >
+                      <Link href={`/account/orders/${order.id}`} className="order-view-btn">
                         View Details
                       </Link>
                     </div>
@@ -161,16 +159,9 @@ export default function OrdersTab() {
 
         {pagination.totalPages > 1 && (
           <div className="orders-pagination">
-            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Previous
-            </button>
+            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</button>
             <span>Page {page} of {pagination.totalPages}</span>
-            <button
-              disabled={page >= pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </button>
+            <button disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)}>Next</button>
           </div>
         )}
       </div>

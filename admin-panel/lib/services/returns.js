@@ -12,3 +12,8 @@ export async function updateReturnRequest(id, status, adminNotes) {
   });
   return data;
 }
+
+export async function refundReturnRequest(id) {
+  const { data } = await api.post(`/admin/return-requests/${id}/refund`);
+  return data;
+}
