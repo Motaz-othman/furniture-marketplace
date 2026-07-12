@@ -45,14 +45,6 @@ const ORDER_STATUS_VARIANT = {
   REFUNDED:   'destructive',
 };
 
-const SHIPMENT_STATUS_COLOR = {
-  PENDING:    'text-yellow-600 border-yellow-300',
-  QUOTED:     'text-blue-600 border-blue-300',
-  ARRANGED:   'text-purple-600 border-purple-300',
-  IN_TRANSIT: 'text-cyan-600 border-cyan-300',
-  DELIVERED:  'text-green-600 border-green-300',
-  FAILED:     '',
-};
 
 const RETURN_STATUS_COLOR = {
   PENDING:  'text-yellow-600 border-yellow-300',
@@ -213,16 +205,6 @@ function OrderStatusBadge({ status }) {
   );
 }
 
-function ShipmentStatusBadge({ status }) {
-  return (
-    <Badge
-      variant="outline"
-      className={`text-xs ${SHIPMENT_STATUS_COLOR[status] || ''}`}
-    >
-      {(status || '').replace(/_/g, ' ')}
-    </Badge>
-  );
-}
 
 // ─── Per-Item Add Shipment Dialog ──────────────────────────────────────────────
 
@@ -698,7 +680,7 @@ export default function OrderDetailPage() {
                   <TH>Item</TH>
                   <TH>Suggested Type</TH>
                   <TH>Shipment</TH>
-                  <TH>Shipment Status</TH>
+                  <TH>Order Status</TH>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -789,11 +771,7 @@ export default function OrderDetailPage() {
                         )}
                       </TD>
                       <TD>
-                        {fullShipment?.status ? (
-                          <ShipmentStatusBadge status={fullShipment.status} />
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
+                        <OrderStatusBadge status={order.status} />
                       </TD>
                     </tr>
                   );
