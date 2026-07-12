@@ -123,8 +123,8 @@ export const sendOrderConfirmationEmail = async (order) => {
 
         <!-- Body -->
         <tr><td style="padding:32px;">
-          <h1 style="margin:0 0 8px;font-size:22px;color:#111;">Order Confirmed!</h1>
-          <p style="margin:0 0 24px;font-size:15px;color:#555;">Hi ${firstName}, thank you for your order. We've received it and will notify you once it ships.</p>
+          <h1 style="margin:0 0 8px;font-size:22px;color:#111;">Order Received!</h1>
+          <p style="margin:0 0 24px;font-size:15px;color:#555;">Hi ${firstName}, thank you for your order. Your payment has been received and your order is being reviewed. We'll send you a confirmation email once it's approved.</p>
 
           <!-- Order meta -->
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
@@ -203,7 +203,7 @@ export const sendOrderConfirmationEmail = async (order) => {
     await createTransporter().sendMail({
       from: `"${fromName}" <${from}>`,
       to,
-      subject: `Order Confirmed — #${order.orderNumber}`,
+      subject: `Order Received — #${order.orderNumber}`,
       html,
     });
     console.log(`Order confirmation email sent to ${to} for order ${order.orderNumber}`);
@@ -384,4 +384,105 @@ export const sendReturnRequestEmail = async (order, returnRequest) => {
     html,
   });
   console.log(`Return request email sent for order ${order.orderNumber}`);
+};
+
+// Send order status update email to customer (key milestones only)
+export const sendOrderStatusEmail = async (order, status) => {
+  const to = order.guestEmail || order.customer?.user?.email;
+  if (!to) return;
+
+  const STATUS_CONFIG = {
+    CONFIRMED: {
+      subject: `Order Confirmed — #${order.orderNumber}`,
+      title: 'Your Order is Confirmed!',
+      message: `Great news! We've confirmed your order and are preparing it for shipment. We'll notify you once it's on its way.`,
+      accentColor: '#16a34a',
+    },
+    SHIPPED: {
+      subject: `Your Order Has Shipped — #${order.orderNumber}`,
+      title: 'Your Order is On the Way!',
+      message: `Your order has been shipped and is heading your way. You'll find tracking information below once available.`,
+      accentColor: '#2563eb',
+    },
+    DELIVERED: {
+      subject: `Order Delivered — #${order.orderNumber}`,
+      title: 'Your Order Has Been Delivered!',
+      message: `Your order has been marked as delivered. We hope you love your new furniture! If you have any issues, please contact us.`,
+      accentColor: '#16a34a',
+    },
+    CANCELLED: {
+      subject: `Order Cancelled — #${order.orderNumber}`,
+      title: 'Your Order Has Been Cancelled',
+      message: `Your order has been cancelled. If a payment was made, your refund will be processed and should appear within 5–10 business days.`,
+      accentColor: '#dc2626',
+    },
+    REFUNDED: {
+      subject: `Refund Processed — #${order.orderNumber}`,
+      title: 'Your Refund Has Been Processed',
+      message: `Your refund for order #${order.orderNumber} has been processed and should appear in your account within 5–10 business days.`,
+      accentColor: '#d97706',
+    },
+  };
+
+  const cfg = STATUS_CONFIG[status];
+  if (!cfg) return;
+
+  const { from, fromName } = await getEmailConfig();
+  const firstName = order.guestFirstName || order.customer?.user?.firstName || 'Customer';
+  const siteUrl = process.env.FRONTEND_URL || 'https://livipoint.com';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+        <tr><td style="background:#1a1a1a;padding:28px 32px;">
+          <p style="margin:0;font-size:22px;font-weight:bold;color:#ffffff;">${fromName}</p>
+        </td></tr>
+
+        <tr><td style="padding:32px;">
+          <div style="display:inline-block;background:${cfg.accentColor}22;border-left:4px solid ${cfg.accentColor};padding:10px 16px;border-radius:0 6px 6px 0;margin-bottom:24px;">
+            <p style="margin:0;font-size:13px;font-weight:700;color:${cfg.accentColor};text-transform:uppercase;letter-spacing:0.5px;">${status.replace('_', ' ')}</p>
+          </div>
+          <h1 style="margin:0 0 8px;font-size:22px;color:#111;">${cfg.title}</h1>
+          <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">Hi ${firstName}, ${cfg.message}</p>
+
+          <div style="background:#f7f7f7;border-radius:6px;padding:16px;margin-bottom:24px;">
+            <p style="margin:0 0 4px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Order Number</p>
+            <p style="margin:0;font-size:18px;font-weight:700;color:#111;">#${order.orderNumber}</p>
+          </div>
+
+          <div style="text-align:center;margin-top:28px;">
+            <a href="${siteUrl}/account/orders/${order.id}"
+               style="display:inline-block;background:#1a1a1a;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+              View Order
+            </a>
+          </div>
+        </td></tr>
+
+        <tr><td style="padding:20px 32px;border-top:1px solid #f0f0f0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">© ${new Date().getFullYear()} ${fromName}. All rights reserved.</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await createTransporter().sendMail({
+      from: `"${fromName}" <${from}>`,
+      to,
+      subject: cfg.subject,
+      html,
+    });
+    console.log(`Order status email (${status}) sent to ${to} for order ${order.orderNumber}`);
+  } catch (error) {
+    console.error(`Order status email error (${status}):`, error);
+  }
 };

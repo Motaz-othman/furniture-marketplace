@@ -156,6 +156,11 @@ export const createOrder = async (req, res) => {
       console.error('Notification error:', notifError);
     }
 
+    prisma.orderEvent.create({
+      data: { orderId: order.id, type: 'ORDER_PLACED', actor: 'customer',
+        data: { orderNumber: order.orderNumber, total: order.total, itemCount: order.items.length } }
+    }).catch(() => {});
+
     res.status(201).json({ message: 'Order created successfully', order: { ...order, clientSecret } });
   } catch (error) {
     if (error.message === 'STOCK_CONFLICT') {

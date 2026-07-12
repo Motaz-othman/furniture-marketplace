@@ -1,6 +1,7 @@
 import prisma from '../../shared/config/db.js';
 import { notifyOrderStatusChanged } from '../../shared/services/notification.service.js';
 import { createRefund } from '../../shared/services/stripe.service.js';
+import { sendOrderStatusEmail } from '../../shared/services/email.service.js';
 
 // ============================================
 // PLATFORM STATISTICS
@@ -425,6 +426,10 @@ export const updateOrderStatus = async (req, res) => {
     if (userId) {
       notifyOrderStatusChanged(userId, order, status).catch(console.error);
     }
+
+    // Email customer for key milestone statuses
+    const finalStatus = isCancellingPaidOrder ? 'REFUNDED' : status;
+    sendOrderStatusEmail({ ...existing, customer: existing.customer }, finalStatus).catch(() => {});
 
     prisma.orderEvent.create({
       data: { orderId: id, type: 'STATUS_CHANGE', actor: 'admin',
