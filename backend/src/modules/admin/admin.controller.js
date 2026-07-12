@@ -407,7 +407,7 @@ export const updateOrderStatus = async (req, res) => {
     const order = await prisma.order.update({
       where: { id },
       data: {
-        status,
+        status: isCancellingPaidOrder ? 'REFUNDED' : status,
         ...(note && { notes: note }),
         ...(isCancellingPaidOrder && { paymentStatus: 'REFUNDED' }),
       },
@@ -428,7 +428,7 @@ export const updateOrderStatus = async (req, res) => {
 
     prisma.orderEvent.create({
       data: { orderId: id, type: 'STATUS_CHANGE', actor: 'admin',
-        data: { from: existing.status, to: status, note: note || null } }
+        data: { from: existing.status, to: isCancellingPaidOrder ? 'REFUNDED' : status, note: note || null } }
     }).catch(() => {});
 
     if (isCancellingPaidOrder) {
