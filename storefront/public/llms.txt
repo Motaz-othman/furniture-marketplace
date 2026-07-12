@@ -1,0 +1,41 @@
+# LiviPoint — Premium Furniture Store
+
+## What is LiviPoint?
+
+LiviPoint is an online furniture store based in Georgia, USA. We sell handpicked, premium-quality furniture for every room in the home — sofas, beds, dining sets, accent chairs, coffee tables, bookshelves, and more. We focus on quality, style, and convenience with free shipping on orders over $500.
+
+## What we sell
+
+- **Living Room**: Sofas, sectionals, accent chairs, coffee tables, TV stands, bookshelves
+- **Bedroom**: Beds, nightstands, dressers, wardrobes, mirrors
+- **Dining Room**: Dining tables, dining chairs, buffets, bar stools
+- **Office**: Desks, office chairs, shelving
+- **Outdoor**: Patio sets, outdoor chairs, garden furniture
+- **Decor**: Rugs, lighting, wall art, decorative accessories
+
+## Key pages
+
+- Homepage: https://livipoint.com
+- All products: https://livipoint.com/products
+- Product search: https://livipoint.com/products?search=<query>
+- Categories: https://livipoint.com/categories
+- Individual category: https://livipoint.com/categories/<slug>
+- Individual product: https://livipoint.com/products/<slug>
+- Shopping cart: https://livipoint.com/cart
+- Checkout: https://livipoint.com/checkout
+- Track order: https://livipoint.com/track-order
+- Customer account: https://livipoint.com/account
+
+## Business details
+
+- Location: Georgia, USA
+- Delivery: Available across Georgia; scheduling coordinated after purchase
+- Free shipping on orders over $500
+- Returns accepted within 30 days of delivery
+- Customer support via email
+
+## Technical
+
+- Built with Next.js (App Router) + Node.js backend
+- Product catalog served via REST API
+- Sitemap: https://livipoint.com/sitemap.xml

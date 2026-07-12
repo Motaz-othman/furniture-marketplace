@@ -6,4 +6,26 @@ Disallow: /account
 Disallow: /checkout
 Disallow: /api/
 
-Sitemap: https://livipoint.vercel.app/sitemap.xml
+# AI crawlers — allowed to index public content
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+Sitemap: https://livipoint.com/sitemap.xml

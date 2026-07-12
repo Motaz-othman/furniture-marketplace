@@ -87,10 +87,25 @@ export const metadata = {
   },
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://livipoint.com';
+
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'LiviPoint',
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.png`,
+  description: 'Premium furniture store delivering quality sofas, beds, dining sets, and more to homes across Georgia.',
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`} data-scroll-behavior="smooth">
       <body className={inter.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <QueryProvider>
           <AuthProvider>
             <CartProvider>
