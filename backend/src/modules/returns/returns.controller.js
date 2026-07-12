@@ -77,6 +77,11 @@ export const createReturnRequest = async (req, res) => {
       console.error('Return request email error:', err)
     );
 
+    prisma.orderEvent.create({
+      data: { orderId, type: 'RETURN_REQUESTED', actor: 'customer',
+        data: { returnRequestId: returnRequest.id, itemCount: returnItems.length } }
+    }).catch(() => {});
+
     res.status(201).json({
       message: 'Return request submitted. Our team will contact you within 1–2 business days.',
       returnRequest,
@@ -187,6 +192,11 @@ export const updateReturnRequestStatus = async (req, res) => {
       notifyReturnUpdated(userId, updated.order, status).catch(console.error);
     }
 
+    prisma.orderEvent.create({
+      data: { orderId: updated.order.id, type: `RETURN_${status}`, actor: 'admin',
+        data: { returnRequestId: id, adminNotes: adminNotes || null } }
+    }).catch(() => {});
+
     res.json({ message: `Return request ${status.toLowerCase()}`, returnRequest: updated });
   } catch (error) {
     console.error('Update return request error:', error);
@@ -260,6 +270,11 @@ export const refundReturnRequest = async (req, res) => {
     if (userId) {
       notifyReturnUpdated(userId, updated.order, 'REFUNDED').catch(console.error);
     }
+
+    prisma.orderEvent.create({
+      data: { orderId: order.id, type: 'RETURN_REFUNDED', actor: 'admin',
+        data: { returnRequestId: id, amount: refundAmount, stripeRefundId: refund.id } }
+    }).catch(() => {});
 
     res.json({
       message: `Refund of $${refundAmount.toFixed(2)} processed successfully`,

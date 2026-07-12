@@ -20,7 +20,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Package, Plus, Pencil, Truck, Download, ExternalLink, Copy, Check, CreditCard, AlertCircle, RotateCcw, ArrowRight, Clock, User, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Package, Plus, Pencil, Truck, Download, ExternalLink, Copy, Check, CreditCard, AlertCircle, RotateCcw, ArrowRight, Clock, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -105,6 +105,26 @@ const EVENT_CONFIG = {
     icon: Package, color: 'text-slate-500', ring: 'border-slate-200',
     label: (d) => d?.from && d?.to ? `Item status: ${d.from} → ${d.to}` : 'Item status changed',
     detail: (d) => [d?.product, d?.variant].filter(Boolean).join(' · ') || null,
+  },
+  RETURN_REQUESTED: {
+    icon: RotateCcw, color: 'text-amber-500', ring: 'border-amber-200',
+    label: () => 'Return requested',
+    detail: (d) => d?.itemCount != null ? `${d.itemCount} item${d.itemCount !== 1 ? 's' : ''}` : null,
+  },
+  RETURN_APPROVED: {
+    icon: ShieldCheck, color: 'text-green-500', ring: 'border-green-200',
+    label: () => 'Return approved',
+    detail: (d) => d?.adminNotes || null,
+  },
+  RETURN_REJECTED: {
+    icon: AlertCircle, color: 'text-red-500', ring: 'border-red-200',
+    label: () => 'Return rejected',
+    detail: (d) => d?.adminNotes || null,
+  },
+  RETURN_REFUNDED: {
+    icon: CreditCard, color: 'text-orange-500', ring: 'border-orange-200',
+    label: () => 'Return refund issued',
+    detail: (d) => d?.amount != null ? `${formatCurrencyStatic(d.amount)} refunded` : null,
   },
   _default: {
     icon: Clock, color: 'text-muted-foreground', ring: 'border-border',
