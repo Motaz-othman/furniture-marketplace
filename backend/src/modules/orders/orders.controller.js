@@ -309,6 +309,13 @@ export const cancelOrder = async (req, res) => {
         data: { from: order.status, to: 'CANCELLED', note: 'Cancelled by customer' } }
     }).catch(() => {});
 
+    if (order.status === 'CONFIRMED') {
+      prisma.orderEvent.create({
+        data: { orderId: id, type: 'REFUND_PROCESSED', actor: 'system',
+          data: { amount: order.total, note: 'Full refund — order cancelled by customer' } }
+      }).catch(() => {});
+    }
+
     try {
       const customer = await prisma.customer.findUnique({ where: { id: customerId }, select: { userId: true } });
       if (customer) await notifyOrderCancelled(customer.userId, updatedOrder);

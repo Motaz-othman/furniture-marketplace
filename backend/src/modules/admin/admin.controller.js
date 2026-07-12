@@ -1,5 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { notifyOrderStatusChanged } from '../../shared/services/notification.service.js';
+import { createRefund } from '../../shared/services/stripe.service.js';
 
 // ============================================
 // PLATFORM STATISTICS
@@ -393,10 +394,32 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
+    // When admin cancels a CONFIRMED (paid) order, issue a full Stripe refund
+    const isCancellingPaidOrder = status === 'CANCELLED'
+      && existing.status === 'CONFIRMED'
+      && existing.paymentStatus === 'SUCCEEDED'
+      && existing.stripePaymentIntentId;
+
+    if (isCancellingPaidOrder) {
+      await createRefund(existing.stripePaymentIntentId, existing.total, 'requested_by_customer');
+    }
+
     const order = await prisma.order.update({
       where: { id },
-      data: { status, ...(note && { notes: note }) },
+      data: {
+        status,
+        ...(note && { notes: note }),
+        ...(isCancellingPaidOrder && { paymentStatus: 'REFUNDED' }),
+      },
     });
+
+    // Update all item statuses to match the cancellation
+    if (status === 'CANCELLED') {
+      await prisma.orderItem.updateMany({
+        where: { orderId: id },
+        data: { status: isCancellingPaidOrder ? 'REFUNDED' : 'CANCELLED' },
+      });
+    }
 
     const userId = existing.customer?.user?.id;
     if (userId) {
@@ -407,6 +430,13 @@ export const updateOrderStatus = async (req, res) => {
       data: { orderId: id, type: 'STATUS_CHANGE', actor: 'admin',
         data: { from: existing.status, to: status, note: note || null } }
     }).catch(() => {});
+
+    if (isCancellingPaidOrder) {
+      prisma.orderEvent.create({
+        data: { orderId: id, type: 'REFUND_PROCESSED', actor: 'admin',
+          data: { amount: existing.total, note: 'Full refund — order cancelled by admin' } }
+      }).catch(() => {});
+    }
 
     res.json({ message: 'Order status updated', order });
   } catch (error) {
