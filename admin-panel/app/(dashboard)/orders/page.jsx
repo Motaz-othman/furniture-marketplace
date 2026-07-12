@@ -142,8 +142,16 @@ export default function OrdersPage() {
     staleTime: 30_000,
   });
 
+  const { data: pendingData } = useQuery({
+    queryKey: ['admin-orders-pending-count'],
+    queryFn: () => getOrders({ status: 'PENDING', limit: 1 }),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+
   const orders = data?.orders || [];
   const pagination = data?.pagination || {};
+  const pendingCount = pendingData?.pagination?.totalCount ?? 0;
   const hasFilters = search || status;
 
   function clearFilters() {
@@ -156,7 +164,14 @@ export default function OrdersPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Orders</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold">Orders</h1>
+            {pendingCount > 0 && (
+              <span className="flex h-6 items-center rounded-full bg-yellow-100 px-2.5 text-xs font-semibold text-yellow-700 border border-yellow-300">
+                {pendingCount} pending
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground mt-1">
             {pagination.totalCount ?? '—'} total orders
           </p>
