@@ -14,6 +14,7 @@ import { formatPrice } from '@/lib/utils';
 import { guestCheckout, validateCoupon, getDeliveryOptions } from '@/lib/api/checkout';
 import { getAddresses } from '@/lib/api/addresses';
 import { getTaxRateForZip } from '@/lib/api/settings';
+import { lookupZip } from '@/lib/utils/zipLookup';
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
@@ -176,6 +177,13 @@ export default function CheckoutContent() {
   useEffect(() => {
     const zip = address.zipCode?.trim();
     if (!zip || zip.length < 5) { setTaxRate(0); return; }
+
+    lookupZip(zip).then(result => {
+      if (result) {
+        setAddress(prev => ({ ...prev, city: result.city, state: result.state }));
+      }
+    });
+
     getTaxRateForZip(zip)
       .then(data => setTaxRate(data?.rate ?? 0))
       .catch(() => setTaxRate(0));

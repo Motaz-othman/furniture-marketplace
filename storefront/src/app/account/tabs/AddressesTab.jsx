@@ -6,6 +6,7 @@ import { MapPin } from '@/components/ui/Icons';
 import { getAuthError } from '@/lib/api/auth';
 import ConfirmDialog from './ConfirmDialog';
 import toast from 'react-hot-toast';
+import { lookupZip } from '@/lib/utils/zipLookup';
 
 const ADDRESS_LABELS = ['Home', 'Work', 'Office', 'Other'];
 const emptyForm = { label: '', customLabel: '', street: '', city: '', state: '', zipCode: '', country: 'US', isDefault: false };
@@ -100,6 +101,14 @@ export default function AddressesTab() {
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
+
+  useEffect(() => {
+    const zip = form.zipCode?.trim();
+    if (!zip || zip.length !== 5) return;
+    lookupZip(zip).then(result => {
+      if (result) setForm(prev => ({ ...prev, city: result.city, state: result.state }));
+    });
+  }, [form.zipCode]);
 
   if (loading) {
     return <div className="account-loading">Loading addresses...</div>;
