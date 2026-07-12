@@ -4,34 +4,23 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getOrder,
-  createShipment, updateShipment, deleteShipment,
-  updateItemStatus,
+  getOrder, createShipment, updateShipment, updateItemStatus,
 } from '@/lib/services/orders';
 import { updateReturnRequest, refundReturnRequest } from '@/lib/services/returns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Package, Plus, Pencil, Trash2, ExternalLink, Truck } from 'lucide-react';
+import { ArrowLeft, Package, Plus, Pencil, Truck, Download, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -56,9 +45,29 @@ const ORDER_STATUS_VARIANT = {
   REFUNDED:   'destructive',
 };
 
+const SHIPMENT_STATUS_COLOR = {
+  PENDING:    'text-yellow-600 border-yellow-300',
+  QUOTED:     'text-blue-600 border-blue-300',
+  ARRANGED:   'text-purple-600 border-purple-300',
+  IN_TRANSIT: 'text-cyan-600 border-cyan-300',
+  DELIVERED:  'text-green-600 border-green-300',
+  FAILED:     '',
+};
+
+const RETURN_STATUS_COLOR = {
+  PENDING:  'text-yellow-600 border-yellow-300',
+  APPROVED: 'text-green-600 border-green-300',
+  REJECTED: '',
+  REFUNDED: '',
+};
+const RETURN_STATUS_VARIANT = {
+  PENDING:  'outline',
+  APPROVED: 'default',
+  REJECTED: 'destructive',
+  REFUNDED: 'secondary',
+};
+
 const SHIPMENT_STATUSES = ['PENDING', 'QUOTED', 'ARRANGED', 'IN_TRANSIT', 'DELIVERED', 'FAILED'];
-
-
 const PROVIDERS = ['DELIVERIGHT', 'GIGIGA', 'FEDEX', 'UPS', 'OTHER'];
 const TYPES = ['LTL', 'SMALL_PARCEL'];
 
@@ -86,6 +95,59 @@ function formatCurrency(val) {
   return val != null ? `$${Number(val).toFixed(2)}` : '—';
 }
 
+function getPackagingDims(item) {
+  const pkg = item.variant?.packaging;
+  const dims = pkg?.dimensions || {};
+  const L = Number(dims.length) || 0;
+  const W = Number(dims.width) || 0;
+  const H = Number(dims.height) || 0;
+  const weight = Number(dims.weight) || 0;
+  const uomDist = dims.unitOfMeasureDistance || 'in';
+  const cuFt = (L && W && H) ? (L * W * H) / 1728 : 0;
+  const longestDim = Math.max(L, W);
+  return { longestDim, height: H, cuFt, weight, uomDist };
+}
+
+function exportToCSV(order) {
+  const addr = order.address;
+  const delivLoc = addr ? `${addr.street}, ${addr.city}, ${addr.state} ${addr.zipCode}` : '';
+  const esc = (s) => `"${String(s ?? '').replace(/"/g, '""')}"`;
+  const headers = [
+    'Item', 'SKU', 'Qty',
+    'Longest Dim (in)', 'Height (in)', 'Cu.Ft', 'Weight (lbs)',
+    'Pickup Location', 'Delivery Location', 'Delivery Method',
+  ];
+  const rows = (order.items || []).map((item) => {
+    const { longestDim, height, cuFt, weight } = getPackagingDims(item);
+    const method = DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod || '';
+    const pickup = item.product?.brand || item.product?.provider || '';
+    return [
+      esc(item.product?.name || ''),
+      item.variant?.sku || '',
+      item.quantity,
+      longestDim > 0 ? longestDim.toFixed(2) : '',
+      height > 0 ? height.toFixed(2) : '',
+      cuFt > 0 ? cuFt.toFixed(3) : '',
+      weight > 0 ? weight : '',
+      esc(pickup),
+      esc(delivLoc),
+      esc(method),
+    ].join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `order-${order.orderNumber}-logistics.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ─── Small shared UI ──────────────────────────────────────────────────────────
+
 function InfoRow({ label, value }) {
   return (
     <div className="flex justify-between text-sm py-1">
@@ -95,24 +157,67 @@ function InfoRow({ label, value }) {
   );
 }
 
+function TH({ children, align = 'left' }) {
+  return (
+    <th className={`px-4 py-2.5 font-medium whitespace-nowrap text-${align}`}>
+      {children}
+    </th>
+  );
+}
+
+function TD({ children, align = 'left', className = '' }) {
+  return (
+    <td className={`px-4 py-3 text-${align} ${className}`}>
+      {children}
+    </td>
+  );
+}
+
+function ItemThumb({ item }) {
+  return item.product?.mainImage ? (
+    <img
+      src={item.product.mainImage}
+      alt=""
+      className="w-7 h-7 rounded object-cover border shrink-0"
+    />
+  ) : (
+    <div className="w-7 h-7 rounded bg-muted flex items-center justify-center border shrink-0">
+      <Package className="h-3 w-3 text-muted-foreground" />
+    </div>
+  );
+}
+
 function OrderStatusBadge({ status }) {
   return (
-    <Badge variant={ORDER_STATUS_VARIANT[status] || 'outline'} className={`text-sm ${ORDER_STATUS_COLOR[status] || ''}`}>
+    <Badge
+      variant={ORDER_STATUS_VARIANT[status] || 'outline'}
+      className={`text-sm ${ORDER_STATUS_COLOR[status] || ''}`}
+    >
       {status}
     </Badge>
   );
 }
 
-// ─── Add Shipment Dialog ───────────────────────────────────────────────────────
+function ShipmentStatusBadge({ status }) {
+  return (
+    <Badge
+      variant="outline"
+      className={`text-xs ${SHIPMENT_STATUS_COLOR[status] || ''}`}
+    >
+      {(status || '').replace(/_/g, ' ')}
+    </Badge>
+  );
+}
 
-function AddShipmentDialog({ open, onClose, orderId, unassignedItems }) {
+// ─── Per-Item Add Shipment Dialog ──────────────────────────────────────────────
+
+function PerItemAddShipmentDialog({ open, onClose, orderId, item }) {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ type: '', provider: '', notes: '' });
-  const [selectedItems, setSelectedItems] = useState([]);
+  const empty = { type: '', provider: '', estimatedCost: '', trackingNumber: '', notes: '' };
+  const [form, setForm] = useState(empty);
 
   function resetAndClose() {
-    setForm({ type: '', provider: '', notes: '' });
-    setSelectedItems([]);
+    setForm(empty);
     onClose();
   }
 
@@ -126,97 +231,101 @@ function AddShipmentDialog({ open, onClose, orderId, unassignedItems }) {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to create shipment'),
   });
 
-  function toggleItem(itemId) {
-    setSelectedItems((prev) =>
-      prev.includes(itemId) ? prev.filter((i) => i !== itemId) : [...prev, itemId]
-    );
-  }
+  function set(key, val) { setForm((f) => ({ ...f, [key]: val })); }
 
   function handleSubmit() {
-    const body = {
+    mutation.mutate({
       ...(form.type && { type: form.type }),
       ...(form.provider && { provider: form.provider }),
+      ...(form.estimatedCost !== '' && { estimatedCost: Number(form.estimatedCost) }),
+      ...(form.trackingNumber && { trackingNumber: form.trackingNumber }),
       ...(form.notes && { notes: form.notes }),
-      ...(selectedItems.length > 0 && { itemIds: selectedItems }),
-    };
-    mutation.mutate(body);
+      itemIds: [item.id],
+    });
   }
+
+  if (!item) return null;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) resetAndClose(); }}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Add Shipment</DialogTitle>
         </DialogHeader>
+        <p className="text-sm text-muted-foreground -mt-2">
+          {item.product?.name}
+          {item.variant?.name ? ` · ${item.variant.name}` : ''}
+          {' '}×{item.quantity}
+        </p>
 
         <div className="space-y-4 py-2">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Type</Label>
-              <Select value={form.type} onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}>
+              <Select value={form.type} onValueChange={(v) => set('type', v)}>
                 <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                 <SelectContent>
-                  {TYPES.map((t) => <SelectItem key={t} value={t}>{t.replace('_', ' ')}</SelectItem>)}
+                  {TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>{t.replace('_', ' ')}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Provider</Label>
-              <Select value={form.provider} onValueChange={(v) => setForm((f) => ({ ...f, provider: v }))}>
+              <Select value={form.provider} onValueChange={(v) => set('provider', v)}>
                 <SelectTrigger><SelectValue placeholder="Select provider" /></SelectTrigger>
                 <SelectContent>
-                  {PROVIDERS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  {PROVIDERS.map((p) => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {unassignedItems.length > 0 && (
-            <div className="space-y-2">
-              <Label>Assign Items</Label>
-              <div className="border rounded-md divide-y max-h-48 overflow-y-auto">
-                {unassignedItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 px-3 py-2">
-                    <Checkbox
-                      id={`item-${item.id}`}
-                      checked={selectedItems.includes(item.id)}
-                      onCheckedChange={() => toggleItem(item.id)}
-                    />
-                    {item.product?.mainImage ? (
-                      <img src={item.product.mainImage} alt="" className="w-8 h-8 rounded object-cover border shrink-0" />
-                    ) : (
-                      <div className="w-8 h-8 rounded bg-muted flex items-center justify-center border shrink-0">
-                        <Package className="h-3 w-3 text-muted-foreground" />
-                      </div>
-                    )}
-                    <label htmlFor={`item-${item.id}`} className="text-sm flex-1 cursor-pointer truncate">
-                      {item.product?.name || '—'}
-                      {item.variant?.name && (
-                        <span className="text-muted-foreground"> · {item.variant.name}</span>
-                      )}
-                      <span className="text-muted-foreground"> × {item.quantity}</span>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="space-y-1.5">
+            <Label>
+              Estimated Cost ($){' '}
+              <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+            </Label>
+            <Input
+              type="number" min="0" step="0.01" placeholder="0.00"
+              value={form.estimatedCost}
+              onChange={(e) => set('estimatedCost', e.target.value)}
+            />
+          </div>
 
           <div className="space-y-1.5">
-            <Label>Notes</Label>
+            <Label>
+              Tracking Number{' '}
+              <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+            </Label>
+            <Input
+              placeholder="e.g. 1Z999AA10123456784"
+              value={form.trackingNumber}
+              onChange={(e) => set('trackingNumber', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>
+              Notes{' '}
+              <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+            </Label>
             <Textarea
               rows={2}
-              placeholder="Optional notes..."
+              placeholder="Optional notes…"
               value={form.notes}
-              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              onChange={(e) => set('notes', e.target.value)}
             />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={resetAndClose}>Cancel</Button>
           <Button onClick={handleSubmit} disabled={mutation.isPending}>
-            {mutation.isPending ? 'Creating...' : 'Create Shipment'}
+            {mutation.isPending ? 'Creating…' : 'Create Shipment'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -229,27 +338,22 @@ function AddShipmentDialog({ open, onClose, orderId, unassignedItems }) {
 function EditShipmentDialog({ open, onClose, orderId, shipment }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
-    provider: shipment?.provider || '',
-    type: shipment?.type || '',
-    status: shipment?.status || '',
-    estimatedCost: shipment?.estimatedCost ?? '',
-    actualCost: shipment?.actualCost ?? '',
-    trackingNumber: shipment?.trackingNumber || '',
-    trackingUrl: shipment?.trackingUrl || '',
-    notes: shipment?.notes || '',
+    provider: '', type: '', status: '',
+    estimatedCost: '', actualCost: '',
+    trackingNumber: '', trackingUrl: '', notes: '',
   });
 
   useEffect(() => {
     if (open && shipment) {
       setForm({
-        provider: shipment.provider || '',
-        type: shipment.type || '',
-        status: shipment.status || '',
-        estimatedCost: shipment.estimatedCost ?? '',
-        actualCost: shipment.actualCost ?? '',
+        provider:       shipment.provider || '',
+        type:           shipment.type || '',
+        status:         shipment.status || '',
+        estimatedCost:  shipment.estimatedCost ?? '',
+        actualCost:     shipment.actualCost ?? '',
         trackingNumber: shipment.trackingNumber || '',
-        trackingUrl: shipment.trackingUrl || '',
-        notes: shipment.notes || '',
+        trackingUrl:    shipment.trackingUrl || '',
+        notes:          shipment.notes || '',
       });
     }
   }, [open, shipment]);
@@ -264,22 +368,19 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to update shipment'),
   });
 
-  function set(key, val) {
-    setForm((f) => ({ ...f, [key]: val }));
-  }
+  function set(key, val) { setForm((f) => ({ ...f, [key]: val })); }
 
   function handleSubmit() {
-    const body = {
-      ...(form.provider ? { provider: form.provider } : { provider: null }),
-      ...(form.type ? { type: form.type } : { type: null }),
-      status: form.status || undefined,
-      estimatedCost: form.estimatedCost !== '' ? Number(form.estimatedCost) : null,
-      actualCost: form.actualCost !== '' ? Number(form.actualCost) : null,
+    mutation.mutate({
+      provider:       form.provider || null,
+      type:           form.type || null,
+      status:         form.status || undefined,
+      estimatedCost:  form.estimatedCost !== '' ? Number(form.estimatedCost) : null,
+      actualCost:     form.actualCost !== '' ? Number(form.actualCost) : null,
       trackingNumber: form.trackingNumber || null,
-      trackingUrl: form.trackingUrl || null,
-      notes: form.notes || null,
-    };
-    mutation.mutate(body);
+      trackingUrl:    form.trackingUrl || null,
+      notes:          form.notes || null,
+    });
   }
 
   if (!shipment) return null;
@@ -320,7 +421,9 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
             <Select value={form.status} onValueChange={(v) => set('status', v)}>
               <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
               <SelectContent>
-                {SHIPMENT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>)}
+                {SHIPMENT_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -329,10 +432,7 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
             <div className="space-y-1.5">
               <Label>Estimated Cost ($)</Label>
               <Input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
+                type="number" min="0" step="0.01" placeholder="0.00"
                 value={form.estimatedCost}
                 onChange={(e) => set('estimatedCost', e.target.value)}
               />
@@ -340,10 +440,7 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
             <div className="space-y-1.5">
               <Label>Actual Cost ($)</Label>
               <Input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
+                type="number" min="0" step="0.01" placeholder="0.00"
                 value={form.actualCost}
                 onChange={(e) => set('actualCost', e.target.value)}
               />
@@ -362,8 +459,7 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
           <div className="space-y-1.5">
             <Label>Tracking URL</Label>
             <Input
-              type="url"
-              placeholder="https://..."
+              type="url" placeholder="https://…"
               value={form.trackingUrl}
               onChange={(e) => set('trackingUrl', e.target.value)}
             />
@@ -372,8 +468,7 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
           <div className="space-y-1.5">
             <Label>Notes</Label>
             <Textarea
-              rows={2}
-              placeholder="Optional notes..."
+              rows={2} placeholder="Optional notes…"
               value={form.notes}
               onChange={(e) => set('notes', e.target.value)}
             />
@@ -383,287 +478,11 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={handleSubmit} disabled={mutation.isPending}>
-            {mutation.isPending ? 'Saving...' : 'Save Changes'}
+            {mutation.isPending ? 'Saving…' : 'Save Changes'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-// ─── Shipment Card ─────────────────────────────────────────────────────────────
-
-function ShipmentCard({ orderId, shipment, onEdit }) {
-  const queryClient = useQueryClient();
-
-  const statusMutation = useMutation({
-    mutationFn: (status) => updateShipment(orderId, shipment.id, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-order', orderId] });
-      toast.success('Shipment status updated');
-    },
-    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update status'),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteShipment(orderId, shipment.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-order', orderId] });
-      toast.success('Shipment deleted');
-    },
-    onError: (err) => toast.error(err.response?.data?.error || 'Failed to delete shipment'),
-  });
-
-  return (
-    <div className="border rounded-lg p-4 space-y-3">
-      {/* Header row */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Inline status selector */}
-        <Select
-          value={shipment.status}
-          onValueChange={(val) => statusMutation.mutate(val)}
-          disabled={statusMutation.isPending}
-        >
-          <SelectTrigger className="h-7 w-auto text-xs px-2 border font-medium">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SHIPMENT_STATUSES.map((s) => (
-              <SelectItem key={s} value={s} className="text-xs">
-                {s.replace('_', ' ')}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {shipment.provider && (
-          <Badge variant="outline" className="text-xs">{shipment.provider}</Badge>
-        )}
-        {shipment.type && (
-          <Badge variant="secondary" className="text-xs">{shipment.type.replace('_', ' ')}</Badge>
-        )}
-        <div className="ml-auto flex gap-1">
-          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(shipment)}>
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 text-destructive hover:text-destructive"
-            onClick={() => deleteMutation.mutate()}
-            disabled={deleteMutation.isPending}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Assigned items */}
-      {shipment.items?.length > 0 && (
-        <div className="space-y-1">
-          {shipment.items.map((item) => (
-            <div key={item.id} className="flex items-center gap-2 text-sm">
-              {item.product?.mainImage ? (
-                <img src={item.product.mainImage} alt="" className="w-6 h-6 rounded object-cover border shrink-0" />
-              ) : (
-                <div className="w-6 h-6 rounded bg-muted flex items-center justify-center border shrink-0">
-                  <Package className="h-3 w-3 text-muted-foreground" />
-                </div>
-              )}
-              <span className="truncate text-muted-foreground">
-                {item.product?.name || '—'}
-                {item.variant?.name && <span> · {item.variant.name}</span>}
-                <span> × {item.quantity}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Costs */}
-      {(shipment.estimatedCost != null || shipment.actualCost != null) && (
-        <div className="flex gap-4 text-xs text-muted-foreground">
-          {shipment.estimatedCost != null && (
-            <span>Est: <span className="font-medium text-foreground">{formatCurrency(shipment.estimatedCost)}</span></span>
-          )}
-          {shipment.actualCost != null && (
-            <span>Actual: <span className="font-medium text-foreground">{formatCurrency(shipment.actualCost)}</span></span>
-          )}
-        </div>
-      )}
-
-      {/* Tracking */}
-      {shipment.trackingNumber && (
-        <div className="flex items-center gap-2 text-xs">
-          <Truck className="h-3 w-3 text-muted-foreground shrink-0" />
-          <span className="font-mono">{shipment.trackingNumber}</span>
-          {shipment.trackingUrl && (
-            <a href={shipment.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-primary">
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-        </div>
-      )}
-
-      {/* Notes */}
-      {shipment.notes && (
-        <p className="text-xs text-muted-foreground italic">{shipment.notes}</p>
-      )}
-    </div>
-  );
-}
-
-// ─── Return Requests Card ──────────────────────────────────────────────────────
-
-const RETURN_STATUS_COLOR = {
-  PENDING:  'text-yellow-600 border-yellow-300',
-  APPROVED: 'text-green-600 border-green-300',
-  REJECTED: '',
-  REFUNDED: '',
-};
-const RETURN_STATUS_VARIANT = {
-  PENDING:  'outline',
-  APPROVED: 'default',
-  REJECTED: 'destructive',
-  REFUNDED: 'secondary',
-};
-
-function ReturnRequestsCard({ orderId, returnRequests }) {
-  const queryClient = useQueryClient();
-  const [notesMap, setNotesMap] = useState({});
-
-  const mutation = useMutation({
-    mutationFn: ({ id, status, adminNotes }) => updateReturnRequest(id, status, adminNotes),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-order', orderId] });
-      toast.success('Return request updated');
-    },
-    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update return request'),
-  });
-
-  const refundMutation = useMutation({
-    mutationFn: (id) => refundReturnRequest(id),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-order', orderId] });
-      toast.success(data.message || 'Refund processed');
-    },
-    onError: (err) => toast.error(err.response?.data?.error || 'Failed to process refund'),
-  });
-
-  if (!returnRequests?.length) {
-    return (
-      <Card>
-        <CardHeader><CardTitle className="text-base">Return Requests</CardTitle></CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">No return requests for this order.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Return Requests ({returnRequests.length})</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {returnRequests.map((rr) => {
-          const refundTotal = rr.items.reduce((sum, ri) => {
-            const price = ri.orderItem?.price || 0;
-            return sum + price * ri.quantity;
-          }, 0);
-
-          return (
-            <div key={rr.id} className="border rounded-lg p-4 space-y-3">
-              {/* Header */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge
-                  variant={RETURN_STATUS_VARIANT[rr.status] || 'outline'}
-                  className={`text-xs ${RETURN_STATUS_COLOR[rr.status] || ''}`}
-                >
-                  {rr.status}
-                </Badge>
-                <span className="text-xs text-muted-foreground">{formatDate(rr.createdAt)}</span>
-                <span className="ml-auto text-xs font-medium">
-                  Refund: {formatCurrency(refundTotal)}
-                </span>
-              </div>
-
-              {/* Items */}
-              <div className="space-y-2">
-                {rr.items.map((ri) => {
-                  const item = ri.orderItem;
-                  const name = item?.product?.name || '—';
-                  const variant = item?.variant?.name;
-                  return (
-                    <div key={ri.id} className="flex items-center gap-2 text-sm">
-                      {item?.product?.mainImage ? (
-                        <img src={item.product.mainImage} alt="" className="w-8 h-8 rounded object-cover border shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center border shrink-0">
-                          <Package className="h-3 w-3 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="truncate font-medium">{name}{variant ? ` — ${variant}` : ''} ×{ri.quantity}</div>
-                        <div className="text-xs text-muted-foreground truncate">{ri.reason}</div>
-                      </div>
-                      <span className="text-xs shrink-0">{formatCurrency((item?.price || 0) * ri.quantity)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Admin notes */}
-              {rr.status === 'PENDING' && (
-                <Textarea
-                  rows={2}
-                  placeholder="Admin note (optional)…"
-                  value={notesMap[rr.id] || ''}
-                  onChange={(e) => setNotesMap((m) => ({ ...m, [rr.id]: e.target.value }))}
-                />
-              )}
-              {rr.adminNotes && rr.status !== 'PENDING' && (
-                <p className="text-xs text-muted-foreground italic">Note: {rr.adminNotes}</p>
-              )}
-
-              {/* Actions */}
-              {rr.status === 'PENDING' && (
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    className="flex-1"
-                    disabled={mutation.isPending}
-                    onClick={() => mutation.mutate({ id: rr.id, status: 'APPROVED', adminNotes: notesMap[rr.id] })}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="flex-1"
-                    disabled={mutation.isPending}
-                    onClick={() => mutation.mutate({ id: rr.id, status: 'REJECTED', adminNotes: notesMap[rr.id] })}
-                  >
-                    Reject
-                  </Button>
-                </div>
-              )}
-              {rr.status === 'APPROVED' && (
-                <Button
-                  size="sm"
-                  variant="default"
-                  disabled={refundMutation.isPending}
-                  onClick={() => refundMutation.mutate(rr.id)}
-                >
-                  {refundMutation.isPending ? 'Processing…' : `Refund ${formatCurrency(refundTotal)}`}
-                </Button>
-              )}
-            </div>
-          );
-        })}
-      </CardContent>
-    </Card>
   );
 }
 
@@ -673,15 +492,15 @@ export default function OrderDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [showAddShipment, setShowAddShipment] = useState(false);
+
+  const [addShipmentForItem, setAddShipmentForItem] = useState(null);
   const [editingShipment, setEditingShipment] = useState(null);
+  const [returnNotesMap, setReturnNotesMap] = useState({});
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-order', id],
     queryFn: () => getOrder(id),
   });
-
-
 
   const itemStatusMutation = useMutation({
     mutationFn: ({ itemId, status }) => updateItemStatus(id, itemId, status),
@@ -689,71 +508,105 @@ export default function OrderDetailPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to update item status'),
   });
 
-  if (isLoading) return <div className="text-muted-foreground">Loading...</div>;
+  const returnMutation = useMutation({
+    mutationFn: ({ returnId, status, adminNotes }) =>
+      updateReturnRequest(returnId, status, adminNotes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
+      toast.success('Return request updated');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update return'),
+  });
 
+  const refundMutation = useMutation({
+    mutationFn: (returnId) => refundReturnRequest(returnId),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
+      toast.success(res.message || 'Refund processed');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to process refund'),
+  });
+
+  if (isLoading) return <div className="p-8 text-muted-foreground">Loading…</div>;
   const order = data?.order;
-  if (!order) return <div className="text-muted-foreground">Order not found</div>;
+  if (!order) return <div className="p-8 text-muted-foreground">Order not found</div>;
 
   const customer = order.customer?.user;
-
-  // Items that don't have a shipment assigned (using shipment FK on each item)
-  const unassignedItems = (order.items || []).filter((item) => !item.shipment);
-
-  // Guest name fallback
   const guestName = order.guestFirstName
     ? `${order.guestFirstName} ${order.guestLastName || ''}`.trim()
     : null;
+  const addr = order.address;
+  const deliveryLocation = addr
+    ? `${addr.street}, ${addr.city}, ${addr.state} ${addr.zipCode}`
+    : '—';
+  const hasReturns = (order.returnRequests?.length ?? 0) > 0;
+  const discountRatio = (order.subtotal > 0 && order.discountAmount > 0)
+    ? order.discountAmount / order.subtotal : 0;
 
-  // Unique pickup locations (vendor brands) derived from order items
-  const pickupLocations = [...new Set(
-    (order.items || []).map((i) => i.product?.brand || i.product?.provider).filter(Boolean)
-  )];
+  function getFullShipment(item) {
+    if (!item.shipment) return null;
+    return order.shipments?.find((s) => s.id === item.shipment.id) || item.shipment;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+
+      {/* ── Header ── */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => router.push('/orders')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl font-semibold font-mono">{order.orderNumber}</h1>
             <OrderStatusBadge status={order.status} />
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">Placed {formatDate(order.createdAt)}</p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 shrink-0"
+          onClick={() => exportToCSV(order)}
+        >
+          <Download className="h-3.5 w-3.5" />
+          Export to Excel
+        </Button>
       </div>
 
-      {/* ── Full-width Items Table ── */}
+      {/* ── Table 1: Order Items ── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Items ({order.items?.length ?? 0})</CardTitle>
+          <CardTitle className="text-base">Order Items ({order.items?.length ?? 0})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
-                  <th className="text-left px-4 py-2.5 font-medium">Product</th>
-                  <th className="text-left px-4 py-2.5 font-medium">SKU</th>
-                  <th className="text-center px-4 py-2.5 font-medium">Qty</th>
-                  <th className="text-right px-4 py-2.5 font-medium">Cost Price</th>
-                  <th className="text-right px-4 py-2.5 font-medium">Sale Price</th>
-                  <th className="text-left px-4 py-2.5 font-medium">Delivery Method</th>
-                  <th className="text-right px-4 py-2.5 font-medium">Delivery Fee</th>
-                  <th className="text-right px-4 py-2.5 font-medium">Item Total</th>
-                  <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                  <TH>Product</TH>
+                  <TH>SKU</TH>
+                  <TH align="center">Qty</TH>
+                  <TH align="right">Cost Price</TH>
+                  <TH align="right">Sale Price</TH>
+                  <TH align="right">Disc. Price</TH>
+                  <TH align="right">Longest Dim</TH>
+                  <TH align="right">Height</TH>
+                  <TH align="right">Cu.Ft</TH>
+                  <TH align="right">Weight</TH>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {order.items?.map((item) => {
                   const costPrice = item.variant?.price?.cost ?? null;
                   const salePrice = item.price;
+                  const discountedPrice = discountRatio > 0 ? salePrice * (1 - discountRatio) : null;
+                  const { longestDim, height, cuFt, weight, uomDist } = getPackagingDims(item);
+                  const dimUnit = uomDist === 'in' ? '"' : ' cm';
+
                   return (
                     <tr key={item.id} className="hover:bg-muted/20 transition-colors">
-                      {/* Product */}
-                      <td className="px-4 py-3">
+                      <TD>
                         <div className="flex items-center gap-3">
                           {item.product?.mainImage ? (
                             <img
@@ -767,79 +620,168 @@ export default function OrderDetailPage() {
                             </div>
                           )}
                           <div className="min-w-0">
-                            <div className="font-medium truncate max-w-[220px]" title={item.product?.name}>
+                            <div
+                              className="font-medium truncate max-w-[200px]"
+                              title={item.product?.name}
+                            >
                               {item.product?.name || '—'}
                             </div>
                             {item.variant?.name && (
-                              <div className="text-xs text-muted-foreground truncate max-w-[220px]">
+                              <div className="text-xs text-muted-foreground truncate max-w-[200px]">
                                 {item.variant.name}
                               </div>
                             )}
-                            {item.product?.brand && (
-                              <div className="text-xs text-muted-foreground/70">{item.product.brand}</div>
-                            )}
                           </div>
                         </div>
-                      </td>
-
-                      {/* SKU */}
-                      <td className="px-4 py-3">
+                      </TD>
+                      <TD>
                         <span className="font-mono text-xs text-muted-foreground">
                           {item.variant?.sku || '—'}
                         </span>
-                      </td>
-
-                      {/* Qty */}
-                      <td className="px-4 py-3 text-center font-medium">
-                        {item.quantity}
-                      </td>
-
-                      {/* Cost Price */}
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                      </TD>
+                      <TD align="center" className="font-medium">{item.quantity}</TD>
+                      <TD align="right" className="tabular-nums text-muted-foreground">
                         {costPrice != null ? formatCurrency(costPrice) : '—'}
-                      </td>
-
-                      {/* Sale Price */}
-                      <td className="px-4 py-3 text-right tabular-nums font-medium">
+                      </TD>
+                      <TD align="right" className="tabular-nums font-medium">
                         {formatCurrency(salePrice)}
-                      </td>
-
-                      {/* Delivery Method */}
-                      <td className="px-4 py-3">
-                        {item.deliveryMethod ? (
-                          <div className="flex items-center gap-1.5 text-xs">
-                            <Truck className="h-3 w-3 text-muted-foreground shrink-0" />
-                            <span>{DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod}</span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </td>
-
-                      {/* Delivery Fee */}
-                      <td className="px-4 py-3 text-right tabular-nums">
-                        {item.deliveryMethod ? (
-                          item.deliveryFee > 0
-                            ? <span>{formatCurrency(item.deliveryFee)}</span>
-                            : <span className="text-green-600 font-medium">Free</span>
+                      </TD>
+                      <TD align="right" className="tabular-nums">
+                        {discountedPrice != null ? (
+                          <span className="text-green-600 font-medium">
+                            {formatCurrency(discountedPrice)}
+                          </span>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
-                      </td>
+                      </TD>
+                      <TD align="right" className="tabular-nums text-muted-foreground whitespace-nowrap">
+                        {longestDim > 0 ? `${longestDim.toFixed(1)}${dimUnit}` : '—'}
+                      </TD>
+                      <TD align="right" className="tabular-nums text-muted-foreground whitespace-nowrap">
+                        {height > 0 ? `${height.toFixed(1)}${dimUnit}` : '—'}
+                      </TD>
+                      <TD align="right" className="tabular-nums text-muted-foreground">
+                        {cuFt > 0 ? cuFt.toFixed(2) : '—'}
+                      </TD>
+                      <TD align="right" className="tabular-nums text-muted-foreground whitespace-nowrap">
+                        {weight > 0 ? `${weight} lbs` : '—'}
+                      </TD>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
-                      {/* Item Total (based on sale price) */}
-                      <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                        {formatCurrency(salePrice * item.quantity)}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-4 py-3">
+      {/* ── Table 2: Shipment Management ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Shipment Management</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
+                  <TH>Item</TH>
+                  <TH>Shipment</TH>
+                  <TH>Shipment Status</TH>
+                  <TH>Item Status</TH>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {order.items?.map((item) => {
+                  const fullShipment = getFullShipment(item);
+                  return (
+                    <tr key={item.id} className="hover:bg-muted/20 transition-colors">
+                      <TD>
+                        <div className="flex items-center gap-2">
+                          <ItemThumb item={item} />
+                          <span
+                            className="truncate max-w-[180px] font-medium"
+                            title={item.product?.name}
+                          >
+                            {item.product?.name || '—'}
+                          </span>
+                        </div>
+                      </TD>
+                      <TD>
+                        {fullShipment ? (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {fullShipment.provider && (
+                              <Badge variant="outline" className="text-xs">
+                                {fullShipment.provider}
+                              </Badge>
+                            )}
+                            {fullShipment.type && (
+                              <Badge variant="secondary" className="text-xs">
+                                {fullShipment.type.replace('_', ' ')}
+                              </Badge>
+                            )}
+                            {fullShipment.estimatedCost != null && (
+                              <span className="text-xs text-muted-foreground">
+                                Est:{' '}
+                                <span className="font-medium text-foreground">
+                                  {formatCurrency(fullShipment.estimatedCost)}
+                                </span>
+                              </span>
+                            )}
+                            {fullShipment.trackingNumber && (
+                              <div className="flex items-center gap-1">
+                                <span className="font-mono text-xs">
+                                  {fullShipment.trackingNumber}
+                                </span>
+                                {fullShipment.trackingUrl && (
+                                  <a
+                                    href={fullShipment.trackingUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 gap-1"
+                              onClick={() => setEditingShipment(fullShipment)}
+                            >
+                              <Pencil className="h-3 w-3" /> Edit
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 gap-1"
+                            onClick={() => setAddShipmentForItem(item)}
+                          >
+                            <Plus className="h-3 w-3" /> Add Shipment
+                          </Button>
+                        )}
+                      </TD>
+                      <TD>
+                        {fullShipment?.status ? (
+                          <ShipmentStatusBadge status={fullShipment.status} />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TD>
+                      <TD>
                         <Select
                           value={item.status || 'PENDING'}
-                          onValueChange={(status) => itemStatusMutation.mutate({ itemId: item.id, status })}
+                          onValueChange={(status) =>
+                            itemStatusMutation.mutate({ itemId: item.id, status })
+                          }
                           disabled={itemStatusMutation.isPending}
                         >
-                          <SelectTrigger className="h-7 text-xs w-40">
+                          <SelectTrigger className="h-7 text-xs w-44">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -852,7 +794,7 @@ export default function OrderDetailPage() {
                             <SelectItem value="REFUNDED">Refunded</SelectItem>
                           </SelectContent>
                         </Select>
-                      </td>
+                      </TD>
                     </tr>
                   );
                 })}
@@ -862,41 +804,221 @@ export default function OrderDetailPage() {
         </CardContent>
       </Card>
 
-      {/* ── Full-width Shipments ── */}
+      {/* ── Table 3: Delivery Routing ── */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">
-              Shipments ({order.shipments?.length ?? 0})
-            </CardTitle>
-            <Button size="sm" variant="outline" onClick={() => setShowAddShipment(true)}>
-              <Plus className="h-3.5 w-3.5 mr-1" /> Add Shipment
-            </Button>
-          </div>
+          <CardTitle className="text-base">Delivery Routing</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {unassignedItems.length > 0 && (order.shipments?.length ?? 0) > 0 && (
-            <p className="text-xs text-orange-500">
-              {unassignedItems.length} item{unassignedItems.length > 1 ? 's' : ''} not yet assigned to a shipment.
-            </p>
-          )}
-          {(order.shipments?.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No shipments yet. Add a shipment to start organizing delivery.
-            </p>
-          ) : (
-            order.shipments.map((shipment) => (
-              <ShipmentCard key={shipment.id} orderId={id} shipment={shipment} onEdit={setEditingShipment} />
-            ))
-          )}
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
+                  <TH>Item</TH>
+                  <TH>Pickup Location</TH>
+                  <TH>Delivery Location</TH>
+                  <TH>Delivery Method</TH>
+                  <TH align="right">Delivery Fee</TH>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {order.items?.map((item) => {
+                  const pickup = item.product?.brand || item.product?.provider;
+                  return (
+                    <tr key={item.id} className="hover:bg-muted/20 transition-colors">
+                      <TD>
+                        <div className="flex items-center gap-2">
+                          <ItemThumb item={item} />
+                          <span
+                            className="truncate max-w-[180px] font-medium"
+                            title={item.product?.name}
+                          >
+                            {item.product?.name || '—'}
+                          </span>
+                        </div>
+                      </TD>
+                      <TD>
+                        {pickup ? (
+                          <div className="flex items-center gap-1.5">
+                            <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span>{pickup}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TD>
+                      <TD className="text-muted-foreground text-xs">{deliveryLocation}</TD>
+                      <TD>
+                        {item.deliveryMethod ? (
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <Truck className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span>
+                              {DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TD>
+                      <TD align="right" className="tabular-nums">
+                        {item.deliveryMethod ? (
+                          item.deliveryFee > 0 ? (
+                            formatCurrency(item.deliveryFee)
+                          ) : (
+                            <span className="text-green-600 font-medium">Free</span>
+                          )
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TD>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 
-      {/* ── Full-width Return Requests ── */}
-      <ReturnRequestsCard orderId={id} returnRequests={order.returnRequests} />
+      {/* ── Table 4: Returns (only shown if returns exist) ── */}
+      {hasReturns && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Returns ({order.returnRequests.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
+                    <TH>Date</TH>
+                    <TH>Items &amp; Reason</TH>
+                    <TH>Status</TH>
+                    <TH align="right">Refund Amt</TH>
+                    <TH>Actions</TH>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {order.returnRequests.map((rr) => {
+                    const refundTotal = rr.items.reduce(
+                      (sum, ri) => sum + (ri.orderItem?.price || 0) * ri.quantity,
+                      0,
+                    );
+                    return (
+                      <tr key={rr.id} className="hover:bg-muted/20 transition-colors align-top">
+                        <TD className="text-xs text-muted-foreground whitespace-nowrap pt-3.5">
+                          {formatDate(rr.createdAt)}
+                        </TD>
+                        <TD>
+                          <div className="space-y-1.5">
+                            {rr.items.map((ri) => (
+                              <div key={ri.id}>
+                                <span className="font-medium">
+                                  {ri.orderItem?.product?.name || '—'}
+                                  {ri.orderItem?.variant?.name
+                                    ? ` · ${ri.orderItem.variant.name}` : ''}
+                                </span>
+                                <span className="text-muted-foreground"> ×{ri.quantity}</span>
+                                {ri.reason && (
+                                  <div className="text-xs text-muted-foreground">{ri.reason}</div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </TD>
+                        <TD className="pt-3.5">
+                          <Badge
+                            variant={RETURN_STATUS_VARIANT[rr.status] || 'outline'}
+                            className={`text-xs ${RETURN_STATUS_COLOR[rr.status] || ''}`}
+                          >
+                            {rr.status}
+                          </Badge>
+                        </TD>
+                        <TD align="right" className="tabular-nums font-medium pt-3.5">
+                          {formatCurrency(refundTotal)}
+                        </TD>
+                        <TD>
+                          <div className="space-y-2 py-0.5">
+                            {rr.status === 'PENDING' && (
+                              <>
+                                <Textarea
+                                  rows={1}
+                                  placeholder="Admin note (optional)…"
+                                  className="h-8 text-xs resize-none py-1.5 min-h-0"
+                                  value={returnNotesMap[rr.id] || ''}
+                                  onChange={(e) =>
+                                    setReturnNotesMap((m) => ({
+                                      ...m, [rr.id]: e.target.value,
+                                    }))
+                                  }
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    className="h-7 text-xs flex-1"
+                                    disabled={returnMutation.isPending}
+                                    onClick={() =>
+                                      returnMutation.mutate({
+                                        returnId: rr.id,
+                                        status: 'APPROVED',
+                                        adminNotes: returnNotesMap[rr.id],
+                                      })
+                                    }
+                                  >
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="h-7 text-xs flex-1"
+                                    disabled={returnMutation.isPending}
+                                    onClick={() =>
+                                      returnMutation.mutate({
+                                        returnId: rr.id,
+                                        status: 'REJECTED',
+                                        adminNotes: returnNotesMap[rr.id],
+                                      })
+                                    }
+                                  >
+                                    Reject
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                            {rr.status === 'APPROVED' && (
+                              <Button
+                                size="sm"
+                                className="h-7 text-xs w-full"
+                                disabled={refundMutation.isPending}
+                                onClick={() => refundMutation.mutate(rr.id)}
+                              >
+                                {refundMutation.isPending
+                                  ? 'Processing…'
+                                  : `Refund ${formatCurrency(refundTotal)}`}
+                              </Button>
+                            )}
+                            {rr.adminNotes && rr.status !== 'PENDING' && (
+                              <p className="text-xs text-muted-foreground italic">
+                                {rr.adminNotes}
+                              </p>
+                            )}
+                          </div>
+                        </TD>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── Common Info Grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
         {/* Customer */}
         <Card>
           <CardHeader className="pb-2">
@@ -919,26 +1041,15 @@ export default function OrderDetailPage() {
             ) : (
               <p className="text-sm text-muted-foreground">Guest order</p>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Pickup Location */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Pickup Location</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pickupLocations.length > 0 ? (
-              <div className="space-y-1.5">
-                {pickupLocations.map((loc) => (
-                  <div key={loc} className="flex items-center gap-2 text-sm">
-                    <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="font-medium">{loc}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No vendor info available</p>
+            {addr && (
+              <>
+                <Separator className="my-2" />
+                <p className="text-xs text-muted-foreground font-medium mb-1">Delivery Address</p>
+                <p className="text-sm">{addr.street}</p>
+                <p className="text-sm text-muted-foreground">
+                  {addr.city}, {addr.state} {addr.zipCode}
+                </p>
+              </>
             )}
           </CardContent>
         </Card>
@@ -951,11 +1062,17 @@ export default function OrderDetailPage() {
           <CardContent>
             <InfoRow label="Status" value={order.paymentStatus || '—'} />
             {order.stripePaymentIntentId && (
-              <InfoRow label="Stripe PI" value={
-                <span className="font-mono text-xs truncate block max-w-[120px]" title={order.stripePaymentIntentId}>
-                  {order.stripePaymentIntentId}
-                </span>
-              } />
+              <InfoRow
+                label="Stripe PI"
+                value={
+                  <span
+                    className="font-mono text-xs truncate block max-w-[120px]"
+                    title={order.stripePaymentIntentId}
+                  >
+                    {order.stripePaymentIntentId}
+                  </span>
+                }
+              />
             )}
           </CardContent>
         </Card>
@@ -982,26 +1099,29 @@ export default function OrderDetailPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Notes */}
-      {order.notes && (
+        {/* Notes */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Notes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{order.notes}</p>
+            {order.notes ? (
+              <p className="text-sm text-muted-foreground">{order.notes}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No notes</p>
+            )}
           </CardContent>
         </Card>
-      )}
 
-      {/* Dialogs */}
-      <AddShipmentDialog
-        open={showAddShipment}
-        onClose={() => setShowAddShipment(false)}
+      </div>
+
+      {/* ── Dialogs ── */}
+      <PerItemAddShipmentDialog
+        open={!!addShipmentForItem}
+        onClose={() => setAddShipmentForItem(null)}
         orderId={id}
-        unassignedItems={unassignedItems}
+        item={addShipmentForItem}
       />
       <EditShipmentDialog
         open={!!editingShipment}
@@ -1009,6 +1129,7 @@ export default function OrderDetailPage() {
         orderId={id}
         shipment={editingShipment}
       />
+
     </div>
   );
 }
