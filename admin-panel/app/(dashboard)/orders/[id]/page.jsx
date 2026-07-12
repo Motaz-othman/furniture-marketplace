@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getOrder, createShipment, updateShipment, updateOrderStatus,
+  getOrder, createShipment, updateShipment, updateOrderStatus, updateItemStatus,
 } from '@/lib/services/orders';
 import { updateReturnRequest, refundReturnRequest } from '@/lib/services/returns';
 import { Button } from '@/components/ui/button';
@@ -25,25 +25,6 @@ import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const ORDER_STATUS_COLOR = {
-  PENDING:    'text-yellow-600 border-yellow-300',
-  CONFIRMED:  'text-blue-600 border-blue-300',
-  PROCESSING: 'text-purple-600 border-purple-300',
-  SHIPPED:    'text-cyan-600 border-cyan-300',
-  DELIVERED:  'text-green-600 border-green-300',
-  CANCELLED:  '',
-  REFUNDED:   '',
-};
-
-const ORDER_STATUS_VARIANT = {
-  PENDING:    'outline',
-  CONFIRMED:  'secondary',
-  PROCESSING: 'secondary',
-  SHIPPED:    'default',
-  DELIVERED:  'default',
-  CANCELLED:  'destructive',
-  REFUNDED:   'destructive',
-};
 
 
 const RETURN_STATUS_COLOR = {
@@ -67,6 +48,19 @@ const ALLOWED_TRANSITIONS = {
   DELIVERED:  ['REFUNDED'],
   CANCELLED:  [],
   REFUNDED:   [],
+};
+
+const ITEM_ALLOWED_TRANSITIONS = {
+  PENDING:          ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED:        ['PROCESSING', 'CANCELLED'],
+  PROCESSING:       ['SHIPPED', 'CANCELLED'],
+  SHIPPED:          ['DELIVERED'],
+  DELIVERED:        ['RETURN_REQUESTED', 'REFUNDED'],
+  CANCELLED:        [],
+  REFUNDED:         [],
+  RETURN_REQUESTED: ['RETURN_APPROVED', 'RETURN_REJECTED'],
+  RETURN_APPROVED:  ['REFUNDED'],
+  RETURN_REJECTED:  [],
 };
 const PROVIDERS = ['DELIVERIGHT', 'GIGIGA', 'FEDEX', 'UPS', 'OTHER'];
 const TYPES = ['LTL', 'SMALL_PARCEL'];
@@ -202,16 +196,6 @@ function ItemThumb({ item }) {
   );
 }
 
-function OrderStatusBadge({ status }) {
-  return (
-    <Badge
-      variant={ORDER_STATUS_VARIANT[status] || 'outline'}
-      className={`text-sm ${ORDER_STATUS_COLOR[status] || ''}`}
-    >
-      {status}
-    </Badge>
-  );
-}
 
 
 // ─── Per-Item Add Shipment Dialog ──────────────────────────────────────────────
@@ -502,6 +486,12 @@ export default function OrderDetailPage() {
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to update order status'),
   });
 
+  const itemStatusMutation = useMutation({
+    mutationFn: ({ itemId, status }) => updateItemStatus(id, itemId, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-order', id] }),
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update item status'),
+  });
+
   const returnMutation = useMutation({
     mutationFn: ({ returnId, status, adminNotes }) =>
       updateReturnRequest(returnId, status, adminNotes),
@@ -553,7 +543,21 @@ export default function OrderDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl font-semibold font-mono">{order.orderNumber}</h1>
-            <OrderStatusBadge status={order.status} />
+            <Select
+              value={order.status}
+              onValueChange={(status) => orderStatusMutation.mutate(status)}
+              disabled={orderStatusMutation.isPending}
+            >
+              <SelectTrigger className="h-8 w-auto text-sm font-medium border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={order.status} disabled>{order.status}</SelectItem>
+                {(ALLOWED_TRANSITIONS[order.status] || []).map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">Placed {formatDate(order.createdAt)}</p>
         </div>
@@ -683,7 +687,7 @@ export default function OrderDetailPage() {
                   <TH>Item</TH>
                   <TH>Suggested Type</TH>
                   <TH>Shipment</TH>
-                  <TH>Order Status</TH>
+                  <TH>Item Status</TH>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -775,17 +779,21 @@ export default function OrderDetailPage() {
                       </TD>
                       <TD>
                         <Select
-                          value={order.status}
-                          onValueChange={(status) => orderStatusMutation.mutate(status)}
-                          disabled={orderStatusMutation.isPending}
+                          value={item.status || 'PENDING'}
+                          onValueChange={(status) =>
+                            itemStatusMutation.mutate({ itemId: item.id, status })
+                          }
+                          disabled={itemStatusMutation.isPending}
                         >
-                          <SelectTrigger className="h-7 text-xs w-36">
+                          <SelectTrigger className="h-7 text-xs w-40">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value={order.status} disabled>{order.status}</SelectItem>
-                            {(ALLOWED_TRANSITIONS[order.status] || []).map((s) => (
-                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            <SelectItem value={item.status || 'PENDING'} disabled>
+                              {item.status || 'PENDING'}
+                            </SelectItem>
+                            {(ITEM_ALLOWED_TRANSITIONS[item.status || 'PENDING'] || []).map((s) => (
+                              <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

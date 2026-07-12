@@ -479,7 +479,7 @@ export const updateShipment = async (req, res) => {
     // Auto-advance items to DELIVERED when shipment is marked delivered
     if (status === 'DELIVERED') {
       await prisma.orderItem.updateMany({
-        where: { shipmentId, status: { in: ['PENDING', 'IN_TRANSIT'] } },
+        where: { shipmentId, status: { in: ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED'] } },
         data: { status: 'DELIVERED' },
       });
     }
@@ -536,7 +536,7 @@ export const updateItemStatus = async (req, res) => {
     const { id: orderId, itemId } = req.params;
     const { status } = req.body;
 
-    const VALID = ['PENDING', 'IN_TRANSIT', 'DELIVERED', 'RETURN_REQUESTED', 'RETURN_APPROVED', 'RETURN_REJECTED', 'REFUNDED'];
+    const VALID = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED', 'RETURN_REQUESTED', 'RETURN_APPROVED', 'RETURN_REJECTED'];
     if (!VALID.includes(status)) return res.status(400).json({ error: 'Invalid status' });
 
     const item = await prisma.orderItem.findFirst({ where: { id: itemId, orderId } });
