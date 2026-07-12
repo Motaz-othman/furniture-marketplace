@@ -56,7 +56,7 @@ const handlePaymentSuccess = async (paymentIntent) => {
 
   const { count } = await prisma.order.updateMany({
     where: { id: orderId, paymentStatus: { not: 'SUCCEEDED' } },
-    data: { paymentStatus: 'SUCCEEDED', status: 'CONFIRMED' }
+    data: { paymentStatus: 'SUCCEEDED' }
   });
 
   if (count > 0) {
