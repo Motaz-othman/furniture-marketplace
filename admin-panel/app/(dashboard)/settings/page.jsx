@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSettings, updateSettings } from '@/lib/services/settings';
+import { getSettings, updateSettings, getTaxRateSummary, uploadTaxRatesCsv } from '@/lib/services/settings';
 import { uploadImage } from '@/lib/services/upload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -520,6 +520,32 @@ export default function SettingsPage() {
   const [uploadingStoryImage, setUploadingStoryImage] = useState(false);
   const storyImageRef = useRef(null);
 
+  // ── Tax rates ────────────────────────────────────────────────────────────
+  const taxCsvRef = useRef(null);
+  const [taxSummary, setTaxSummary] = useState(null);
+  const [uploadingTax, setUploadingTax] = useState(false);
+
+  useEffect(() => {
+    getTaxRateSummary().then(setTaxSummary).catch(() => {});
+  }, []);
+
+  async function handleTaxCsvUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingTax(true);
+    try {
+      const result = await uploadTaxRatesCsv(file);
+      toast.success(result.message);
+      const summary = await getTaxRateSummary();
+      setTaxSummary(summary);
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to upload tax rates');
+    } finally {
+      setUploadingTax(false);
+      e.target.value = '';
+    }
+  }
+
   async function handleStoryImage(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -857,6 +883,56 @@ export default function SettingsPage() {
           <p className="text-xs text-muted-foreground">
             From Email must match the SMTP account configured in Render (EMAIL_USER env var).
           </p>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* ── Tax Rates ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tax Rates</CardTitle>
+          <CardDescription>
+            Upload a Georgia DOR CSV to set sales tax rates by zip code. Only Georgia zip codes are taxed — all others are $0.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
+            <div className="text-sm">
+              {taxSummary?.count > 0 ? (
+                <>
+                  <span className="font-medium">{taxSummary.count.toLocaleString()} zip codes loaded</span>
+                  {taxSummary.lastUpdated && (
+                    <span className="text-muted-foreground ml-2">
+                      · Last updated {new Date(taxSummary.lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground">No tax rates loaded yet</span>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 shrink-0"
+              disabled={uploadingTax}
+              onClick={() => taxCsvRef.current?.click()}
+            >
+              {uploadingTax ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploadingTax ? 'Uploading…' : 'Upload CSV'}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Required columns: <span className="font-mono">ZipCode</span>, <span className="font-mono">EstimatedCombinedRate</span>. Uploading a new file replaces all existing rates.
+          </p>
+          <input
+            ref={taxCsvRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={handleTaxCsvUpload}
+          />
         </CardContent>
       </Card>
 

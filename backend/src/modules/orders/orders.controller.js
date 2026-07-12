@@ -2,6 +2,7 @@ import prisma from '../../shared/config/db.js';
 import { notifyOrderPlaced, notifyOrderCancelled } from '../../shared/services/notification.service.js';
 import { createPaymentIntent, cancelPaymentIntent, createRefund } from '../../shared/services/stripe.service.js';
 import { sendOrderStatusEmail } from '../../shared/services/email.service.js';
+import { getTaxRateByZip } from '../settings/tax.controller.js';
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
@@ -49,8 +50,7 @@ export const createOrder = async (req, res) => {
       return sum + (price * item.quantity);
     }, 0);
 
-    const isGeorgia = ['GA', 'Georgia'].includes(address.state?.trim());
-    const taxRate = isGeorgia ? parseFloat(process.env.TAX_RATE ?? '0.08') : 0;
+    const taxRate = await getTaxRateByZip(address.zipCode);
     const shippingCost = parseFloat(process.env.SHIPPING_COST ?? '50');
     const tax = Math.round(subtotal * taxRate * 100) / 100;
     const total = subtotal + tax + shippingCost;
