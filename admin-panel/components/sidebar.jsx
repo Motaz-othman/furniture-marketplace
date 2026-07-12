@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth';
-import { Package, ShoppingBag, RefreshCw, Users, LogOut, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud, LayoutDashboard, UserCircle, Tag, RotateCcw, Truck } from 'lucide-react';
+import { Package, ShoppingBag, RefreshCw, Users, LogOut, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud, LayoutDashboard, UserCircle, Tag, RotateCcw, Truck, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ const navSections = [
       { href: '/returns', label: 'Returns', icon: RotateCcw },
       { href: '/coupons', label: 'Coupons', icon: Tag },
       { href: '/delivery-pricing', label: 'Delivery Pricing', icon: Truck },
+      { href: '/tax-rates', label: 'Tax Rates', icon: Percent },
     ],
   },
   {
