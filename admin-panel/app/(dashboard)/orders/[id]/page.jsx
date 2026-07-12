@@ -101,8 +101,8 @@ function getPackagingDims(item) {
   const L = Number(dims.length) || 0;
   const W = Number(dims.width) || 0;
   const H = Number(dims.height) || 0;
-  const weight = Number(dims.weight) || 0;
-  const uomDist = dims.unitOfMeasureDistance || 'in';
+  const weight = Number(pkg?.weight) || 0;               // weight lives at pkg root
+  const uomDist = pkg?.dimensionsUnitOfMeasure || 'in'; // unit lives at pkg root
   const cuFt = (L && W && H) ? (L * W * H) / 1728 : 0;
   const longestDim = Math.max(L, W);
   return { longestDim, height: H, cuFt, weight, uomDist };
