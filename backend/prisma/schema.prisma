@@ -22,6 +22,7 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+  DISPUTED
 }
 
 enum ShipmentProvider {
@@ -365,6 +366,7 @@ enum PaymentStatus {
   FAILED
   PARTIALLY_REFUNDED
   REFUNDED
+  DISPUTED
 }
 
 enum ReturnStatus {

@@ -664,3 +664,92 @@ export const sendReturnStatusEmail = async ({ email, firstName, orderNumber, ord
     console.error(`Return status email error (${status}):`, error);
   }
 };
+
+// Send chargeback alert to admin when Stripe fires charge.dispute.created
+export const sendChargebackAlertEmail = async ({ orderNumber, orderId, amount, currency, reason, disputeId, respondByDate }) => {
+  const { from, fromName, adminEmail } = await getEmailConfig();
+  const adminUrl = process.env.ADMIN_URL || 'https://admin.livipoint.com';
+  const stripeUrl = `https://dashboard.stripe.com/disputes/${disputeId}`;
+
+  const formattedAmount = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency?.toUpperCase() || 'USD' }).format(amount);
+  const deadline = respondByDate ? new Date(respondByDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Check Stripe';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+        <tr><td style="background:#1a1a1a;padding:28px 32px;">
+          <p style="margin:0;font-size:22px;font-weight:bold;color:#ffffff;">${fromName}</p>
+        </td></tr>
+
+        <tr><td style="padding:32px;">
+          <div style="display:inline-block;background:#dc262622;border-left:4px solid #dc2626;padding:10px 16px;border-radius:0 6px 6px 0;margin-bottom:24px;">
+            <p style="margin:0;font-size:13px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.5px;">Chargeback Alert</p>
+          </div>
+          <h1 style="margin:0 0 8px;font-size:22px;color:#111;">Dispute Opened on Order #${orderNumber}</h1>
+          <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
+            A customer has filed a chargeback of <strong>${formattedAmount}</strong>. You must respond in Stripe before the deadline or the dispute will be automatically lost.
+          </p>
+
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:20px;margin-bottom:24px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:6px 0;font-size:13px;color:#888;width:140px;">Order</td>
+                <td style="padding:6px 0;font-size:13px;font-weight:600;color:#111;">#${orderNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;font-size:13px;color:#888;">Amount Disputed</td>
+                <td style="padding:6px 0;font-size:13px;font-weight:600;color:#dc2626;">${formattedAmount}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;font-size:13px;color:#888;">Reason</td>
+                <td style="padding:6px 0;font-size:13px;color:#111;">${reason || 'Not specified'}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;font-size:13px;color:#888;">Respond By</td>
+                <td style="padding:6px 0;font-size:13px;font-weight:700;color:#dc2626;">${deadline}</td>
+              </tr>
+            </table>
+          </div>
+
+          <p style="margin:0 0 20px;font-size:14px;color:#555;line-height:1.6;">
+            To fight this dispute, go to Stripe and upload evidence: order confirmation, delivery proof, and any customer communications.
+          </p>
+
+          <div style="text-align:center;margin-bottom:16px;">
+            <a href="${stripeUrl}" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+              Respond in Stripe
+            </a>
+          </div>
+          <div style="text-align:center;">
+            <a href="${adminUrl}/orders/${orderId}" style="font-size:13px;color:#555;text-decoration:underline;">View Order in Admin</a>
+          </div>
+        </td></tr>
+
+        <tr><td style="padding:20px 32px;border-top:1px solid #f0f0f0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">© ${new Date().getFullYear()} ${fromName}. All rights reserved.</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await createTransporter().sendMail({
+      from: `"${fromName}" <${from}>`,
+      to: adminEmail,
+      subject: `CHARGEBACK — Order #${orderNumber} · ${formattedAmount} · Respond by ${deadline}`,
+      html,
+    });
+    console.log(`Chargeback alert sent to ${adminEmail} for order ${orderNumber}`);
+  } catch (error) {
+    console.error('Chargeback alert email error:', error);
+  }
+};

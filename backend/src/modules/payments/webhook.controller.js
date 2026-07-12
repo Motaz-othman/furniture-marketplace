@@ -1,6 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { verifyWebhookSignature } from '../../shared/services/stripe.service.js';
-import { sendOrderConfirmationEmail, sendAdminOrderNotificationEmail } from '../../shared/services/email.service.js';
+import { sendOrderConfirmationEmail, sendAdminOrderNotificationEmail, sendChargebackAlertEmail } from '../../shared/services/email.service.js';
 
 // Handle Stripe webhooks
 export const handleStripeWebhook = async (req, res) => {
@@ -32,6 +32,10 @@ export const handleStripeWebhook = async (req, res) => {
 
       case 'charge.refunded':
         await handleRefund(event.data.object);
+        break;
+
+      case 'charge.dispute.created':
+        await handleDisputeCreated(event.data.object);
         break;
 
       default:
@@ -133,4 +137,51 @@ const handleRefund = async (charge) => {
   } else {
     console.log(`Duplicate charge.refunded event ignored for order ${order.id}`);
   }
+};
+
+// Handle chargeback — mark order DISPUTED, fire admin alert email
+const handleDisputeCreated = async (dispute) => {
+  const order = await prisma.order.findFirst({
+    where: { stripePaymentIntentId: dispute.payment_intent },
+    select: { id: true, orderNumber: true },
+  });
+
+  if (!order) {
+    console.error('Order not found for dispute, payment_intent:', dispute.payment_intent);
+    return;
+  }
+
+  await prisma.order.update({
+    where: { id: order.id },
+    data: { status: 'DISPUTED', paymentStatus: 'DISPUTED' },
+  });
+
+  prisma.orderEvent.create({
+    data: {
+      orderId: order.id,
+      type: 'DISPUTE_OPENED',
+      actor: 'stripe',
+      data: {
+        disputeId: dispute.id,
+        amount: dispute.amount / 100,
+        currency: dispute.currency,
+        reason: dispute.reason,
+      },
+    },
+  }).catch(() => {});
+
+  // Respond-by deadline: Stripe gives 7 days from dispute creation by default
+  const respondByDate = new Date((dispute.evidence_details?.due_by || Date.now() / 1000 + 7 * 86400) * 1000);
+
+  sendChargebackAlertEmail({
+    orderNumber: order.orderNumber,
+    orderId: order.id,
+    amount: dispute.amount / 100,
+    currency: dispute.currency,
+    reason: dispute.reason,
+    disputeId: dispute.id,
+    respondByDate,
+  }).catch(() => {});
+
+  console.log(`Dispute opened for order ${order.id} — marked DISPUTED, admin alerted`);
 };
