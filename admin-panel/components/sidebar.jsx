@@ -7,6 +7,8 @@ import { Package, ShoppingBag, RefreshCw, Users, LogOut, Cloud, ClipboardList, S
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { getOrders } from '@/lib/services/orders';
 
 const navSections = [
   {
@@ -55,6 +57,14 @@ export function Sidebar() {
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
 
+  const { data: pendingData } = useQuery({
+    queryKey: ['pending-orders-count'],
+    queryFn: () => getOrders({ status: 'PENDING', limit: 1 }),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+  const pendingCount = pendingData?.pagination?.totalCount ?? 0;
+
   function handleLogout() {
     logout();
     window.location.href = '/login';
@@ -86,7 +96,12 @@ export function Sidebar() {
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {itemLabel}
+                  <span className="flex-1">{itemLabel}</span>
+                  {href === '/orders' && pendingCount > 0 && (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white leading-none">
+                      {pendingCount > 99 ? '99+' : pendingCount}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>
