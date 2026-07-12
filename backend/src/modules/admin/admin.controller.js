@@ -1,7 +1,7 @@
 import prisma from '../../shared/config/db.js';
 import { notifyOrderStatusChanged } from '../../shared/services/notification.service.js';
 import { createRefund } from '../../shared/services/stripe.service.js';
-import { sendOrderStatusEmail } from '../../shared/services/email.service.js';
+import { sendOrderStatusEmail, sendShippingTrackingEmail } from '../../shared/services/email.service.js';
 
 // ============================================
 // PLATFORM STATISTICS
@@ -500,6 +500,8 @@ export const updateShipment = async (req, res) => {
     const existing = await prisma.shipment.findUnique({ where: { id: shipmentId } });
     if (!existing || existing.orderId !== orderId) return res.status(404).json({ error: 'Shipment not found' });
 
+    const trackingChanged = trackingNumber !== undefined && trackingNumber !== existing.trackingNumber && trackingNumber !== '';
+
     const shipment = await prisma.shipment.update({
       where: { id: shipmentId },
       data: {
@@ -523,6 +525,32 @@ export const updateShipment = async (req, res) => {
         where: { shipmentId, status: { in: ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED'] } },
         data: { status: 'DELIVERED' },
       });
+    }
+
+    // Send tracking email when a tracking number is added or corrected
+    if (trackingChanged) {
+      prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          orderNumber: true,
+          guestEmail: true,
+          guestFirstName: true,
+          customer: { select: { user: { select: { email: true, firstName: true } } } },
+        },
+      }).then((order) => {
+        if (!order) return;
+        const to = order.guestEmail || order.customer?.user?.email;
+        const firstName = order.guestFirstName || order.customer?.user?.firstName;
+        sendShippingTrackingEmail({
+          to,
+          firstName,
+          orderNumber: order.orderNumber,
+          orderId,
+          carrier: shipment.provider || null,
+          trackingNumber: shipment.trackingNumber,
+          trackingUrl: shipment.trackingUrl || null,
+        });
+      }).catch(() => {});
     }
 
     res.json({ shipment });

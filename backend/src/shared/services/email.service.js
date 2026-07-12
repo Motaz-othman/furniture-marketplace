@@ -509,6 +509,75 @@ export const sendOrderStatusEmail = async (order, status) => {
   }
 };
 
+// Send shipment tracking notification to customer
+export const sendShippingTrackingEmail = async ({ to, firstName, orderNumber, orderId, carrier, trackingNumber, trackingUrl }) => {
+  if (!to) return;
+
+  const { from, fromName } = await getEmailConfig();
+  const siteUrl = process.env.FRONTEND_URL || 'https://livipoint.com';
+
+  const trackingBtn = trackingUrl
+    ? `<a href="${trackingUrl}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">Track Your Shipment</a>`
+    : '';
+
+  const carrierLine = carrier ? `<p style="margin:4px 0 0;font-size:13px;color:#555;">Carrier: <strong>${carrier}</strong></p>` : '';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+        <tr><td style="background:#1a1a1a;padding:28px 32px;">
+          <p style="margin:0;font-size:22px;font-weight:bold;color:#ffffff;">${fromName}</p>
+        </td></tr>
+
+        <tr><td style="padding:32px;">
+          <div style="display:inline-block;background:#2563eb22;border-left:4px solid #2563eb;padding:10px 16px;border-radius:0 6px 6px 0;margin-bottom:24px;">
+            <p style="margin:0;font-size:13px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.5px;">Tracking Ready</p>
+          </div>
+          <h1 style="margin:0 0 8px;font-size:22px;color:#111;">Your Tracking Info is Ready!</h1>
+          <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">Hi ${firstName || 'Customer'}, your shipment for order <strong>#${orderNumber}</strong> now has tracking information. Use the details below to follow your delivery.</p>
+
+          <div style="background:#f7f7f7;border-radius:6px;padding:20px;margin-bottom:24px;">
+            <p style="margin:0 0 4px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Tracking Number</p>
+            <p style="margin:0;font-size:20px;font-weight:700;color:#111;letter-spacing:0.05em;">${trackingNumber}</p>
+            ${carrierLine}
+          </div>
+
+          ${trackingBtn ? `<div style="text-align:center;margin-bottom:24px;">${trackingBtn}</div>` : ''}
+
+          <div style="text-align:center;">
+            <a href="${siteUrl}/account/orders/${orderId}" style="font-size:13px;color:#555;text-decoration:underline;">View Full Order Details</a>
+          </div>
+        </td></tr>
+
+        <tr><td style="padding:20px 32px;border-top:1px solid #f0f0f0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">© ${new Date().getFullYear()} ${fromName}. All rights reserved.</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await createTransporter().sendMail({
+      from: `"${fromName}" <${from}>`,
+      to,
+      subject: `Tracking Info Ready — Order #${orderNumber}`,
+      html,
+    });
+    console.log(`Tracking email sent to ${to} for order ${orderNumber}`);
+  } catch (error) {
+    console.error('Tracking email error:', error);
+  }
+};
+
 // Send return status update email to customer (APPROVED, REJECTED, REFUNDED)
 export const sendReturnStatusEmail = async ({ email, firstName, orderNumber, orderId, status, adminNotes }) => {
   if (!email) return;
