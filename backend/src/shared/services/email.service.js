@@ -104,7 +104,7 @@ export const sendOrderConfirmationEmail = async (order) => {
 
   const addr = order.address;
   const addressHtml = addr
-    ? `${addr.street}, ${addr.city}, ${addr.state} ${addr.zipCode}, ${addr.country || 'US'}`
+    ? `${addr.street}${addr.apartment ? `, ${addr.apartment}` : ''}, ${addr.city}, ${addr.state} ${addr.zipCode}, ${addr.country || 'US'}`
     : '';
 
   const html = `
@@ -177,6 +177,20 @@ export const sendOrderConfirmationEmail = async (order) => {
           <div style="margin-top:24px;padding:16px;background:#f7f7f7;border-radius:6px;">
             <p style="margin:0 0 6px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Shipping To</p>
             <p style="margin:0;font-size:14px;color:#333;">${addressHtml}</p>
+          </div>` : ''}
+
+          ${order.deliveryInstructions ? `
+          <!-- Delivery instructions -->
+          <div style="margin-top:12px;padding:16px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;">
+            <p style="margin:0 0 6px;font-size:12px;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;">Delivery Instructions</p>
+            <p style="margin:0;font-size:14px;color:#333;">${order.deliveryInstructions}</p>
+          </div>` : ''}
+
+          ${order.notes ? `
+          <!-- Order notes -->
+          <div style="margin-top:12px;padding:16px;background:#f7f7f7;border-radius:6px;">
+            <p style="margin:0 0 6px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Order Notes</p>
+            <p style="margin:0;font-size:14px;color:#333;">${order.notes}</p>
           </div>` : ''}
 
           <!-- CTA -->
@@ -268,6 +282,14 @@ export const sendAdminOrderNotificationEmail = async (order) => {
             ${order.discountAmount > 0 ? `<tr>
               <td style="font-size:13px;color:#555;padding:4px 0;">Discount</td>
               <td style="font-size:13px;color:#16a34a;padding:4px 0;">−${fmt(order.discountAmount)}${order.couponCode ? ` (${order.couponCode})` : ''}</td>
+            </tr>` : ''}
+            ${order.deliveryInstructions ? `<tr>
+              <td style="font-size:13px;color:#555;padding:4px 0;vertical-align:top;">Delivery Instructions</td>
+              <td style="font-size:13px;color:#92400e;padding:4px 0;font-weight:600;">${order.deliveryInstructions}</td>
+            </tr>` : ''}
+            ${order.notes ? `<tr>
+              <td style="font-size:13px;color:#555;padding:4px 0;vertical-align:top;">Order Notes</td>
+              <td style="font-size:13px;color:#111;padding:4px 0;">${order.notes}</td>
             </tr>` : ''}
           </table>
 

@@ -11116,6 +11116,7 @@ export namespace Prisma {
     shippingCost: number | null
     total: number | null
     notes: string | null
+    deliveryInstructions: string | null
     createdAt: Date | null
     updatedAt: Date | null
     source: string | null
@@ -11141,6 +11142,7 @@ export namespace Prisma {
     shippingCost: number | null
     total: number | null
     notes: string | null
+    deliveryInstructions: string | null
     createdAt: Date | null
     updatedAt: Date | null
     source: string | null
@@ -11166,6 +11168,7 @@ export namespace Prisma {
     shippingCost: number
     total: number
     notes: number
+    deliveryInstructions: number
     createdAt: number
     updatedAt: number
     source: number
@@ -11210,6 +11213,7 @@ export namespace Prisma {
     shippingCost?: true
     total?: true
     notes?: true
+    deliveryInstructions?: true
     createdAt?: true
     updatedAt?: true
     source?: true
@@ -11235,6 +11239,7 @@ export namespace Prisma {
     shippingCost?: true
     total?: true
     notes?: true
+    deliveryInstructions?: true
     createdAt?: true
     updatedAt?: true
     source?: true
@@ -11260,6 +11265,7 @@ export namespace Prisma {
     shippingCost?: true
     total?: true
     notes?: true
+    deliveryInstructions?: true
     createdAt?: true
     updatedAt?: true
     source?: true
@@ -11373,6 +11379,7 @@ export namespace Prisma {
     shippingCost: number
     total: number
     notes: string | null
+    deliveryInstructions: string | null
     createdAt: Date
     updatedAt: Date
     source: string
@@ -11418,6 +11425,7 @@ export namespace Prisma {
     shippingCost?: boolean
     total?: boolean
     notes?: boolean
+    deliveryInstructions?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     source?: boolean
@@ -11451,6 +11459,7 @@ export namespace Prisma {
     shippingCost?: boolean
     total?: boolean
     notes?: boolean
+    deliveryInstructions?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     source?: boolean
@@ -11479,6 +11488,7 @@ export namespace Prisma {
     shippingCost?: boolean
     total?: boolean
     notes?: boolean
+    deliveryInstructions?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     source?: boolean
@@ -11507,6 +11517,7 @@ export namespace Prisma {
     shippingCost?: boolean
     total?: boolean
     notes?: boolean
+    deliveryInstructions?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     source?: boolean
@@ -11522,7 +11533,7 @@ export namespace Prisma {
     discountAmount?: boolean
   }
 
-  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "addressId" | "orderNumber" | "status" | "subtotal" | "tax" | "shippingCost" | "total" | "notes" | "createdAt" | "updatedAt" | "source" | "externalOrderId" | "externalData" | "stripePaymentIntentId" | "paymentStatus" | "guestEmail" | "guestFirstName" | "guestLastName" | "guestPhone" | "couponCode" | "discountAmount", ExtArgs["result"]["order"]>
+  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "addressId" | "orderNumber" | "status" | "subtotal" | "tax" | "shippingCost" | "total" | "notes" | "deliveryInstructions" | "createdAt" | "updatedAt" | "source" | "externalOrderId" | "externalData" | "stripePaymentIntentId" | "paymentStatus" | "guestEmail" | "guestFirstName" | "guestLastName" | "guestPhone" | "couponCode" | "discountAmount", ExtArgs["result"]["order"]>
   export type OrderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | Order$customerArgs<ExtArgs>
     address?: boolean | AddressDefaultArgs<ExtArgs>
@@ -11562,6 +11573,7 @@ export namespace Prisma {
       shippingCost: number
       total: number
       notes: string | null
+      deliveryInstructions: string | null
       createdAt: Date
       updatedAt: Date
       source: string
@@ -12014,6 +12026,7 @@ export namespace Prisma {
     readonly shippingCost: FieldRef<"Order", 'Float'>
     readonly total: FieldRef<"Order", 'Float'>
     readonly notes: FieldRef<"Order", 'String'>
+    readonly deliveryInstructions: FieldRef<"Order", 'String'>
     readonly createdAt: FieldRef<"Order", 'DateTime'>
     readonly updatedAt: FieldRef<"Order", 'DateTime'>
     readonly source: FieldRef<"Order", 'String'>
@@ -30900,6 +30913,7 @@ export namespace Prisma {
     shippingCost: 'shippingCost',
     total: 'total',
     notes: 'notes',
+    deliveryInstructions: 'deliveryInstructions',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     source: 'source',
@@ -32033,6 +32047,7 @@ export namespace Prisma {
     shippingCost?: FloatFilter<"Order"> | number
     total?: FloatFilter<"Order"> | number
     notes?: StringNullableFilter<"Order"> | string | null
+    deliveryInstructions?: StringNullableFilter<"Order"> | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     source?: StringFilter<"Order"> | string
@@ -32065,6 +32080,7 @@ export namespace Prisma {
     shippingCost?: SortOrder
     total?: SortOrder
     notes?: SortOrderInput | SortOrder
+    deliveryInstructions?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     source?: SortOrder
@@ -32100,6 +32116,7 @@ export namespace Prisma {
     shippingCost?: FloatFilter<"Order"> | number
     total?: FloatFilter<"Order"> | number
     notes?: StringNullableFilter<"Order"> | string | null
+    deliveryInstructions?: StringNullableFilter<"Order"> | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     source?: StringFilter<"Order"> | string
@@ -32132,6 +32149,7 @@ export namespace Prisma {
     shippingCost?: SortOrder
     total?: SortOrder
     notes?: SortOrderInput | SortOrder
+    deliveryInstructions?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     source?: SortOrder
@@ -32166,6 +32184,7 @@ export namespace Prisma {
     shippingCost?: FloatWithAggregatesFilter<"Order"> | number
     total?: FloatWithAggregatesFilter<"Order"> | number
     notes?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    deliveryInstructions?: StringNullableWithAggregatesFilter<"Order"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     source?: StringWithAggregatesFilter<"Order"> | string
@@ -34177,6 +34196,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -34209,6 +34229,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -34237,6 +34258,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -34269,6 +34291,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -34299,6 +34322,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -34323,6 +34347,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -34349,6 +34374,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -36561,6 +36587,7 @@ export namespace Prisma {
     shippingCost?: SortOrder
     total?: SortOrder
     notes?: SortOrder
+    deliveryInstructions?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     source?: SortOrder
@@ -36595,6 +36622,7 @@ export namespace Prisma {
     shippingCost?: SortOrder
     total?: SortOrder
     notes?: SortOrder
+    deliveryInstructions?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     source?: SortOrder
@@ -36620,6 +36648,7 @@ export namespace Prisma {
     shippingCost?: SortOrder
     total?: SortOrder
     notes?: SortOrder
+    deliveryInstructions?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     source?: SortOrder
@@ -39858,6 +39887,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -39888,6 +39918,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -40133,6 +40164,7 @@ export namespace Prisma {
     shippingCost?: FloatFilter<"Order"> | number
     total?: FloatFilter<"Order"> | number
     notes?: StringNullableFilter<"Order"> | string | null
+    deliveryInstructions?: StringNullableFilter<"Order"> | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     source?: StringFilter<"Order"> | string
@@ -40267,6 +40299,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -40297,6 +40330,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -41996,6 +42030,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -42027,6 +42062,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -42070,6 +42106,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -42101,6 +42138,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -42128,6 +42166,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -42159,6 +42198,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -42419,6 +42459,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -42450,6 +42491,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -42715,6 +42757,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -42746,6 +42789,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -42825,6 +42869,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -42856,6 +42901,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -44082,6 +44128,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -44113,6 +44160,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -44207,6 +44255,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -44238,6 +44287,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -44500,6 +44550,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -44612,6 +44663,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -44642,6 +44694,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -44671,6 +44724,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -44767,6 +44821,7 @@ export namespace Prisma {
     shippingCost?: number
     total: number
     notes?: string | null
+    deliveryInstructions?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     source?: string
@@ -44791,6 +44846,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -44821,6 +44877,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string
@@ -44850,6 +44907,7 @@ export namespace Prisma {
     shippingCost?: FloatFieldUpdateOperationsInput | number
     total?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryInstructions?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     source?: StringFieldUpdateOperationsInput | string

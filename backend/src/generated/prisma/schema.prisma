@@ -212,18 +212,19 @@ model CartItem {
 }
 
 model Order {
-  id           String      @id @default(uuid())
-  customerId   String?
-  addressId    String
-  orderNumber  String      @unique
-  status       OrderStatus @default(PENDING)
-  subtotal     Float
-  tax          Float       @default(0)
-  shippingCost Float       @default(0)
-  total        Float
-  notes        String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id                   String      @id @default(uuid())
+  customerId           String?
+  addressId            String
+  orderNumber          String      @unique
+  status               OrderStatus @default(PENDING)
+  subtotal             Float
+  tax                  Float       @default(0)
+  shippingCost         Float       @default(0)
+  total                Float
+  notes                String?
+  deliveryInstructions String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 
   source                String        @default("DIRECT")
   externalOrderId       String?

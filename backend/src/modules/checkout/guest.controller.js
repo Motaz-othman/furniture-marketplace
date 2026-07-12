@@ -59,7 +59,7 @@ export const validateCouponPublic = async (req, res) => {
 
 export const guestCheckout = async (req, res) => {
   try {
-    const { email, firstName, lastName, phone, address, items, notes, couponCode } = req.body;
+    const { email, firstName, lastName, phone, address, items, notes, deliveryInstructions, couponCode } = req.body;
     const customerId = req.user?.customer?.id || null;
 
     // ── Load all products + variants referenced in items ──────────────────
@@ -229,6 +229,7 @@ export const guestCheckout = async (req, res) => {
           couponCode: appliedCoupon?.code || null,
           total,
           notes: notes || null,
+          deliveryInstructions: deliveryInstructions || null,
           stripePaymentIntentId: paymentIntent.id,
           paymentStatus: 'PROCESSING',
           items: {
@@ -387,6 +388,7 @@ export const trackGuestOrder = async (req, res) => {
       shippingCost: order.shippingCost,
       total: order.total,
       notes: order.notes,
+      deliveryInstructions: order.deliveryInstructions,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       address: order.address,

@@ -220,9 +220,10 @@ model Order {
   tax             Float       @default(0)
   shippingCost    Float       @default(0)
   total           Float
-  notes           String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  notes                 String?
+  deliveryInstructions  String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
 
   source                String        @default("DIRECT")
   externalOrderId       String?

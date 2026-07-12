@@ -78,6 +78,7 @@ export default function CheckoutContent() {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [notes, setNotes] = useState('');
+  const [deliveryInstructions, setDeliveryInstructions] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState({});
@@ -114,6 +115,7 @@ export default function CheckoutContent() {
             setSelectedAddressId(defaultAddr.id);
             setAddress({
               street: defaultAddr.street,
+              apartment: defaultAddr.apartment || '',
               city: defaultAddr.city,
               state: defaultAddr.state,
               zipCode: defaultAddr.zipCode,
@@ -304,6 +306,7 @@ export default function CheckoutContent() {
         },
         items: orderItems,
         notes: notes.trim() || undefined,
+        deliveryInstructions: deliveryInstructions.trim() || undefined,
         couponCode: appliedCoupon?.code || undefined,
       });
 
@@ -710,6 +713,20 @@ export default function CheckoutContent() {
                   </div>
                 </section>
 
+                {/* Delivery Instructions */}
+                <section className="checkout-section">
+                  <label htmlFor="deliveryInstructions" className="checkout-notes-label">Delivery Instructions (optional)</label>
+                  <textarea
+                    id="deliveryInstructions"
+                    className="checkout-notes"
+                    rows={3}
+                    value={deliveryInstructions}
+                    onChange={(e) => setDeliveryInstructions(e.target.value)}
+                    placeholder="e.g. Call 30 min before delivery, elevator available, gate code 1234..."
+                    maxLength={500}
+                  />
+                </section>
+
                 {/* Notes */}
                 <section className="checkout-section">
                   <label htmlFor="notes" className="checkout-notes-label">Order Notes (optional)</label>
@@ -719,7 +736,7 @@ export default function CheckoutContent() {
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any special instructions..."
+                    placeholder="Any additional notes for your order..."
                     maxLength={500}
                   />
                 </section>

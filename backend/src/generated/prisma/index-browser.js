@@ -222,6 +222,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   shippingCost: 'shippingCost',
   total: 'total',
   notes: 'notes',
+  deliveryInstructions: 'deliveryInstructions',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   source: 'source',
