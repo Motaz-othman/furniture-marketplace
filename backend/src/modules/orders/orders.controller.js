@@ -284,7 +284,7 @@ export const cancelOrder = async (req, res) => {
 
       await tx.orderItem.updateMany({
         where: { orderId: id },
-        data: { status: order.status === 'CONFIRMED' ? 'REFUNDED' : 'CANCELLED' },
+        data: { status: 'CANCELLED' },
       });
 
       for (const item of order.items) {

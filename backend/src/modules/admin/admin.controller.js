@@ -417,7 +417,7 @@ export const updateOrderStatus = async (req, res) => {
     if (status === 'CANCELLED') {
       await prisma.orderItem.updateMany({
         where: { orderId: id },
-        data: { status: isCancellingPaidOrder ? 'REFUNDED' : 'CANCELLED' },
+        data: { status: 'CANCELLED' },
       });
     }
 
