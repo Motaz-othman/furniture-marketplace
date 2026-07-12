@@ -754,64 +754,122 @@ export default function OrderDetailPage() {
             <CardHeader>
               <CardTitle className="text-base">Items ({order.items?.length ?? 0})</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {order.items?.map((item) => (
-                <div key={item.id} className="flex items-center gap-3">
-                  {item.product?.mainImage ? (
-                    <img src={item.product.mainImage} alt={item.product.name} className="w-14 h-14 rounded object-cover border shrink-0" />
-                  ) : (
-                    <div className="w-14 h-14 rounded bg-muted flex items-center justify-center border shrink-0">
-                      <Package className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{item.product?.name || '—'}</div>
-                    {item.variant && (
-                      <div className="text-xs text-muted-foreground">
-                        {item.variant.name || ''}
-                        {item.variant.sku && ` · SKU: ${item.variant.sku}`}
-                      </div>
-                    )}
-                    <div className="text-xs text-muted-foreground">Qty: {item.quantity}</div>
-                    {item.deliveryMethod && (
-                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Truck className="h-3 w-3 shrink-0" />
-                        {DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod}
-                        {item.deliveryFee > 0 && (
-                          <span className="font-medium text-foreground">· {formatCurrency(item.deliveryFee)}</span>
-                        )}
-                        {item.deliveryFee === 0 && (
-                          <span className="text-green-600 font-medium">· Free</span>
-                        )}
-                      </div>
-                    )}
-                    <div className="mt-1.5">
-                      <Select
-                        value={item.status || 'PENDING'}
-                        onValueChange={(status) => itemStatusMutation.mutate({ itemId: item.id, status })}
-                        disabled={itemStatusMutation.isPending}
-                      >
-                        <SelectTrigger className="h-7 text-xs w-44">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="PENDING">Pending</SelectItem>
-                          <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
-                          <SelectItem value="DELIVERED">Delivered</SelectItem>
-                          <SelectItem value="RETURN_REQUESTED">Return Requested</SelectItem>
-                          <SelectItem value="RETURN_APPROVED">Return Approved</SelectItem>
-                          <SelectItem value="RETURN_REJECTED">Return Rejected</SelectItem>
-                          <SelectItem value="REFUNDED">Refunded</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="text-sm font-medium shrink-0 text-right">
-                    {formatCurrency(item.price * item.quantity)}
-                    <div className="text-xs text-muted-foreground">{formatCurrency(item.price)} each</div>
-                  </div>
-                </div>
-              ))}
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
+                      <th className="text-left px-4 py-2.5 font-medium w-[280px]">Product</th>
+                      <th className="text-left px-4 py-2.5 font-medium">SKU</th>
+                      <th className="text-center px-4 py-2.5 font-medium">Qty</th>
+                      <th className="text-right px-4 py-2.5 font-medium">Unit Price</th>
+                      <th className="text-left px-4 py-2.5 font-medium">Delivery Method</th>
+                      <th className="text-right px-4 py-2.5 font-medium">Delivery Fee</th>
+                      <th className="text-right px-4 py-2.5 font-medium">Item Total</th>
+                      <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {order.items?.map((item) => (
+                      <tr key={item.id} className="hover:bg-muted/20 transition-colors">
+                        {/* Product */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            {item.product?.mainImage ? (
+                              <img
+                                src={item.product.mainImage}
+                                alt={item.product.name}
+                                className="w-10 h-10 rounded object-cover border shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center border shrink-0">
+                                <Package className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <div className="font-medium truncate max-w-[180px]" title={item.product?.name}>
+                                {item.product?.name || '—'}
+                              </div>
+                              {item.variant?.name && (
+                                <div className="text-xs text-muted-foreground truncate max-w-[180px]">
+                                  {item.variant.name}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* SKU */}
+                        <td className="px-4 py-3">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {item.variant?.sku || '—'}
+                          </span>
+                        </td>
+
+                        {/* Qty */}
+                        <td className="px-4 py-3 text-center font-medium">
+                          {item.quantity}
+                        </td>
+
+                        {/* Unit Price */}
+                        <td className="px-4 py-3 text-right tabular-nums">
+                          {formatCurrency(item.price)}
+                        </td>
+
+                        {/* Delivery Method */}
+                        <td className="px-4 py-3">
+                          {item.deliveryMethod ? (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <Truck className="h-3 w-3 text-muted-foreground shrink-0" />
+                              <span>{DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod}</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+
+                        {/* Delivery Fee */}
+                        <td className="px-4 py-3 text-right tabular-nums">
+                          {item.deliveryMethod ? (
+                            item.deliveryFee > 0
+                              ? <span>{formatCurrency(item.deliveryFee)}</span>
+                              : <span className="text-green-600 font-medium">Free</span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+
+                        {/* Item Total */}
+                        <td className="px-4 py-3 text-right font-semibold tabular-nums">
+                          {formatCurrency(item.price * item.quantity)}
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3">
+                          <Select
+                            value={item.status || 'PENDING'}
+                            onValueChange={(status) => itemStatusMutation.mutate({ itemId: item.id, status })}
+                            disabled={itemStatusMutation.isPending}
+                          >
+                            <SelectTrigger className="h-7 text-xs w-40">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PENDING">Pending</SelectItem>
+                              <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+                              <SelectItem value="DELIVERED">Delivered</SelectItem>
+                              <SelectItem value="RETURN_REQUESTED">Return Requested</SelectItem>
+                              <SelectItem value="RETURN_APPROVED">Return Approved</SelectItem>
+                              <SelectItem value="RETURN_REJECTED">Return Rejected</SelectItem>
+                              <SelectItem value="REFUNDED">Refunded</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
 
