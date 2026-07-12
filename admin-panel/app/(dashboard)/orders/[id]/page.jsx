@@ -74,6 +74,16 @@ const SHIPMENT_STATUSES = ['PENDING', 'QUOTED', 'ARRANGED', 'IN_TRANSIT', 'DELIV
 const PROVIDERS = ['DELIVERIGHT', 'GIGIGA', 'FEDEX', 'UPS', 'OTHER'];
 const TYPES = ['LTL', 'SMALL_PARCEL'];
 
+const DELIVERY_METHOD_LABELS = {
+  GROUND:           'Ground Shipping',
+  TWO_DAY:          '2-Day Shipping',
+  ONE_DAY:          '1-Day Shipping',
+  OUTSIDE_DROP_OFF: 'Outside Drop Off',
+  IN_HOME_DROP_OFF: 'In Home Drop Off',
+  ROOM_OF_CHOICE:   'Room of Choice',
+  WHITE_GLOVE:      'White Glove',
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(d) {
@@ -763,6 +773,18 @@ export default function OrderDetailPage() {
                       </div>
                     )}
                     <div className="text-xs text-muted-foreground">Qty: {item.quantity}</div>
+                    {item.deliveryMethod && (
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Truck className="h-3 w-3 shrink-0" />
+                        {DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod}
+                        {item.deliveryFee > 0 && (
+                          <span className="font-medium text-foreground">· {formatCurrency(item.deliveryFee)}</span>
+                        )}
+                        {item.deliveryFee === 0 && (
+                          <span className="text-green-600 font-medium">· Free</span>
+                        )}
+                      </div>
+                    )}
                     <div className="mt-1.5">
                       <Select
                         value={item.status || 'PENDING'}
