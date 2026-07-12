@@ -593,3 +593,10 @@ model ReturnRequestItem {
   @@index([returnRequestId])
   @@index([orderItemId])
 }
+
+model TaxRate {
+  zipCode    String   @id
+  regionName String?
+  rate       Float
+  updatedAt  DateTime @updatedAt
+}

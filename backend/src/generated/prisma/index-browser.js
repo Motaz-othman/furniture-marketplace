@@ -430,6 +430,13 @@ exports.Prisma.ReturnRequestItemScalarFieldEnum = {
   reason: 'reason'
 };
 
+exports.Prisma.TaxRateScalarFieldEnum = {
+  zipCode: 'zipCode',
+  regionName: 'regionName',
+  rate: 'rate',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -547,7 +554,8 @@ exports.Prisma.ModelName = {
   Coupon: 'Coupon',
   NewsletterSubscriber: 'NewsletterSubscriber',
   ReturnRequest: 'ReturnRequest',
-  ReturnRequestItem: 'ReturnRequestItem'
+  ReturnRequestItem: 'ReturnRequestItem',
+  TaxRate: 'TaxRate'
 };
 
 /**
