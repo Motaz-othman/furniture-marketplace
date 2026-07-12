@@ -20,7 +20,7 @@ const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 const EMPTY_CONTACT = { email: '', firstName: '', lastName: '', phone: '' };
-const EMPTY_ADDRESS = { street: '', city: '', state: '', zipCode: '', country: 'US' };
+const EMPTY_ADDRESS = { street: '', apartment: '', city: '', state: '', zipCode: '', country: 'US' };
 
 // ─── Stripe Payment Form ──────────────────────────────────────────
 function PaymentForm({ onSuccess, onError, isProcessing, setIsProcessing }) {
@@ -296,6 +296,7 @@ export default function CheckoutContent() {
         phone: contact.phone.trim() || undefined,
         address: {
           street: address.street.trim(),
+          apartment: address.apartment?.trim() || null,
           city: address.city.trim(),
           state: address.state.trim(),
           zipCode: address.zipCode.trim(),
@@ -506,17 +507,6 @@ export default function CheckoutContent() {
                         />
                         {(errors.zipCode || zipError) && <span className="field-error">{zipError || errors.zipCode}</span>}
                       </div>
-                      <div className="checkout-field">
-                        <label htmlFor="street">Street Address</label>
-                        <input
-                          id="street"
-                          type="text"
-                          value={address.street}
-                          onChange={(e) => updateAddress('street', e.target.value)}
-                          className={errors.street ? 'error' : ''}
-                        />
-                        {errors.street && <span className="field-error">{errors.street}</span>}
-                      </div>
                       <div className="checkout-row">
                         <div className="checkout-field">
                           <label htmlFor="city">City</label>
@@ -538,6 +528,28 @@ export default function CheckoutContent() {
                             style={{ background: '#f5f5f5', color: '#888', cursor: 'default' }}
                           />
                         </div>
+                      </div>
+                      <div className="checkout-field">
+                        <label htmlFor="street">Street Address</label>
+                        <input
+                          id="street"
+                          type="text"
+                          value={address.street}
+                          onChange={(e) => updateAddress('street', e.target.value)}
+                          className={errors.street ? 'error' : ''}
+                          placeholder="123 Main St"
+                        />
+                        {errors.street && <span className="field-error">{errors.street}</span>}
+                      </div>
+                      <div className="checkout-field">
+                        <label htmlFor="apartment">Apt / Suite / Unit <span style={{ color: '#aaa', fontWeight: 400 }}>(optional)</span></label>
+                        <input
+                          id="apartment"
+                          type="text"
+                          value={address.apartment}
+                          onChange={(e) => updateAddress('apartment', e.target.value)}
+                          placeholder="Apt 4B, Suite 100…"
+                        />
                       </div>
                     </>
                   )}

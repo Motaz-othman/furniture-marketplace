@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { lookupZip } from '@/lib/utils/zipLookup';
 
 const ADDRESS_LABELS = ['Home', 'Work', 'Office', 'Other'];
-const emptyForm = { label: '', customLabel: '', street: '', city: '', state: '', zipCode: '', country: 'US', isDefault: false };
+const emptyForm = { label: '', customLabel: '', street: '', apartment: '', city: '', state: '', zipCode: '', country: 'US', isDefault: false };
 
 export default function AddressesTab() {
   const [addresses, setAddresses] = useState([]);
@@ -50,6 +50,7 @@ export default function AddressesTab() {
       label: isPreset ? savedLabel : savedLabel ? 'Other' : '',
       customLabel: isPreset ? '' : savedLabel,
       street: addr.street,
+      apartment: addr.apartment || '',
       city: addr.city,
       state: addr.state,
       zipCode: addr.zipCode,
@@ -175,17 +176,6 @@ export default function AddressesTab() {
                 />
                 {zipError && <span style={{ color: '#dc2626', fontSize: 12, marginTop: 4, display: 'block' }}>{zipError}</span>}
               </div>
-              <div className="auth-field">
-                <label htmlFor="street">Street Address</label>
-                <input
-                  id="street"
-                  type="text"
-                  value={form.street}
-                  onChange={(e) => updateField('street', e.target.value)}
-                  placeholder="123 Main St"
-                  required
-                />
-              </div>
               <div className="auth-name-row">
                 <div className="auth-field">
                   <label htmlFor="city">City</label>
@@ -207,6 +197,27 @@ export default function AddressesTab() {
                     style={{ background: '#f5f5f5', color: '#888', cursor: 'default' }}
                   />
                 </div>
+              </div>
+              <div className="auth-field">
+                <label htmlFor="street">Street Address</label>
+                <input
+                  id="street"
+                  type="text"
+                  value={form.street}
+                  onChange={(e) => updateField('street', e.target.value)}
+                  placeholder="123 Main St"
+                  required
+                />
+              </div>
+              <div className="auth-field">
+                <label htmlFor="apartment">Apt / Suite (optional)</label>
+                <input
+                  id="apartment"
+                  type="text"
+                  value={form.apartment || ''}
+                  onChange={(e) => updateField('apartment', e.target.value)}
+                  placeholder="Apt 4B, Suite 200..."
+                />
               </div>
               <label className="address-default-checkbox">
                 <input
@@ -257,7 +268,7 @@ export default function AddressesTab() {
                   </div>
                 </div>
                 <div className="address-text">
-                  <span>{addr.street}</span>
+                  <span>{addr.street}{addr.apartment ? `, ${addr.apartment}` : ''}</span>
                   <span>{addr.city}, {addr.state} {addr.zipCode}</span>
                   {addr.country && addr.country !== 'US' && <span>{addr.country}</span>}
                 </div>

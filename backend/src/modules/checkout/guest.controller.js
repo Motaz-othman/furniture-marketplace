@@ -205,6 +205,7 @@ export const guestCheckout = async (req, res) => {
         const guestAddress = await tx.address.create({
         data: {
           street: address.street,
+          apartment: address.apartment || null,
           city: address.city,
           state: address.state,
           zipCode: address.zipCode,

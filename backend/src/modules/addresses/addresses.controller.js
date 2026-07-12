@@ -25,7 +25,7 @@ export const getAddresses = async (req, res) => {
 export const createAddress = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
-    const { label, street, city, state, zipCode, country, isDefault } = req.body;
+    const { label, street, apartment, city, state, zipCode, country, isDefault } = req.body;
 
     // If setting as default, unset other defaults
     if (isDefault) {
@@ -40,6 +40,7 @@ export const createAddress = async (req, res) => {
         customerId,
         label: label || null,
         street,
+        apartment: apartment || null,
         city,
         state,
         zipCode,
@@ -64,7 +65,7 @@ export const updateAddress = async (req, res) => {
   try {
     const customerId = req.user.customer.id;
     const { id } = req.params;
-    const { label, street, city, state, zipCode, country, isDefault } = req.body;
+    const { label, street, apartment, city, state, zipCode, country, isDefault } = req.body;
 
     // Check ownership
     const existingAddress = await prisma.address.findUnique({
@@ -85,7 +86,7 @@ export const updateAddress = async (req, res) => {
 
     const address = await prisma.address.update({
       where: { id },
-      data: { label, street, city, state, zipCode, country, isDefault }
+      data: { label, street, apartment: apartment || null, city, state, zipCode, country, isDefault }
     });
 
     res.json({

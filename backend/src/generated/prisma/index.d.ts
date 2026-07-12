@@ -5926,6 +5926,7 @@ export namespace Prisma {
     customerId: string | null
     label: string | null
     street: string | null
+    apartment: string | null
     city: string | null
     state: string | null
     zipCode: string | null
@@ -5939,6 +5940,7 @@ export namespace Prisma {
     customerId: string | null
     label: string | null
     street: string | null
+    apartment: string | null
     city: string | null
     state: string | null
     zipCode: string | null
@@ -5952,6 +5954,7 @@ export namespace Prisma {
     customerId: number
     label: number
     street: number
+    apartment: number
     city: number
     state: number
     zipCode: number
@@ -5967,6 +5970,7 @@ export namespace Prisma {
     customerId?: true
     label?: true
     street?: true
+    apartment?: true
     city?: true
     state?: true
     zipCode?: true
@@ -5980,6 +5984,7 @@ export namespace Prisma {
     customerId?: true
     label?: true
     street?: true
+    apartment?: true
     city?: true
     state?: true
     zipCode?: true
@@ -5993,6 +5998,7 @@ export namespace Prisma {
     customerId?: true
     label?: true
     street?: true
+    apartment?: true
     city?: true
     state?: true
     zipCode?: true
@@ -6079,6 +6085,7 @@ export namespace Prisma {
     customerId: string | null
     label: string | null
     street: string
+    apartment: string | null
     city: string
     state: string
     zipCode: string
@@ -6109,6 +6116,7 @@ export namespace Prisma {
     customerId?: boolean
     label?: boolean
     street?: boolean
+    apartment?: boolean
     city?: boolean
     state?: boolean
     zipCode?: boolean
@@ -6125,6 +6133,7 @@ export namespace Prisma {
     customerId?: boolean
     label?: boolean
     street?: boolean
+    apartment?: boolean
     city?: boolean
     state?: boolean
     zipCode?: boolean
@@ -6139,6 +6148,7 @@ export namespace Prisma {
     customerId?: boolean
     label?: boolean
     street?: boolean
+    apartment?: boolean
     city?: boolean
     state?: boolean
     zipCode?: boolean
@@ -6153,6 +6163,7 @@ export namespace Prisma {
     customerId?: boolean
     label?: boolean
     street?: boolean
+    apartment?: boolean
     city?: boolean
     state?: boolean
     zipCode?: boolean
@@ -6161,7 +6172,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type AddressOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "label" | "street" | "city" | "state" | "zipCode" | "country" | "isDefault" | "createdAt", ExtArgs["result"]["address"]>
+  export type AddressOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "label" | "street" | "apartment" | "city" | "state" | "zipCode" | "country" | "isDefault" | "createdAt", ExtArgs["result"]["address"]>
   export type AddressInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | Address$customerArgs<ExtArgs>
     orders?: boolean | Address$ordersArgs<ExtArgs>
@@ -6185,6 +6196,7 @@ export namespace Prisma {
       customerId: string | null
       label: string | null
       street: string
+      apartment: string | null
       city: string
       state: string
       zipCode: string
@@ -6620,6 +6632,7 @@ export namespace Prisma {
     readonly customerId: FieldRef<"Address", 'String'>
     readonly label: FieldRef<"Address", 'String'>
     readonly street: FieldRef<"Address", 'String'>
+    readonly apartment: FieldRef<"Address", 'String'>
     readonly city: FieldRef<"Address", 'String'>
     readonly state: FieldRef<"Address", 'String'>
     readonly zipCode: FieldRef<"Address", 'String'>
@@ -30802,6 +30815,7 @@ export namespace Prisma {
     customerId: 'customerId',
     label: 'label',
     street: 'street',
+    apartment: 'apartment',
     city: 'city',
     state: 'state',
     zipCode: 'zipCode',
@@ -31574,6 +31588,7 @@ export namespace Prisma {
     customerId?: StringNullableFilter<"Address"> | string | null
     label?: StringNullableFilter<"Address"> | string | null
     street?: StringFilter<"Address"> | string
+    apartment?: StringNullableFilter<"Address"> | string | null
     city?: StringFilter<"Address"> | string
     state?: StringFilter<"Address"> | string
     zipCode?: StringFilter<"Address"> | string
@@ -31589,6 +31604,7 @@ export namespace Prisma {
     customerId?: SortOrderInput | SortOrder
     label?: SortOrderInput | SortOrder
     street?: SortOrder
+    apartment?: SortOrderInput | SortOrder
     city?: SortOrder
     state?: SortOrder
     zipCode?: SortOrder
@@ -31607,6 +31623,7 @@ export namespace Prisma {
     customerId?: StringNullableFilter<"Address"> | string | null
     label?: StringNullableFilter<"Address"> | string | null
     street?: StringFilter<"Address"> | string
+    apartment?: StringNullableFilter<"Address"> | string | null
     city?: StringFilter<"Address"> | string
     state?: StringFilter<"Address"> | string
     zipCode?: StringFilter<"Address"> | string
@@ -31622,6 +31639,7 @@ export namespace Prisma {
     customerId?: SortOrderInput | SortOrder
     label?: SortOrderInput | SortOrder
     street?: SortOrder
+    apartment?: SortOrderInput | SortOrder
     city?: SortOrder
     state?: SortOrder
     zipCode?: SortOrder
@@ -31641,6 +31659,7 @@ export namespace Prisma {
     customerId?: StringNullableWithAggregatesFilter<"Address"> | string | null
     label?: StringNullableWithAggregatesFilter<"Address"> | string | null
     street?: StringWithAggregatesFilter<"Address"> | string
+    apartment?: StringNullableWithAggregatesFilter<"Address"> | string | null
     city?: StringWithAggregatesFilter<"Address"> | string
     state?: StringWithAggregatesFilter<"Address"> | string
     zipCode?: StringWithAggregatesFilter<"Address"> | string
@@ -33650,6 +33669,7 @@ export namespace Prisma {
     id?: string
     label?: string | null
     street: string
+    apartment?: string | null
     city: string
     state: string
     zipCode: string
@@ -33665,6 +33685,7 @@ export namespace Prisma {
     customerId?: string | null
     label?: string | null
     street: string
+    apartment?: string | null
     city: string
     state: string
     zipCode: string
@@ -33678,6 +33699,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string
@@ -33693,6 +33715,7 @@ export namespace Prisma {
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string
@@ -33707,6 +33730,7 @@ export namespace Prisma {
     customerId?: string | null
     label?: string | null
     street: string
+    apartment?: string | null
     city: string
     state: string
     zipCode: string
@@ -33719,6 +33743,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string
@@ -33732,6 +33757,7 @@ export namespace Prisma {
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string
@@ -36090,6 +36116,7 @@ export namespace Prisma {
     customerId?: SortOrder
     label?: SortOrder
     street?: SortOrder
+    apartment?: SortOrder
     city?: SortOrder
     state?: SortOrder
     zipCode?: SortOrder
@@ -36103,6 +36130,7 @@ export namespace Prisma {
     customerId?: SortOrder
     label?: SortOrder
     street?: SortOrder
+    apartment?: SortOrder
     city?: SortOrder
     state?: SortOrder
     zipCode?: SortOrder
@@ -36116,6 +36144,7 @@ export namespace Prisma {
     customerId?: SortOrder
     label?: SortOrder
     street?: SortOrder
+    apartment?: SortOrder
     city?: SortOrder
     state?: SortOrder
     zipCode?: SortOrder
@@ -39786,6 +39815,7 @@ export namespace Prisma {
     id?: string
     label?: string | null
     street: string
+    apartment?: string | null
     city: string
     state: string
     zipCode: string
@@ -39799,6 +39829,7 @@ export namespace Prisma {
     id?: string
     label?: string | null
     street: string
+    apartment?: string | null
     city: string
     state: string
     zipCode: string
@@ -40063,6 +40094,7 @@ export namespace Prisma {
     customerId?: StringNullableFilter<"Address"> | string | null
     label?: StringNullableFilter<"Address"> | string | null
     street?: StringFilter<"Address"> | string
+    apartment?: StringNullableFilter<"Address"> | string | null
     city?: StringFilter<"Address"> | string
     state?: StringFilter<"Address"> | string
     zipCode?: StringFilter<"Address"> | string
@@ -41628,6 +41660,7 @@ export namespace Prisma {
     id?: string
     label?: string | null
     street: string
+    apartment?: string | null
     city: string
     state: string
     zipCode: string
@@ -41642,6 +41675,7 @@ export namespace Prisma {
     customerId?: string | null
     label?: string | null
     street: string
+    apartment?: string | null
     city: string
     state: string
     zipCode: string
@@ -41835,6 +41869,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string
@@ -41849,6 +41884,7 @@ export namespace Prisma {
     customerId?: NullableStringFieldUpdateOperationsInput | string | null
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string
@@ -44445,6 +44481,7 @@ export namespace Prisma {
     id?: string
     label?: string | null
     street: string
+    apartment?: string | null
     city: string
     state: string
     zipCode: string
@@ -44529,6 +44566,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string
@@ -44542,6 +44580,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string
@@ -44555,6 +44594,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     label?: NullableStringFieldUpdateOperationsInput | string | null
     street?: StringFieldUpdateOperationsInput | string
+    apartment?: NullableStringFieldUpdateOperationsInput | string | null
     city?: StringFieldUpdateOperationsInput | string
     state?: StringFieldUpdateOperationsInput | string
     zipCode?: StringFieldUpdateOperationsInput | string

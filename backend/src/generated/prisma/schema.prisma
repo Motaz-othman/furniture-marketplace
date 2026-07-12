@@ -90,6 +90,7 @@ model Address {
   customerId String?
   label      String?
   street     String
+  apartment  String?
   city       String
   state      String
   zipCode    String
