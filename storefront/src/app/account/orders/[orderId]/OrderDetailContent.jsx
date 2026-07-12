@@ -115,7 +115,7 @@ export default function OrderDetailContent({ orderId }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <StatusBadge status={order.status} className="od-header-status" />
-            {['PENDING', 'CONFIRMED'].includes(order.status) && (
+            {order.status === 'PENDING' && (
               <button
                 className="od-cancel-btn"
                 onClick={handleCancel}

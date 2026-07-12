@@ -141,7 +141,7 @@ export default function OrdersTab() {
                     )}
                     <span className="order-total">Total: {formatPrice(order.total)}</span>
                     <div className="order-footer-actions">
-                      {['PENDING', 'CONFIRMED'].includes(order.status) && (
+                      {order.status === 'PENDING' && (
                         <button className="order-cancel-btn" onClick={() => setCancelConfirmId(order.id)}>
                           Cancel
                         </button>

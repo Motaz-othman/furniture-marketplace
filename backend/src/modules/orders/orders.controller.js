@@ -263,13 +263,12 @@ export const cancelOrder = async (req, res) => {
     if (!order || order.customerId !== customerId) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    const cancellable = ['PENDING', 'CONFIRMED'];
-    if (!cancellable.includes(order.status)) {
+    if (order.status !== 'PENDING') {
       return res.status(400).json({ error: `Cannot cancel order with status: ${order.status}` });
     }
 
-    // For CONFIRMED orders, payment was already captured — issue a full Stripe refund first
-    if (order.status === 'CONFIRMED' && order.stripePaymentIntentId && order.paymentStatus === 'SUCCEEDED') {
+    // Cancel the Stripe PaymentIntent if payment was already captured
+    if (order.stripePaymentIntentId && order.paymentStatus === 'SUCCEEDED') {
       await createRefund(order.stripePaymentIntentId, order.total, 'requested_by_customer');
     }
 
@@ -278,7 +277,7 @@ export const cancelOrder = async (req, res) => {
         where: { id },
         data: {
           status: 'CANCELLED',
-          ...(order.status === 'CONFIRMED' && { paymentStatus: 'REFUNDED' }),
+          ...(order.paymentStatus === 'SUCCEEDED' && { paymentStatus: 'REFUNDED' }),
         },
       });
 
@@ -297,8 +296,8 @@ export const cancelOrder = async (req, res) => {
       return cancelled;
     }, { maxWait: 10000, timeout: 30000 });
 
-    // For PENDING orders, cancel the PaymentIntent so the client_secret can no longer be used
-    if (order.status === 'PENDING' && order.stripePaymentIntentId) {
+    // If payment wasn't captured yet, cancel the PI so the client_secret can no longer be used
+    if (order.stripePaymentIntentId && order.paymentStatus !== 'SUCCEEDED') {
       cancelPaymentIntent(order.stripePaymentIntentId).catch((err) => {
         console.error('Failed to cancel PaymentIntent on order cancel:', err.message);
       });
@@ -309,7 +308,7 @@ export const cancelOrder = async (req, res) => {
         data: { from: order.status, to: 'CANCELLED', note: 'Cancelled by customer' } }
     }).catch(() => {});
 
-    if (order.status === 'CONFIRMED') {
+    if (order.paymentStatus === 'SUCCEEDED') {
       prisma.orderEvent.create({
         data: { orderId: id, type: 'REFUND_PROCESSED', actor: 'system',
           data: { amount: order.total, note: 'Full refund — order cancelled by customer' } }
