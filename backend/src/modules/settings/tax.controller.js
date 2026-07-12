@@ -71,3 +71,15 @@ export const getTaxRateByZip = async (zipCode) => {
   });
   return record?.rate ?? 0;
 };
+
+// GET /settings/tax-rates/lookup/:zipCode  — public, used by storefront checkout
+export const lookupTaxRate = async (req, res) => {
+  try {
+    const { zipCode } = req.params;
+    const rate = await getTaxRateByZip(zipCode);
+    res.json({ zipCode: String(zipCode).padStart(5, '0'), rate });
+  } catch (error) {
+    console.error('Tax rate lookup error:', error);
+    res.status(500).json({ error: 'Failed to lookup tax rate' });
+  }
+};

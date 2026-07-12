@@ -198,8 +198,7 @@ export function formatPrice(price, currency = '$') {
     // Calculate shipping (free over $500)
     const shipping = subtotal >= 500 ? 0 : 50;
     
-    // Calculate tax (8% for example)
-    const tax = subtotal * 0.08;
+    const tax = 0;
     
     const total = subtotal + shipping + tax;
     

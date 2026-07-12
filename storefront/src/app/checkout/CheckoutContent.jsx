@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { formatPrice } from '@/lib/utils';
 import { guestCheckout, validateCoupon, getDeliveryOptions } from '@/lib/api/checkout';
 import { getAddresses } from '@/lib/api/addresses';
+import { getTaxRateForZip } from '@/lib/api/settings';
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
@@ -171,8 +172,15 @@ export default function CheckoutContent() {
     }, 0);
   }, [items, deliveryOptions, itemDeliveries]);
 
-  const taxRate = 0.08;
-  const tax = useMemo(() => Math.round(total * taxRate * 100) / 100, [total]);
+  const [taxRate, setTaxRate] = useState(0);
+  useEffect(() => {
+    const zip = address.zipCode?.trim();
+    if (!zip || zip.length < 5) { setTaxRate(0); return; }
+    getTaxRateForZip(zip)
+      .then(data => setTaxRate(data?.rate ?? 0))
+      .catch(() => setTaxRate(0));
+  }, [address.zipCode]);
+  const tax = useMemo(() => Math.round(total * taxRate * 100) / 100, [total, taxRate]);
   const discount = appliedCoupon?.discountAmount ?? 0;
   const grandTotal = useMemo(
     () => Math.round(Math.max(0, total + deliveryTotal + tax - discount) * 100) / 100,
