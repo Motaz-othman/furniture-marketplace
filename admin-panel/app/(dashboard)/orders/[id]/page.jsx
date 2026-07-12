@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getOrder, createShipment, updateShipment, updateItemStatus,
+  getOrder, createShipment, updateShipment,
 } from '@/lib/services/orders';
 import { updateReturnRequest, refundReturnRequest } from '@/lib/services/returns';
 import { Button } from '@/components/ui/button';
@@ -517,12 +517,6 @@ export default function OrderDetailPage() {
     queryFn: () => getOrder(id),
   });
 
-  const itemStatusMutation = useMutation({
-    mutationFn: ({ itemId, status }) => updateItemStatus(id, itemId, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-order', id] }),
-    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update item status'),
-  });
-
   const returnMutation = useMutation({
     mutationFn: ({ returnId, status, adminNotes }) =>
       updateReturnRequest(returnId, status, adminNotes),
@@ -705,7 +699,6 @@ export default function OrderDetailPage() {
                   <TH>Suggested Type</TH>
                   <TH>Shipment</TH>
                   <TH>Shipment Status</TH>
-                  <TH>Item Status</TH>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -801,28 +794,6 @@ export default function OrderDetailPage() {
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
-                      </TD>
-                      <TD>
-                        <Select
-                          value={item.status || 'PENDING'}
-                          onValueChange={(status) =>
-                            itemStatusMutation.mutate({ itemId: item.id, status })
-                          }
-                          disabled={itemStatusMutation.isPending}
-                        >
-                          <SelectTrigger className="h-7 text-xs w-44">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="PENDING">Pending</SelectItem>
-                            <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
-                            <SelectItem value="DELIVERED">Delivered</SelectItem>
-                            <SelectItem value="RETURN_REQUESTED">Return Requested</SelectItem>
-                            <SelectItem value="RETURN_APPROVED">Return Approved</SelectItem>
-                            <SelectItem value="RETURN_REJECTED">Return Rejected</SelectItem>
-                            <SelectItem value="REFUNDED">Refunded</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </TD>
                     </tr>
                   );
