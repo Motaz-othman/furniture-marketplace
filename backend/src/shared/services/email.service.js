@@ -72,6 +72,56 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
   }
 };
 
+// Send email verification link on account creation
+export const sendVerificationEmail = async (email, verifyToken, firstName) => {
+  const verifyUrl = `${process.env.FRONTEND_URL || 'https://livipoint.com'}/verify-email?token=${verifyToken}`;
+  const { from, fromName } = await getEmailConfig();
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+        <tr><td style="background:#1a1a1a;padding:28px 32px;">
+          <p style="margin:0;font-size:22px;font-weight:bold;color:#ffffff;">${fromName}</p>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <h1 style="margin:0 0 12px;font-size:22px;color:#111;">Verify your email address</h1>
+          <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
+            Hi ${firstName || 'there'}, welcome to ${fromName}! Click the button below to confirm your email address. This link expires in 24 hours.
+          </p>
+          <div style="text-align:center;margin-bottom:28px;">
+            <a href="${verifyUrl}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:600;">
+              Verify Email
+            </a>
+          </div>
+          <p style="margin:0;font-size:13px;color:#888;">If you didn't create an account, you can safely ignore this email.</p>
+        </td></tr>
+        <tr><td style="padding:20px 32px;border-top:1px solid #f0f0f0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">© ${new Date().getFullYear()} ${fromName}. All rights reserved.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await createTransporter().sendMail({
+      from: `"${fromName}" <${from}>`,
+      to: email,
+      subject: `Verify your ${fromName} account`,
+      html,
+    });
+    console.log(`Verification email sent to ${email}`);
+  } catch (error) {
+    console.error('Verification email error:', error);
+  }
+};
+
 // Send order confirmation email
 export const sendOrderConfirmationEmail = async (order) => {
   const to = order.guestEmail || order.customer?.user?.email;

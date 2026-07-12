@@ -52,3 +52,11 @@ export async function resetPassword({ token, newPassword }) {
 export async function deleteAccount() {
   return del('/auth/account');
 }
+
+export async function verifyEmail(token) {
+  return get(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+}
+
+export async function resendVerification() {
+  return post('/auth/resend-verification', {});
+}

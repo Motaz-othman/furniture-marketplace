@@ -36,6 +36,15 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:logout', handleForceLogout);
   }, []);
 
+  // Refresh user state after email verification
+  useEffect(() => {
+    const handleRefresh = () => {
+      getMe().then((data) => setUser(data.user)).catch(() => {});
+    };
+    window.addEventListener('auth:refresh', handleRefresh);
+    return () => window.removeEventListener('auth:refresh', handleRefresh);
+  }, []);
+
   const login = useCallback(async (credentials) => {
     const data = await loginUser(credentials);
     localStorage.setItem('token', data.token);

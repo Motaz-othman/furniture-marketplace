@@ -4,7 +4,7 @@ import { hashPassword, comparePassword } from '../../shared/utils/bcrypt.util.js
 import { generateToken, generateRefreshToken, verifyToken, verifyRefreshToken } from '../../shared/utils/jwt.util.js';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
-import { sendPasswordResetEmail } from '../../shared/services/email.service.js';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../../shared/services/email.service.js';
 
 
 // Register new user
@@ -67,6 +67,16 @@ export const register = async (req, res) => {
       }
     }
 
+    // Send verification email — fire-and-forget so it never blocks registration
+    const verifyToken = crypto.randomBytes(32).toString('hex');
+    const emailVerifyToken = crypto.createHash('sha256').update(verifyToken).digest('hex');
+    const emailVerifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerifyToken, emailVerifyExpires },
+    });
+    sendVerificationEmail(email, verifyToken, firstName).catch(() => {});
+
     const tokenPayload = { userId: user.id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 };
     const token = generateToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
@@ -75,7 +85,7 @@ export const register = async (req, res) => {
 
     res.status(201).json({
       message: 'User registered successfully',
-      user: userWithoutPassword,
+      user: { ...userWithoutPassword, emailVerified: false },
       token,
       refreshToken,
       ...(claimedOrders > 0 && { claimedOrders }),
@@ -375,7 +385,7 @@ export const getMe = async (req, res) => {
       where: { id: req.user.id },
       select: {
         id: true, email: true, firstName: true, lastName: true, phone: true,
-        role: true, createdAt: true, updatedAt: true,
+        role: true, emailVerified: true, createdAt: true, updatedAt: true,
         customer: { select: { id: true } }
       }
     });
@@ -383,6 +393,58 @@ export const getMe = async (req, res) => {
     res.json({ user });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get user' });
+  }
+};
+
+// Verify email with token from link
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    const emailVerifyToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await prisma.user.findFirst({
+      where: { emailVerifyToken, emailVerifyExpires: { gt: new Date() } },
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification link' });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, emailVerifyToken: null, emailVerifyExpires: null },
+    });
+
+    res.json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(500).json({ error: 'Verification failed' });
+  }
+};
+
+// Resend verification email (authenticated)
+export const resendVerification = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.emailVerified) return res.json({ message: 'Email already verified' });
+
+    const verifyToken = crypto.randomBytes(32).toString('hex');
+    const emailVerifyToken = crypto.createHash('sha256').update(verifyToken).digest('hex');
+    const emailVerifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerifyToken, emailVerifyExpires },
+    });
+
+    await sendVerificationEmail(user.email, verifyToken, user.firstName);
+    res.json({ message: 'Verification email sent' });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({ error: 'Failed to send verification email' });
   }
 };
 
