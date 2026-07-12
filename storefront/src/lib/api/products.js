@@ -194,25 +194,53 @@ export async function getSaleProducts() {
   );
 }
 
+// Map products-page sort values → search endpoint sort values
+const SORT_MAP = {
+  'price-low': 'price:asc',
+  'price-high': 'price:desc',
+  'name': 'name:asc',
+  'rating': 'rating:desc',
+};
+
 /**
- * Search products
- * @param {string} query - Search query
- * @param {Object} filters - Additional filters
- * @returns {Promise<Object>} Search results
+ * Search products using the trigram-similarity search engine.
+ * Routes through GET /search?q=term for typo-tolerance and relevance ranking.
+ * Normalises the response to { data, pagination } so the products page
+ * doesn't need to know which endpoint was called.
+ *
+ * @param {string} query - Search term
+ * @param {Object} params - page, limit, sortBy, categoryId, minPrice, maxPrice
  */
-export async function searchProducts(query, filters = {}) {
+export async function searchProducts(query, params = {}) {
+  const { page = 1, limit = 12, sortBy, categoryId, minPrice, maxPrice } = params;
+  const sort = SORT_MAP[sortBy] || undefined;
+
   return handleApiCall(
-    // Real API call
     async () => {
-      const response = await get('/products/search', {
-        params: { q: query, ...filters },
+      const response = await get('/search', {
+        params: {
+          q: query,
+          page,
+          limit,
+          ...(sort && { sort }),
+          ...(categoryId && { categoryId }),
+          ...(minPrice != null && { minPrice }),
+          ...(maxPrice != null && { maxPrice }),
+        },
       });
-      return response;
+      // Normalise: { hits, totalHits, totalPages } → { data, pagination }
+      return {
+        data: response.hits ?? [],
+        pagination: {
+          page: response.page ?? page,
+          limit: response.limit ?? limit,
+          total: response.totalHits ?? 0,
+          totalPages: response.totalPages ?? 1,
+        },
+      };
     },
-    // Fake data
-    () => {
-      return getProducts({ search: query, ...filters });
-    }
+    // Fake data fallback
+    () => getProducts({ search: query, ...params }),
   );
 }
 

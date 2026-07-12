@@ -47,12 +47,13 @@ function createProductsQueryKey(params = {}) {
  * @param {Object} options - React Query options
  */
 export function useProducts(params = {}, options = {}) {
+  const { search, ...rest } = params;
   return useQuery({
     queryKey: createProductsQueryKey(params),
-    queryFn: () => getProducts(params),
+    queryFn: () => search
+      ? searchProducts(search, rest)   // trigram engine — typo-tolerant, relevance-ranked
+      : getProducts(params),
     staleTime: STALE_TIME.SHORT,
-    // Don't refetch when the user navigates back from a product detail page —
-    // the listing data is cached and navigation focus should not trigger a reload.
     refetchOnWindowFocus: false,
     ...options,
   });
