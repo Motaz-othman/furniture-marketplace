@@ -1,15 +1,11 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://furniture-marketplace-backend.onrender.com/api';
+
 export async function lookupZip(zip) {
   if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) return null;
   try {
-    const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
+    const res = await fetch(`${API_URL}/settings/zip-lookup/${zip}`);
     if (!res.ok) return null;
-    const data = await res.json();
-    const place = data.places?.[0];
-    if (!place) return null;
-    return {
-      city: place['place name'],
-      state: place['state abbreviation'],
-    };
+    return await res.json();
   } catch {
     return null;
   }

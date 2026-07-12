@@ -1,6 +1,7 @@
 import multer from 'multer';
 import { parse } from 'csv-parse/sync';
 import prisma from '../../shared/config/db.js';
+import zipcodes from 'zipcodes';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -82,4 +83,12 @@ export const lookupTaxRate = async (req, res) => {
     console.error('Tax rate lookup error:', error);
     res.status(500).json({ error: 'Failed to lookup tax rate' });
   }
+};
+
+// GET /settings/zip-lookup/:zipCode  — public, offline zip→city/state lookup
+export const lookupZipCode = (req, res) => {
+  const { zipCode } = req.params;
+  const result = zipcodes.lookup(String(zipCode).padStart(5, '0'));
+  if (!result) return res.status(404).json({ error: 'ZIP code not found' });
+  res.json({ city: result.city, state: result.state });
 };
