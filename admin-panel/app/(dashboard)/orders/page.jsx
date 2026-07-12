@@ -108,7 +108,7 @@ export default function OrdersPage() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState('PENDING');
   const [page, setPage] = useState(1);
   const [exporting, setExporting] = useState(false);
 
