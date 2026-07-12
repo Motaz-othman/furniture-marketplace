@@ -453,13 +453,13 @@ export default function CheckoutContent() {
                     </div>
                   </div>
                   <div className="checkout-field">
-                    <label htmlFor="phone">Phone</label>
+                    <label htmlFor="phone">Phone <span style={{ color: '#888', fontWeight: 400, fontSize: '12px' }}>(required for delivery scheduling)</span></label>
                     <input
                       id="phone"
                       type="tel"
                       value={contact.phone}
                       onChange={(e) => updateContact('phone', e.target.value)}
-                      placeholder="For delivery contact"
+                      placeholder="e.g. (404) 555-0123"
                       className={errors.phone ? 'error' : ''}
                     />
                     {errors.phone && <span className="field-error">{errors.phone}</span>}
@@ -480,7 +480,7 @@ export default function CheckoutContent() {
                           onClick={() => selectSavedAddress(addr)}
                         >
                           <span className="saved-address-name">{addr.label || 'Address'}</span>
-                          <span className="address-line">{addr.street}</span>
+                          <span className="address-line">{addr.street}{addr.apartment ? `, ${addr.apartment}` : ''}</span>
                           <span className="address-line">{addr.city}, {addr.state} {addr.zipCode}</span>
                           {addr.isDefault && <span className="address-default">Default</span>}
                         </button>
@@ -670,9 +670,31 @@ export default function CheckoutContent() {
                     </div>
                     <div className="review-block">
                       <h3>Ship to</h3>
-                      <p>{address.street}</p>
+                      <p>{address.street}{address.apartment ? `, ${address.apartment}` : ''}</p>
                       <p>{address.city}, {address.state} {address.zipCode}</p>
                     </div>
+                  </div>
+
+                  {/* Delivery method summary */}
+                  <div style={{ marginTop: '16px' }}>
+                    <div className="review-header" style={{ marginBottom: '8px' }}>
+                      <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>Delivery</h3>
+                      <button className="checkout-edit-btn" onClick={() => setStep(2)}>Edit</button>
+                    </div>
+                    {items.map((item) => {
+                      const tier = getItemTier(item);
+                      const key = itemDeliveries[item.id];
+                      const opt = (deliveryOptions?.[tier] || []).find((o) => o.key === key);
+                      const name = item.product?.name || 'Product';
+                      return (
+                        <div key={item.id} className="review-delivery-row">
+                          <span className="review-delivery-name">{name}</span>
+                          <span className="review-delivery-method">
+                            {opt ? `${opt.label} — ${opt.price === 0 ? 'Free' : formatPrice(opt.price)}` : 'Not selected'}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
 

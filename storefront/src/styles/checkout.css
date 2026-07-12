@@ -311,6 +311,35 @@
   color: var(--text-primary, #333);
 }
 
+/* Delivery summary rows in Review step */
+.review-delivery-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-color, #f0f0f0);
+  font-size: 0.875rem;
+}
+
+.review-delivery-row:last-child {
+  border-bottom: none;
+}
+
+.review-delivery-name {
+  color: var(--text-primary, #333);
+  flex: 1;
+  margin-right: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.review-delivery-method {
+  color: var(--text-secondary, #666);
+  white-space: nowrap;
+  font-size: 0.8125rem;
+}
+
 /* Checkout Items (Step 2) */
 .checkout-items {
   display: flex;
