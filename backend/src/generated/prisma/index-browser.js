@@ -236,6 +236,15 @@ exports.Prisma.OrderScalarFieldEnum = {
   discountAmount: 'discountAmount'
 };
 
+exports.Prisma.OrderEventScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  type: 'type',
+  data: 'data',
+  actor: 'actor',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.OrderItemScalarFieldEnum = {
   id: 'id',
   orderId: 'orderId',
@@ -476,12 +485,15 @@ exports.PaymentStatus = exports.$Enums.PaymentStatus = {
 
 exports.ItemStatus = exports.$Enums.ItemStatus = {
   PENDING: 'PENDING',
-  IN_TRANSIT: 'IN_TRANSIT',
+  CONFIRMED: 'CONFIRMED',
+  PROCESSING: 'PROCESSING',
+  SHIPPED: 'SHIPPED',
   DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED',
   RETURN_REQUESTED: 'RETURN_REQUESTED',
   RETURN_APPROVED: 'RETURN_APPROVED',
-  RETURN_REJECTED: 'RETURN_REJECTED',
-  REFUNDED: 'REFUNDED'
+  RETURN_REJECTED: 'RETURN_REJECTED'
 };
 
 exports.ShipmentProvider = exports.$Enums.ShipmentProvider = {
@@ -521,6 +533,7 @@ exports.Prisma.ModelName = {
   Product: 'Product',
   CartItem: 'CartItem',
   Order: 'Order',
+  OrderEvent: 'OrderEvent',
   OrderItem: 'OrderItem',
   Shipment: 'Shipment',
   Review: 'Review',

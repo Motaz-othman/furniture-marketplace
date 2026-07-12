@@ -302,6 +302,11 @@ export const guestCheckout = async (req, res) => {
       guestEmail: email,
     });
 
+    prisma.orderEvent.create({
+      data: { orderId: order.id, type: 'ORDER_PLACED', actor: 'customer',
+        data: { orderNumber: order.orderNumber, total: order.total, itemCount: order.items.length, guestEmail: email } }
+    }).catch(() => {});
+
     const clientSecret = paymentIntent.client_secret;
     const paymentIntentId = paymentIntent.id;
 

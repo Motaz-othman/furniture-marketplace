@@ -245,12 +245,26 @@ model Order {
   items          OrderItem[]
   shipments      Shipment[]
   returnRequests ReturnRequest[]
+  events         OrderEvent[]
 
   @@index([customerId])
   @@index([orderNumber])
   @@index([source])
   @@index([externalOrderId])
   @@index([guestEmail])
+}
+
+model OrderEvent {
+  id        String   @id @default(uuid())
+  orderId   String
+  type      String
+  data      Json?
+  actor     String   @default("system")
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
 }
 
 model OrderItem {
@@ -361,12 +375,15 @@ enum ReturnStatus {
 
 enum ItemStatus {
   PENDING
-  IN_TRANSIT
+  CONFIRMED
+  PROCESSING
+  SHIPPED
   DELIVERED
+  CANCELLED
+  REFUNDED
   RETURN_REQUESTED
   RETURN_APPROVED
   RETURN_REJECTED
-  REFUNDED
 }
 
 model ProductVariant {

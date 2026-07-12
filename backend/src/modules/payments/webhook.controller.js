@@ -61,6 +61,10 @@ const handlePaymentSuccess = async (paymentIntent) => {
 
   if (count > 0) {
     console.log(`Payment succeeded for order ${orderId}`);
+    prisma.orderEvent.create({
+      data: { orderId, type: 'PAYMENT_RECEIVED', actor: 'stripe',
+        data: { amount: paymentIntent.amount / 100, currency: paymentIntent.currency, paymentIntentId: paymentIntent.id } }
+    }).catch(() => {});
     // Send confirmation email — fire-and-forget, never block the webhook response
     prisma.order.findUnique({
       where: { id: orderId },
@@ -93,8 +97,15 @@ const handlePaymentFailed = async (paymentIntent) => {
     data: { paymentStatus: 'FAILED' }
   });
 
-  if (count > 0) console.log(`Payment failed for order ${orderId}`);
-  else console.log(`Duplicate payment.failed event ignored for order ${orderId}`);
+  if (count > 0) {
+    console.log(`Payment failed for order ${orderId}`);
+    prisma.orderEvent.create({
+      data: { orderId, type: 'PAYMENT_FAILED', actor: 'stripe',
+        data: { paymentIntentId: paymentIntent.id, lastPaymentError: paymentIntent.last_payment_error?.message } }
+    }).catch(() => {});
+  } else {
+    console.log(`Duplicate payment.failed event ignored for order ${orderId}`);
+  }
 };
 
 // Handle refund — idempotent: only updates if not already refunded
@@ -113,6 +124,13 @@ const handleRefund = async (charge) => {
     data: { paymentStatus: 'REFUNDED', status: 'REFUNDED' }
   });
 
-  if (count > 0) console.log(`Refund processed for order ${order.id}`);
-  else console.log(`Duplicate charge.refunded event ignored for order ${order.id}`);
+  if (count > 0) {
+    console.log(`Refund processed for order ${order.id}`);
+    prisma.orderEvent.create({
+      data: { orderId: order.id, type: 'REFUND_PROCESSED', actor: 'stripe',
+        data: { amount: charge.amount_refunded / 100, currency: charge.currency } }
+    }).catch(() => {});
+  } else {
+    console.log(`Duplicate charge.refunded event ignored for order ${order.id}`);
+  }
 };

@@ -49,6 +49,11 @@ export type CartItem = $Result.DefaultSelection<Prisma.$CartItemPayload>
  */
 export type Order = $Result.DefaultSelection<Prisma.$OrderPayload>
 /**
+ * Model OrderEvent
+ * 
+ */
+export type OrderEvent = $Result.DefaultSelection<Prisma.$OrderEventPayload>
+/**
  * Model OrderItem
  * 
  */
@@ -199,12 +204,15 @@ export type ReturnStatus = (typeof ReturnStatus)[keyof typeof ReturnStatus]
 
 export const ItemStatus: {
   PENDING: 'PENDING',
-  IN_TRANSIT: 'IN_TRANSIT',
+  CONFIRMED: 'CONFIRMED',
+  PROCESSING: 'PROCESSING',
+  SHIPPED: 'SHIPPED',
   DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED',
   RETURN_REQUESTED: 'RETURN_REQUESTED',
   RETURN_APPROVED: 'RETURN_APPROVED',
-  RETURN_REJECTED: 'RETURN_REJECTED',
-  REFUNDED: 'REFUNDED'
+  RETURN_REJECTED: 'RETURN_REJECTED'
 };
 
 export type ItemStatus = (typeof ItemStatus)[keyof typeof ItemStatus]
@@ -430,6 +438,16 @@ export class PrismaClient<
     * ```
     */
   get order(): Prisma.OrderDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.orderEvent`: Exposes CRUD operations for the **OrderEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OrderEvents
+    * const orderEvents = await prisma.orderEvent.findMany()
+    * ```
+    */
+  get orderEvent(): Prisma.OrderEventDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.orderItem`: Exposes CRUD operations for the **OrderItem** model.
@@ -1018,6 +1036,7 @@ export namespace Prisma {
     Product: 'Product',
     CartItem: 'CartItem',
     Order: 'Order',
+    OrderEvent: 'OrderEvent',
     OrderItem: 'OrderItem',
     Shipment: 'Shipment',
     Review: 'Review',
@@ -1050,7 +1069,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customer" | "address" | "category" | "product" | "cartItem" | "order" | "orderItem" | "shipment" | "review" | "wishlist" | "notification" | "productVariant" | "storefrontListing" | "integrationProvider" | "syncLog" | "siteSettings" | "coupon" | "newsletterSubscriber" | "returnRequest" | "returnRequestItem"
+      modelProps: "user" | "customer" | "address" | "category" | "product" | "cartItem" | "order" | "orderEvent" | "orderItem" | "shipment" | "review" | "wishlist" | "notification" | "productVariant" | "storefrontListing" | "integrationProvider" | "syncLog" | "siteSettings" | "coupon" | "newsletterSubscriber" | "returnRequest" | "returnRequestItem"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1569,6 +1588,80 @@ export namespace Prisma {
           count: {
             args: Prisma.OrderCountArgs<ExtArgs>
             result: $Utils.Optional<OrderCountAggregateOutputType> | number
+          }
+        }
+      }
+      OrderEvent: {
+        payload: Prisma.$OrderEventPayload<ExtArgs>
+        fields: Prisma.OrderEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OrderEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OrderEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>
+          }
+          findFirst: {
+            args: Prisma.OrderEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OrderEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>
+          }
+          findMany: {
+            args: Prisma.OrderEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>[]
+          }
+          create: {
+            args: Prisma.OrderEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>
+          }
+          createMany: {
+            args: Prisma.OrderEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OrderEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>[]
+          }
+          delete: {
+            args: Prisma.OrderEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>
+          }
+          update: {
+            args: Prisma.OrderEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.OrderEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OrderEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.OrderEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.OrderEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderEventPayload>
+          }
+          aggregate: {
+            args: Prisma.OrderEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOrderEvent>
+          }
+          groupBy: {
+            args: Prisma.OrderEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OrderEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OrderEventCountArgs<ExtArgs>
+            result: $Utils.Optional<OrderEventCountAggregateOutputType> | number
           }
         }
       }
@@ -2711,6 +2804,7 @@ export namespace Prisma {
     product?: ProductOmit
     cartItem?: CartItemOmit
     order?: OrderOmit
+    orderEvent?: OrderEventOmit
     orderItem?: OrderItemOmit
     shipment?: ShipmentOmit
     review?: ReviewOmit
@@ -3062,12 +3156,14 @@ export namespace Prisma {
     items: number
     shipments: number
     returnRequests: number
+    events: number
   }
 
   export type OrderCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     items?: boolean | OrderCountOutputTypeCountItemsArgs
     shipments?: boolean | OrderCountOutputTypeCountShipmentsArgs
     returnRequests?: boolean | OrderCountOutputTypeCountReturnRequestsArgs
+    events?: boolean | OrderCountOutputTypeCountEventsArgs
   }
 
   // Custom InputTypes
@@ -3100,6 +3196,13 @@ export namespace Prisma {
    */
   export type OrderCountOutputTypeCountReturnRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ReturnRequestWhereInput
+  }
+
+  /**
+   * OrderCountOutputType without action
+   */
+  export type OrderCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrderEventWhereInput
   }
 
 
@@ -11229,6 +11332,7 @@ export namespace Prisma {
     items?: boolean | Order$itemsArgs<ExtArgs>
     shipments?: boolean | Order$shipmentsArgs<ExtArgs>
     returnRequests?: boolean | Order$returnRequestsArgs<ExtArgs>
+    events?: boolean | Order$eventsArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
 
@@ -11321,6 +11425,7 @@ export namespace Prisma {
     items?: boolean | Order$itemsArgs<ExtArgs>
     shipments?: boolean | Order$shipmentsArgs<ExtArgs>
     returnRequests?: boolean | Order$returnRequestsArgs<ExtArgs>
+    events?: boolean | Order$eventsArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11340,6 +11445,7 @@ export namespace Prisma {
       items: Prisma.$OrderItemPayload<ExtArgs>[]
       shipments: Prisma.$ShipmentPayload<ExtArgs>[]
       returnRequests: Prisma.$ReturnRequestPayload<ExtArgs>[]
+      events: Prisma.$OrderEventPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -11764,6 +11870,7 @@ export namespace Prisma {
     items<T extends Order$itemsArgs<ExtArgs> = {}>(args?: Subset<T, Order$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     shipments<T extends Order$shipmentsArgs<ExtArgs> = {}>(args?: Subset<T, Order$shipmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ShipmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     returnRequests<T extends Order$returnRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Order$returnRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    events<T extends Order$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Order$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -12303,6 +12410,30 @@ export namespace Prisma {
   }
 
   /**
+   * Order.events
+   */
+  export type Order$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    where?: OrderEventWhereInput
+    orderBy?: OrderEventOrderByWithRelationInput | OrderEventOrderByWithRelationInput[]
+    cursor?: OrderEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OrderEventScalarFieldEnum | OrderEventScalarFieldEnum[]
+  }
+
+  /**
    * Order without action
    */
   export type OrderDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12318,6 +12449,1073 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: OrderInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model OrderEvent
+   */
+
+  export type AggregateOrderEvent = {
+    _count: OrderEventCountAggregateOutputType | null
+    _min: OrderEventMinAggregateOutputType | null
+    _max: OrderEventMaxAggregateOutputType | null
+  }
+
+  export type OrderEventMinAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    type: string | null
+    actor: string | null
+    createdAt: Date | null
+  }
+
+  export type OrderEventMaxAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    type: string | null
+    actor: string | null
+    createdAt: Date | null
+  }
+
+  export type OrderEventCountAggregateOutputType = {
+    id: number
+    orderId: number
+    type: number
+    data: number
+    actor: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type OrderEventMinAggregateInputType = {
+    id?: true
+    orderId?: true
+    type?: true
+    actor?: true
+    createdAt?: true
+  }
+
+  export type OrderEventMaxAggregateInputType = {
+    id?: true
+    orderId?: true
+    type?: true
+    actor?: true
+    createdAt?: true
+  }
+
+  export type OrderEventCountAggregateInputType = {
+    id?: true
+    orderId?: true
+    type?: true
+    data?: true
+    actor?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type OrderEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OrderEvent to aggregate.
+     */
+    where?: OrderEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrderEvents to fetch.
+     */
+    orderBy?: OrderEventOrderByWithRelationInput | OrderEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OrderEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrderEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrderEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OrderEvents
+    **/
+    _count?: true | OrderEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OrderEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OrderEventMaxAggregateInputType
+  }
+
+  export type GetOrderEventAggregateType<T extends OrderEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateOrderEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOrderEvent[P]>
+      : GetScalarType<T[P], AggregateOrderEvent[P]>
+  }
+
+
+
+
+  export type OrderEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrderEventWhereInput
+    orderBy?: OrderEventOrderByWithAggregationInput | OrderEventOrderByWithAggregationInput[]
+    by: OrderEventScalarFieldEnum[] | OrderEventScalarFieldEnum
+    having?: OrderEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OrderEventCountAggregateInputType | true
+    _min?: OrderEventMinAggregateInputType
+    _max?: OrderEventMaxAggregateInputType
+  }
+
+  export type OrderEventGroupByOutputType = {
+    id: string
+    orderId: string
+    type: string
+    data: JsonValue | null
+    actor: string
+    createdAt: Date
+    _count: OrderEventCountAggregateOutputType | null
+    _min: OrderEventMinAggregateOutputType | null
+    _max: OrderEventMaxAggregateOutputType | null
+  }
+
+  type GetOrderEventGroupByPayload<T extends OrderEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OrderEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OrderEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OrderEventGroupByOutputType[P]>
+            : GetScalarType<T[P], OrderEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OrderEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    type?: boolean
+    data?: boolean
+    actor?: boolean
+    createdAt?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["orderEvent"]>
+
+  export type OrderEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    type?: boolean
+    data?: boolean
+    actor?: boolean
+    createdAt?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["orderEvent"]>
+
+  export type OrderEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    type?: boolean
+    data?: boolean
+    actor?: boolean
+    createdAt?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["orderEvent"]>
+
+  export type OrderEventSelectScalar = {
+    id?: boolean
+    orderId?: boolean
+    type?: boolean
+    data?: boolean
+    actor?: boolean
+    createdAt?: boolean
+  }
+
+  export type OrderEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "type" | "data" | "actor" | "createdAt", ExtArgs["result"]["orderEvent"]>
+  export type OrderEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+  export type OrderEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+  export type OrderEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+
+  export type $OrderEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OrderEvent"
+    objects: {
+      order: Prisma.$OrderPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orderId: string
+      type: string
+      data: Prisma.JsonValue | null
+      actor: string
+      createdAt: Date
+    }, ExtArgs["result"]["orderEvent"]>
+    composites: {}
+  }
+
+  type OrderEventGetPayload<S extends boolean | null | undefined | OrderEventDefaultArgs> = $Result.GetResult<Prisma.$OrderEventPayload, S>
+
+  type OrderEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<OrderEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: OrderEventCountAggregateInputType | true
+    }
+
+  export interface OrderEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OrderEvent'], meta: { name: 'OrderEvent' } }
+    /**
+     * Find zero or one OrderEvent that matches the filter.
+     * @param {OrderEventFindUniqueArgs} args - Arguments to find a OrderEvent
+     * @example
+     * // Get one OrderEvent
+     * const orderEvent = await prisma.orderEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OrderEventFindUniqueArgs>(args: SelectSubset<T, OrderEventFindUniqueArgs<ExtArgs>>): Prisma__OrderEventClient<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one OrderEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {OrderEventFindUniqueOrThrowArgs} args - Arguments to find a OrderEvent
+     * @example
+     * // Get one OrderEvent
+     * const orderEvent = await prisma.orderEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OrderEventFindUniqueOrThrowArgs>(args: SelectSubset<T, OrderEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OrderEventClient<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OrderEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderEventFindFirstArgs} args - Arguments to find a OrderEvent
+     * @example
+     * // Get one OrderEvent
+     * const orderEvent = await prisma.orderEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OrderEventFindFirstArgs>(args?: SelectSubset<T, OrderEventFindFirstArgs<ExtArgs>>): Prisma__OrderEventClient<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OrderEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderEventFindFirstOrThrowArgs} args - Arguments to find a OrderEvent
+     * @example
+     * // Get one OrderEvent
+     * const orderEvent = await prisma.orderEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OrderEventFindFirstOrThrowArgs>(args?: SelectSubset<T, OrderEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__OrderEventClient<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more OrderEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OrderEvents
+     * const orderEvents = await prisma.orderEvent.findMany()
+     * 
+     * // Get first 10 OrderEvents
+     * const orderEvents = await prisma.orderEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const orderEventWithIdOnly = await prisma.orderEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends OrderEventFindManyArgs>(args?: SelectSubset<T, OrderEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a OrderEvent.
+     * @param {OrderEventCreateArgs} args - Arguments to create a OrderEvent.
+     * @example
+     * // Create one OrderEvent
+     * const OrderEvent = await prisma.orderEvent.create({
+     *   data: {
+     *     // ... data to create a OrderEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends OrderEventCreateArgs>(args: SelectSubset<T, OrderEventCreateArgs<ExtArgs>>): Prisma__OrderEventClient<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many OrderEvents.
+     * @param {OrderEventCreateManyArgs} args - Arguments to create many OrderEvents.
+     * @example
+     * // Create many OrderEvents
+     * const orderEvent = await prisma.orderEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OrderEventCreateManyArgs>(args?: SelectSubset<T, OrderEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OrderEvents and returns the data saved in the database.
+     * @param {OrderEventCreateManyAndReturnArgs} args - Arguments to create many OrderEvents.
+     * @example
+     * // Create many OrderEvents
+     * const orderEvent = await prisma.orderEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OrderEvents and only return the `id`
+     * const orderEventWithIdOnly = await prisma.orderEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OrderEventCreateManyAndReturnArgs>(args?: SelectSubset<T, OrderEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a OrderEvent.
+     * @param {OrderEventDeleteArgs} args - Arguments to delete one OrderEvent.
+     * @example
+     * // Delete one OrderEvent
+     * const OrderEvent = await prisma.orderEvent.delete({
+     *   where: {
+     *     // ... filter to delete one OrderEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OrderEventDeleteArgs>(args: SelectSubset<T, OrderEventDeleteArgs<ExtArgs>>): Prisma__OrderEventClient<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one OrderEvent.
+     * @param {OrderEventUpdateArgs} args - Arguments to update one OrderEvent.
+     * @example
+     * // Update one OrderEvent
+     * const orderEvent = await prisma.orderEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OrderEventUpdateArgs>(args: SelectSubset<T, OrderEventUpdateArgs<ExtArgs>>): Prisma__OrderEventClient<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more OrderEvents.
+     * @param {OrderEventDeleteManyArgs} args - Arguments to filter OrderEvents to delete.
+     * @example
+     * // Delete a few OrderEvents
+     * const { count } = await prisma.orderEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OrderEventDeleteManyArgs>(args?: SelectSubset<T, OrderEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OrderEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OrderEvents
+     * const orderEvent = await prisma.orderEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OrderEventUpdateManyArgs>(args: SelectSubset<T, OrderEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OrderEvents and returns the data updated in the database.
+     * @param {OrderEventUpdateManyAndReturnArgs} args - Arguments to update many OrderEvents.
+     * @example
+     * // Update many OrderEvents
+     * const orderEvent = await prisma.orderEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more OrderEvents and only return the `id`
+     * const orderEventWithIdOnly = await prisma.orderEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends OrderEventUpdateManyAndReturnArgs>(args: SelectSubset<T, OrderEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one OrderEvent.
+     * @param {OrderEventUpsertArgs} args - Arguments to update or create a OrderEvent.
+     * @example
+     * // Update or create a OrderEvent
+     * const orderEvent = await prisma.orderEvent.upsert({
+     *   create: {
+     *     // ... data to create a OrderEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OrderEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OrderEventUpsertArgs>(args: SelectSubset<T, OrderEventUpsertArgs<ExtArgs>>): Prisma__OrderEventClient<$Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of OrderEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderEventCountArgs} args - Arguments to filter OrderEvents to count.
+     * @example
+     * // Count the number of OrderEvents
+     * const count = await prisma.orderEvent.count({
+     *   where: {
+     *     // ... the filter for the OrderEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends OrderEventCountArgs>(
+      args?: Subset<T, OrderEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OrderEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OrderEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OrderEventAggregateArgs>(args: Subset<T, OrderEventAggregateArgs>): Prisma.PrismaPromise<GetOrderEventAggregateType<T>>
+
+    /**
+     * Group by OrderEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OrderEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OrderEventGroupByArgs['orderBy'] }
+        : { orderBy?: OrderEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OrderEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOrderEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OrderEvent model
+   */
+  readonly fields: OrderEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OrderEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OrderEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    order<T extends OrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderDefaultArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OrderEvent model
+   */
+  interface OrderEventFieldRefs {
+    readonly id: FieldRef<"OrderEvent", 'String'>
+    readonly orderId: FieldRef<"OrderEvent", 'String'>
+    readonly type: FieldRef<"OrderEvent", 'String'>
+    readonly data: FieldRef<"OrderEvent", 'Json'>
+    readonly actor: FieldRef<"OrderEvent", 'String'>
+    readonly createdAt: FieldRef<"OrderEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OrderEvent findUnique
+   */
+  export type OrderEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which OrderEvent to fetch.
+     */
+    where: OrderEventWhereUniqueInput
+  }
+
+  /**
+   * OrderEvent findUniqueOrThrow
+   */
+  export type OrderEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which OrderEvent to fetch.
+     */
+    where: OrderEventWhereUniqueInput
+  }
+
+  /**
+   * OrderEvent findFirst
+   */
+  export type OrderEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which OrderEvent to fetch.
+     */
+    where?: OrderEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrderEvents to fetch.
+     */
+    orderBy?: OrderEventOrderByWithRelationInput | OrderEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OrderEvents.
+     */
+    cursor?: OrderEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrderEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrderEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrderEvents.
+     */
+    distinct?: OrderEventScalarFieldEnum | OrderEventScalarFieldEnum[]
+  }
+
+  /**
+   * OrderEvent findFirstOrThrow
+   */
+  export type OrderEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which OrderEvent to fetch.
+     */
+    where?: OrderEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrderEvents to fetch.
+     */
+    orderBy?: OrderEventOrderByWithRelationInput | OrderEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OrderEvents.
+     */
+    cursor?: OrderEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrderEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrderEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrderEvents.
+     */
+    distinct?: OrderEventScalarFieldEnum | OrderEventScalarFieldEnum[]
+  }
+
+  /**
+   * OrderEvent findMany
+   */
+  export type OrderEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which OrderEvents to fetch.
+     */
+    where?: OrderEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrderEvents to fetch.
+     */
+    orderBy?: OrderEventOrderByWithRelationInput | OrderEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OrderEvents.
+     */
+    cursor?: OrderEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrderEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrderEvents.
+     */
+    skip?: number
+    distinct?: OrderEventScalarFieldEnum | OrderEventScalarFieldEnum[]
+  }
+
+  /**
+   * OrderEvent create
+   */
+  export type OrderEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a OrderEvent.
+     */
+    data: XOR<OrderEventCreateInput, OrderEventUncheckedCreateInput>
+  }
+
+  /**
+   * OrderEvent createMany
+   */
+  export type OrderEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OrderEvents.
+     */
+    data: OrderEventCreateManyInput | OrderEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OrderEvent createManyAndReturn
+   */
+  export type OrderEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many OrderEvents.
+     */
+    data: OrderEventCreateManyInput | OrderEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OrderEvent update
+   */
+  export type OrderEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a OrderEvent.
+     */
+    data: XOR<OrderEventUpdateInput, OrderEventUncheckedUpdateInput>
+    /**
+     * Choose, which OrderEvent to update.
+     */
+    where: OrderEventWhereUniqueInput
+  }
+
+  /**
+   * OrderEvent updateMany
+   */
+  export type OrderEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OrderEvents.
+     */
+    data: XOR<OrderEventUpdateManyMutationInput, OrderEventUncheckedUpdateManyInput>
+    /**
+     * Filter which OrderEvents to update
+     */
+    where?: OrderEventWhereInput
+    /**
+     * Limit how many OrderEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * OrderEvent updateManyAndReturn
+   */
+  export type OrderEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * The data used to update OrderEvents.
+     */
+    data: XOR<OrderEventUpdateManyMutationInput, OrderEventUncheckedUpdateManyInput>
+    /**
+     * Filter which OrderEvents to update
+     */
+    where?: OrderEventWhereInput
+    /**
+     * Limit how many OrderEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OrderEvent upsert
+   */
+  export type OrderEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the OrderEvent to update in case it exists.
+     */
+    where: OrderEventWhereUniqueInput
+    /**
+     * In case the OrderEvent found by the `where` argument doesn't exist, create a new OrderEvent with this data.
+     */
+    create: XOR<OrderEventCreateInput, OrderEventUncheckedCreateInput>
+    /**
+     * In case the OrderEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OrderEventUpdateInput, OrderEventUncheckedUpdateInput>
+  }
+
+  /**
+   * OrderEvent delete
+   */
+  export type OrderEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
+    /**
+     * Filter which OrderEvent to delete.
+     */
+    where: OrderEventWhereUniqueInput
+  }
+
+  /**
+   * OrderEvent deleteMany
+   */
+  export type OrderEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OrderEvents to delete
+     */
+    where?: OrderEventWhereInput
+    /**
+     * Limit how many OrderEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * OrderEvent without action
+   */
+  export type OrderEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderEvent
+     */
+    select?: OrderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OrderEvent
+     */
+    omit?: OrderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderEventInclude<ExtArgs> | null
   }
 
 
@@ -28599,6 +29797,18 @@ export namespace Prisma {
   export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
 
 
+  export const OrderEventScalarFieldEnum: {
+    id: 'id',
+    orderId: 'orderId',
+    type: 'type',
+    data: 'data',
+    actor: 'actor',
+    createdAt: 'createdAt'
+  };
+
+  export type OrderEventScalarFieldEnum = (typeof OrderEventScalarFieldEnum)[keyof typeof OrderEventScalarFieldEnum]
+
+
   export const OrderItemScalarFieldEnum: {
     id: 'id',
     orderId: 'orderId',
@@ -29705,6 +30915,7 @@ export namespace Prisma {
     items?: OrderItemListRelationFilter
     shipments?: ShipmentListRelationFilter
     returnRequests?: ReturnRequestListRelationFilter
+    events?: OrderEventListRelationFilter
   }
 
   export type OrderOrderByWithRelationInput = {
@@ -29736,6 +30947,7 @@ export namespace Prisma {
     items?: OrderItemOrderByRelationAggregateInput
     shipments?: ShipmentOrderByRelationAggregateInput
     returnRequests?: ReturnRequestOrderByRelationAggregateInput
+    events?: OrderEventOrderByRelationAggregateInput
   }
 
   export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -29770,6 +30982,7 @@ export namespace Prisma {
     items?: OrderItemListRelationFilter
     shipments?: ShipmentListRelationFilter
     returnRequests?: ReturnRequestListRelationFilter
+    events?: OrderEventListRelationFilter
   }, "id" | "orderNumber">
 
   export type OrderOrderByWithAggregationInput = {
@@ -29830,6 +31043,66 @@ export namespace Prisma {
     guestPhone?: StringNullableWithAggregatesFilter<"Order"> | string | null
     couponCode?: StringNullableWithAggregatesFilter<"Order"> | string | null
     discountAmount?: FloatNullableWithAggregatesFilter<"Order"> | number | null
+  }
+
+  export type OrderEventWhereInput = {
+    AND?: OrderEventWhereInput | OrderEventWhereInput[]
+    OR?: OrderEventWhereInput[]
+    NOT?: OrderEventWhereInput | OrderEventWhereInput[]
+    id?: StringFilter<"OrderEvent"> | string
+    orderId?: StringFilter<"OrderEvent"> | string
+    type?: StringFilter<"OrderEvent"> | string
+    data?: JsonNullableFilter<"OrderEvent">
+    actor?: StringFilter<"OrderEvent"> | string
+    createdAt?: DateTimeFilter<"OrderEvent"> | Date | string
+    order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
+  }
+
+  export type OrderEventOrderByWithRelationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    type?: SortOrder
+    data?: SortOrderInput | SortOrder
+    actor?: SortOrder
+    createdAt?: SortOrder
+    order?: OrderOrderByWithRelationInput
+  }
+
+  export type OrderEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: OrderEventWhereInput | OrderEventWhereInput[]
+    OR?: OrderEventWhereInput[]
+    NOT?: OrderEventWhereInput | OrderEventWhereInput[]
+    orderId?: StringFilter<"OrderEvent"> | string
+    type?: StringFilter<"OrderEvent"> | string
+    data?: JsonNullableFilter<"OrderEvent">
+    actor?: StringFilter<"OrderEvent"> | string
+    createdAt?: DateTimeFilter<"OrderEvent"> | Date | string
+    order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
+  }, "id">
+
+  export type OrderEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    type?: SortOrder
+    data?: SortOrderInput | SortOrder
+    actor?: SortOrder
+    createdAt?: SortOrder
+    _count?: OrderEventCountOrderByAggregateInput
+    _max?: OrderEventMaxOrderByAggregateInput
+    _min?: OrderEventMinOrderByAggregateInput
+  }
+
+  export type OrderEventScalarWhereWithAggregatesInput = {
+    AND?: OrderEventScalarWhereWithAggregatesInput | OrderEventScalarWhereWithAggregatesInput[]
+    OR?: OrderEventScalarWhereWithAggregatesInput[]
+    NOT?: OrderEventScalarWhereWithAggregatesInput | OrderEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"OrderEvent"> | string
+    orderId?: StringWithAggregatesFilter<"OrderEvent"> | string
+    type?: StringWithAggregatesFilter<"OrderEvent"> | string
+    data?: JsonNullableWithAggregatesFilter<"OrderEvent">
+    actor?: StringWithAggregatesFilter<"OrderEvent"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"OrderEvent"> | Date | string
   }
 
   export type OrderItemWhereInput = {
@@ -31730,6 +33003,7 @@ export namespace Prisma {
     items?: OrderItemCreateNestedManyWithoutOrderInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
+    events?: OrderEventCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateInput = {
@@ -31759,6 +33033,7 @@ export namespace Prisma {
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
+    events?: OrderEventUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUpdateInput = {
@@ -31788,6 +33063,7 @@ export namespace Prisma {
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateInput = {
@@ -31817,6 +33093,7 @@ export namespace Prisma {
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderCreateManyInput = {
@@ -31893,6 +33170,68 @@ export namespace Prisma {
     guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
     couponCode?: NullableStringFieldUpdateOperationsInput | string | null
     discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+  }
+
+  export type OrderEventCreateInput = {
+    id?: string
+    type: string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: string
+    createdAt?: Date | string
+    order: OrderCreateNestedOneWithoutEventsInput
+  }
+
+  export type OrderEventUncheckedCreateInput = {
+    id?: string
+    orderId: string
+    type: string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: string
+    createdAt?: Date | string
+  }
+
+  export type OrderEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: OrderUpdateOneRequiredWithoutEventsNestedInput
+  }
+
+  export type OrderEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderEventCreateManyInput = {
+    id?: string
+    orderId: string
+    type: string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: string
+    createdAt?: Date | string
+  }
+
+  export type OrderEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderItemCreateInput = {
@@ -33953,7 +35292,17 @@ export namespace Prisma {
     none?: ShipmentWhereInput
   }
 
+  export type OrderEventListRelationFilter = {
+    every?: OrderEventWhereInput
+    some?: OrderEventWhereInput
+    none?: OrderEventWhereInput
+  }
+
   export type ShipmentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type OrderEventOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -34085,16 +35434,41 @@ export namespace Prisma {
     _max?: NestedEnumPaymentStatusFilter<$PrismaModel>
   }
 
+  export type OrderScalarRelationFilter = {
+    is?: OrderWhereInput
+    isNot?: OrderWhereInput
+  }
+
+  export type OrderEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    type?: SortOrder
+    data?: SortOrder
+    actor?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type OrderEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    type?: SortOrder
+    actor?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type OrderEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    type?: SortOrder
+    actor?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type EnumItemStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.ItemStatus | EnumItemStatusFieldRefInput<$PrismaModel>
     in?: $Enums.ItemStatus[] | ListEnumItemStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.ItemStatus[] | ListEnumItemStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumItemStatusFilter<$PrismaModel> | $Enums.ItemStatus
-  }
-
-  export type OrderScalarRelationFilter = {
-    is?: OrderWhereInput
-    isNot?: OrderWhereInput
   }
 
   export type ShipmentNullableScalarRelationFilter = {
@@ -35827,6 +37201,13 @@ export namespace Prisma {
     connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
   }
 
+  export type OrderEventCreateNestedManyWithoutOrderInput = {
+    create?: XOR<OrderEventCreateWithoutOrderInput, OrderEventUncheckedCreateWithoutOrderInput> | OrderEventCreateWithoutOrderInput[] | OrderEventUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: OrderEventCreateOrConnectWithoutOrderInput | OrderEventCreateOrConnectWithoutOrderInput[]
+    createMany?: OrderEventCreateManyOrderInputEnvelope
+    connect?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+  }
+
   export type OrderItemUncheckedCreateNestedManyWithoutOrderInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -35846,6 +37227,13 @@ export namespace Prisma {
     connectOrCreate?: ReturnRequestCreateOrConnectWithoutOrderInput | ReturnRequestCreateOrConnectWithoutOrderInput[]
     createMany?: ReturnRequestCreateManyOrderInputEnvelope
     connect?: ReturnRequestWhereUniqueInput | ReturnRequestWhereUniqueInput[]
+  }
+
+  export type OrderEventUncheckedCreateNestedManyWithoutOrderInput = {
+    create?: XOR<OrderEventCreateWithoutOrderInput, OrderEventUncheckedCreateWithoutOrderInput> | OrderEventCreateWithoutOrderInput[] | OrderEventUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: OrderEventCreateOrConnectWithoutOrderInput | OrderEventCreateOrConnectWithoutOrderInput[]
+    createMany?: OrderEventCreateManyOrderInputEnvelope
+    connect?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
   }
 
   export type EnumOrderStatusFieldUpdateOperationsInput = {
@@ -35924,6 +37312,20 @@ export namespace Prisma {
     deleteMany?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
   }
 
+  export type OrderEventUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<OrderEventCreateWithoutOrderInput, OrderEventUncheckedCreateWithoutOrderInput> | OrderEventCreateWithoutOrderInput[] | OrderEventUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: OrderEventCreateOrConnectWithoutOrderInput | OrderEventCreateOrConnectWithoutOrderInput[]
+    upsert?: OrderEventUpsertWithWhereUniqueWithoutOrderInput | OrderEventUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: OrderEventCreateManyOrderInputEnvelope
+    set?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+    disconnect?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+    delete?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+    connect?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+    update?: OrderEventUpdateWithWhereUniqueWithoutOrderInput | OrderEventUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: OrderEventUpdateManyWithWhereWithoutOrderInput | OrderEventUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: OrderEventScalarWhereInput | OrderEventScalarWhereInput[]
+  }
+
   export type OrderItemUncheckedUpdateManyWithoutOrderNestedInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -35964,6 +37366,34 @@ export namespace Prisma {
     update?: ReturnRequestUpdateWithWhereUniqueWithoutOrderInput | ReturnRequestUpdateWithWhereUniqueWithoutOrderInput[]
     updateMany?: ReturnRequestUpdateManyWithWhereWithoutOrderInput | ReturnRequestUpdateManyWithWhereWithoutOrderInput[]
     deleteMany?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
+  }
+
+  export type OrderEventUncheckedUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<OrderEventCreateWithoutOrderInput, OrderEventUncheckedCreateWithoutOrderInput> | OrderEventCreateWithoutOrderInput[] | OrderEventUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: OrderEventCreateOrConnectWithoutOrderInput | OrderEventCreateOrConnectWithoutOrderInput[]
+    upsert?: OrderEventUpsertWithWhereUniqueWithoutOrderInput | OrderEventUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: OrderEventCreateManyOrderInputEnvelope
+    set?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+    disconnect?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+    delete?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+    connect?: OrderEventWhereUniqueInput | OrderEventWhereUniqueInput[]
+    update?: OrderEventUpdateWithWhereUniqueWithoutOrderInput | OrderEventUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: OrderEventUpdateManyWithWhereWithoutOrderInput | OrderEventUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: OrderEventScalarWhereInput | OrderEventScalarWhereInput[]
+  }
+
+  export type OrderCreateNestedOneWithoutEventsInput = {
+    create?: XOR<OrderCreateWithoutEventsInput, OrderUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutEventsInput
+    connect?: OrderWhereUniqueInput
+  }
+
+  export type OrderUpdateOneRequiredWithoutEventsNestedInput = {
+    create?: XOR<OrderCreateWithoutEventsInput, OrderUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutEventsInput
+    upsert?: OrderUpsertWithoutEventsInput
+    connect?: OrderWhereUniqueInput
+    update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutEventsInput, OrderUpdateWithoutEventsInput>, OrderUncheckedUpdateWithoutEventsInput>
   }
 
   export type OrderCreateNestedOneWithoutItemsInput = {
@@ -37170,6 +38600,7 @@ export namespace Prisma {
     items?: OrderItemCreateNestedManyWithoutOrderInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
+    events?: OrderEventCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutCustomerInput = {
@@ -37198,6 +38629,7 @@ export namespace Prisma {
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
+    events?: OrderEventUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutCustomerInput = {
@@ -37576,6 +39008,7 @@ export namespace Prisma {
     items?: OrderItemCreateNestedManyWithoutOrderInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
+    events?: OrderEventCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutAddressInput = {
@@ -37604,6 +39037,7 @@ export namespace Prisma {
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
+    events?: OrderEventUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutAddressInput = {
@@ -39083,6 +40517,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type OrderEventCreateWithoutOrderInput = {
+    id?: string
+    type: string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: string
+    createdAt?: Date | string
+  }
+
+  export type OrderEventUncheckedCreateWithoutOrderInput = {
+    id?: string
+    type: string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: string
+    createdAt?: Date | string
+  }
+
+  export type OrderEventCreateOrConnectWithoutOrderInput = {
+    where: OrderEventWhereUniqueInput
+    create: XOR<OrderEventCreateWithoutOrderInput, OrderEventUncheckedCreateWithoutOrderInput>
+  }
+
+  export type OrderEventCreateManyOrderInputEnvelope = {
+    data: OrderEventCreateManyOrderInput | OrderEventCreateManyOrderInput[]
+    skipDuplicates?: boolean
+  }
+
   export type CustomerUpsertWithoutOrdersInput = {
     update: XOR<CustomerUpdateWithoutOrdersInput, CustomerUncheckedUpdateWithoutOrdersInput>
     create: XOR<CustomerCreateWithoutOrdersInput, CustomerUncheckedCreateWithoutOrdersInput>
@@ -39219,6 +40679,166 @@ export namespace Prisma {
     data: XOR<ReturnRequestUpdateManyMutationInput, ReturnRequestUncheckedUpdateManyWithoutOrderInput>
   }
 
+  export type OrderEventUpsertWithWhereUniqueWithoutOrderInput = {
+    where: OrderEventWhereUniqueInput
+    update: XOR<OrderEventUpdateWithoutOrderInput, OrderEventUncheckedUpdateWithoutOrderInput>
+    create: XOR<OrderEventCreateWithoutOrderInput, OrderEventUncheckedCreateWithoutOrderInput>
+  }
+
+  export type OrderEventUpdateWithWhereUniqueWithoutOrderInput = {
+    where: OrderEventWhereUniqueInput
+    data: XOR<OrderEventUpdateWithoutOrderInput, OrderEventUncheckedUpdateWithoutOrderInput>
+  }
+
+  export type OrderEventUpdateManyWithWhereWithoutOrderInput = {
+    where: OrderEventScalarWhereInput
+    data: XOR<OrderEventUpdateManyMutationInput, OrderEventUncheckedUpdateManyWithoutOrderInput>
+  }
+
+  export type OrderEventScalarWhereInput = {
+    AND?: OrderEventScalarWhereInput | OrderEventScalarWhereInput[]
+    OR?: OrderEventScalarWhereInput[]
+    NOT?: OrderEventScalarWhereInput | OrderEventScalarWhereInput[]
+    id?: StringFilter<"OrderEvent"> | string
+    orderId?: StringFilter<"OrderEvent"> | string
+    type?: StringFilter<"OrderEvent"> | string
+    data?: JsonNullableFilter<"OrderEvent">
+    actor?: StringFilter<"OrderEvent"> | string
+    createdAt?: DateTimeFilter<"OrderEvent"> | Date | string
+  }
+
+  export type OrderCreateWithoutEventsInput = {
+    id?: string
+    orderNumber: string
+    status?: $Enums.OrderStatus
+    subtotal: number
+    tax?: number
+    shippingCost?: number
+    total: number
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    source?: string
+    externalOrderId?: string | null
+    externalData?: NullableJsonNullValueInput | InputJsonValue
+    stripePaymentIntentId?: string | null
+    paymentStatus?: $Enums.PaymentStatus
+    guestEmail?: string | null
+    guestFirstName?: string | null
+    guestLastName?: string | null
+    guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
+    customer?: CustomerCreateNestedOneWithoutOrdersInput
+    address: AddressCreateNestedOneWithoutOrdersInput
+    items?: OrderItemCreateNestedManyWithoutOrderInput
+    shipments?: ShipmentCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderUncheckedCreateWithoutEventsInput = {
+    id?: string
+    customerId?: string | null
+    addressId: string
+    orderNumber: string
+    status?: $Enums.OrderStatus
+    subtotal: number
+    tax?: number
+    shippingCost?: number
+    total: number
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    source?: string
+    externalOrderId?: string | null
+    externalData?: NullableJsonNullValueInput | InputJsonValue
+    stripePaymentIntentId?: string | null
+    paymentStatus?: $Enums.PaymentStatus
+    guestEmail?: string | null
+    guestFirstName?: string | null
+    guestLastName?: string | null
+    guestPhone?: string | null
+    couponCode?: string | null
+    discountAmount?: number | null
+    items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+    shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
+    returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderCreateOrConnectWithoutEventsInput = {
+    where: OrderWhereUniqueInput
+    create: XOR<OrderCreateWithoutEventsInput, OrderUncheckedCreateWithoutEventsInput>
+  }
+
+  export type OrderUpsertWithoutEventsInput = {
+    update: XOR<OrderUpdateWithoutEventsInput, OrderUncheckedUpdateWithoutEventsInput>
+    create: XOR<OrderCreateWithoutEventsInput, OrderUncheckedCreateWithoutEventsInput>
+    where?: OrderWhereInput
+  }
+
+  export type OrderUpdateToOneWithWhereWithoutEventsInput = {
+    where?: OrderWhereInput
+    data: XOR<OrderUpdateWithoutEventsInput, OrderUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type OrderUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderNumber?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    subtotal?: FloatFieldUpdateOperationsInput | number
+    tax?: FloatFieldUpdateOperationsInput | number
+    shippingCost?: FloatFieldUpdateOperationsInput | number
+    total?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    source?: StringFieldUpdateOperationsInput | string
+    externalOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalData?: NullableJsonNullValueInput | InputJsonValue
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    guestEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    customer?: CustomerUpdateOneWithoutOrdersNestedInput
+    address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
+    items?: OrderItemUpdateManyWithoutOrderNestedInput
+    shipments?: ShipmentUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    addressId?: StringFieldUpdateOperationsInput | string
+    orderNumber?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    subtotal?: FloatFieldUpdateOperationsInput | number
+    tax?: FloatFieldUpdateOperationsInput | number
+    shippingCost?: FloatFieldUpdateOperationsInput | number
+    total?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    source?: StringFieldUpdateOperationsInput | string
+    externalOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    externalData?: NullableJsonNullValueInput | InputJsonValue
+    stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    guestEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    guestFirstName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestLastName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    couponCode?: NullableStringFieldUpdateOperationsInput | string | null
+    discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+    shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
+    returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
   export type OrderCreateWithoutItemsInput = {
     id?: string
     orderNumber: string
@@ -39245,6 +40865,7 @@ export namespace Prisma {
     address: AddressCreateNestedOneWithoutOrdersInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
+    events?: OrderEventCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutItemsInput = {
@@ -39273,6 +40894,7 @@ export namespace Prisma {
     discountAmount?: number | null
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
+    events?: OrderEventUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutItemsInput = {
@@ -39534,6 +41156,7 @@ export namespace Prisma {
     address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutItemsInput = {
@@ -39562,6 +41185,7 @@ export namespace Prisma {
     discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type ShipmentUpsertWithoutItemsInput = {
@@ -39828,6 +41452,7 @@ export namespace Prisma {
     address: AddressCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestCreateNestedManyWithoutOrderInput
+    events?: OrderEventCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutShipmentsInput = {
@@ -39856,6 +41481,7 @@ export namespace Prisma {
     discountAmount?: number | null
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
     returnRequests?: ReturnRequestUncheckedCreateNestedManyWithoutOrderInput
+    events?: OrderEventUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutShipmentsInput = {
@@ -39936,6 +41562,7 @@ export namespace Prisma {
     address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutShipmentsInput = {
@@ -39964,6 +41591,7 @@ export namespace Prisma {
     discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutShipmentInput = {
@@ -41191,6 +42819,7 @@ export namespace Prisma {
     address: AddressCreateNestedOneWithoutOrdersInput
     items?: OrderItemCreateNestedManyWithoutOrderInput
     shipments?: ShipmentCreateNestedManyWithoutOrderInput
+    events?: OrderEventCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutReturnRequestsInput = {
@@ -41219,6 +42848,7 @@ export namespace Prisma {
     discountAmount?: number | null
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
     shipments?: ShipmentUncheckedCreateNestedManyWithoutOrderInput
+    events?: OrderEventUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutReturnRequestsInput = {
@@ -41314,6 +42944,7 @@ export namespace Prisma {
     address?: AddressUpdateOneRequiredWithoutOrdersNestedInput
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutReturnRequestsInput = {
@@ -41342,6 +42973,7 @@ export namespace Prisma {
     discountAmount?: NullableFloatFieldUpdateOperationsInput | number | null
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type CustomerUpsertWithoutReturnRequestsInput = {
@@ -41713,6 +43345,7 @@ export namespace Prisma {
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutCustomerInput = {
@@ -41741,6 +43374,7 @@ export namespace Prisma {
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutCustomerInput = {
@@ -41890,6 +43524,7 @@ export namespace Prisma {
     items?: OrderItemUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutAddressInput = {
@@ -41918,6 +43553,7 @@ export namespace Prisma {
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
     shipments?: ShipmentUncheckedUpdateManyWithoutOrderNestedInput
     returnRequests?: ReturnRequestUncheckedUpdateManyWithoutOrderNestedInput
+    events?: OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateManyWithoutAddressInput = {
@@ -42532,6 +44168,14 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type OrderEventCreateManyOrderInput = {
+    id?: string
+    type: string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: string
+    createdAt?: Date | string
+  }
+
   export type OrderItemUpdateWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
     quantity?: IntFieldUpdateOperationsInput | number
@@ -42641,6 +44285,30 @@ export namespace Prisma {
     adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderEventUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderEventUncheckedUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderEventUncheckedUpdateManyWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    data?: NullableJsonNullValueInput | InputJsonValue
+    actor?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ReturnRequestItemCreateManyOrderItemInput = {

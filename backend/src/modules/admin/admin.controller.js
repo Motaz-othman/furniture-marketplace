@@ -349,6 +349,7 @@ export const getOrderDetails = async (req, res) => {
           },
           orderBy: { createdAt: 'desc' },
         },
+        events: { orderBy: { createdAt: 'asc' } },
       }
     });
 
@@ -401,6 +402,11 @@ export const updateOrderStatus = async (req, res) => {
     if (userId) {
       notifyOrderStatusChanged(userId, order, status).catch(console.error);
     }
+
+    prisma.orderEvent.create({
+      data: { orderId: id, type: 'STATUS_CHANGE', actor: 'admin',
+        data: { from: existing.status, to: status, note: note || null } }
+    }).catch(() => {});
 
     res.json({ message: 'Order status updated', order });
   } catch (error) {
@@ -547,6 +553,12 @@ export const updateItemStatus = async (req, res) => {
       data: { status },
       include: { product: { select: { name: true } }, variant: { select: { name: true } } },
     });
+
+    prisma.orderEvent.create({
+      data: { orderId, type: 'ITEM_STATUS_CHANGE', actor: 'admin',
+        data: { itemId, from: item.status, to: status,
+          product: updated.product?.name, variant: updated.variant?.name } }
+    }).catch(() => {});
 
     res.json({ item: updated });
   } catch (error) {

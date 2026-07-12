@@ -20,7 +20,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Package, Plus, Pencil, Truck, Download, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Package, Plus, Pencil, Truck, Download, ExternalLink, Copy, Check, CreditCard, AlertCircle, RotateCcw, ArrowRight, Clock, User, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -74,6 +74,48 @@ const DELIVERY_METHOD_LABELS = {
   ROOM_OF_CHOICE:   'Room of Choice',
   WHITE_GLOVE:      'White Glove',
 };
+
+const EVENT_CONFIG = {
+  ORDER_PLACED: {
+    icon: ShieldCheck, color: 'text-blue-500', ring: 'border-blue-200',
+    label: () => 'Order placed',
+    detail: (d) => d?.itemCount != null ? `${d.itemCount} item${d.itemCount !== 1 ? 's' : ''} · Total ${formatCurrencyStatic(d.total)}` : null,
+  },
+  PAYMENT_RECEIVED: {
+    icon: CreditCard, color: 'text-green-500', ring: 'border-green-200',
+    label: () => 'Payment received',
+    detail: (d) => d?.amount != null ? `${formatCurrencyStatic(d.amount)} via Stripe` : null,
+  },
+  PAYMENT_FAILED: {
+    icon: AlertCircle, color: 'text-red-500', ring: 'border-red-200',
+    label: () => 'Payment failed',
+    detail: (d) => d?.lastPaymentError || null,
+  },
+  REFUND_PROCESSED: {
+    icon: RotateCcw, color: 'text-orange-500', ring: 'border-orange-200',
+    label: () => 'Refund processed',
+    detail: (d) => d?.amount != null ? `${formatCurrencyStatic(d.amount)} refunded` : null,
+  },
+  STATUS_CHANGE: {
+    icon: ArrowRight, color: 'text-violet-500', ring: 'border-violet-200',
+    label: (d) => d?.from && d?.to ? `Status: ${d.from} → ${d.to}` : 'Status changed',
+    detail: (d) => d?.note || null,
+  },
+  ITEM_STATUS_CHANGE: {
+    icon: Package, color: 'text-slate-500', ring: 'border-slate-200',
+    label: (d) => d?.from && d?.to ? `Item status: ${d.from} → ${d.to}` : 'Item status changed',
+    detail: (d) => [d?.product, d?.variant].filter(Boolean).join(' · ') || null,
+  },
+  _default: {
+    icon: Clock, color: 'text-muted-foreground', ring: 'border-border',
+    label: (_d, type) => type || 'Event',
+    detail: null,
+  },
+};
+
+function formatCurrencyStatic(val) {
+  return val != null ? `$${Number(val).toFixed(2)}` : '—';
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -471,6 +513,7 @@ export default function OrderDetailPage() {
   const [addShipmentForItem, setAddShipmentForItem] = useState(null);
   const [editingShipment, setEditingShipment] = useState(null);
   const [returnNotesMap, setReturnNotesMap] = useState({});
+  const [piCopied, setPiCopied] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-order', id],
@@ -1065,17 +1108,27 @@ export default function OrderDetailPage() {
           <CardContent>
             <InfoRow label="Status" value={order.paymentStatus || '—'} />
             {order.stripePaymentIntentId && (
-              <InfoRow
-                label="Stripe PI"
-                value={
-                  <span
-                    className="font-mono text-xs truncate block max-w-[120px]"
-                    title={order.stripePaymentIntentId}
-                  >
+              <div className="mt-2">
+                <p className="text-xs text-muted-foreground mb-1">Stripe PI</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono text-xs break-all leading-tight flex-1">
                     {order.stripePaymentIntentId}
                   </span>
-                }
-              />
+                  <button
+                    className="shrink-0 p-1 rounded hover:bg-muted transition-colors"
+                    title="Copy to clipboard"
+                    onClick={() => {
+                      navigator.clipboard.writeText(order.stripePaymentIntentId);
+                      setPiCopied(true);
+                      setTimeout(() => setPiCopied(false), 2000);
+                    }}
+                  >
+                    {piCopied
+                      ? <Check className="h-3.5 w-3.5 text-green-500" />
+                      : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                  </button>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -1118,6 +1171,44 @@ export default function OrderDetailPage() {
         </Card>
 
       </div>
+
+      {/* ── Order History Timeline ── */}
+      {(order.events?.length ?? 0) > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Order History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="relative border-l border-border ml-3 space-y-0">
+              {order.events.map((ev, idx) => {
+                const isLast = idx === order.events.length - 1;
+                const cfg = EVENT_CONFIG[ev.type] || EVENT_CONFIG._default;
+                const Icon = cfg.icon;
+                return (
+                  <li key={ev.id} className={`ml-6 ${isLast ? 'pb-0' : 'pb-6'}`}>
+                    <span className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full border bg-background ${cfg.ring}`}>
+                      <Icon className={`h-3 w-3 ${cfg.color}`} />
+                    </span>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-3">
+                      <p className="text-sm font-medium leading-tight">
+                        {cfg.label(ev.data, ev.type)}
+                      </p>
+                      <time className="text-xs text-muted-foreground whitespace-nowrap">
+                        {formatDate(ev.createdAt)}
+                      </time>
+                    </div>
+                    {cfg.detail && ev.data && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {cfg.detail(ev.data)}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── Dialogs ── */}
       <PerItemAddShipmentDialog
