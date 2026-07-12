@@ -282,6 +282,11 @@ export const cancelOrder = async (req, res) => {
         },
       });
 
+      await tx.orderItem.updateMany({
+        where: { orderId: id },
+        data: { status: 'CANCELLED' },
+      });
+
       for (const item of order.items) {
         if (item.variantId) {
           await tx.productVariant.update({ where: { id: item.variantId }, data: { stockQuantity: { increment: item.quantity } } });
