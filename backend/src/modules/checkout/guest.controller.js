@@ -131,7 +131,8 @@ export const guestCheckout = async (req, res) => {
 
     // ── Calculate totals ──────────────────────────────────────────────
     const subtotal = items.reduce((sum, item) => sum + resolvePrice(item) * item.quantity, 0);
-    const taxRate = parseFloat(process.env.TAX_RATE ?? '0.08');
+    const isGeorgia = ['GA', 'Georgia'].includes(address?.state?.trim());
+    const taxRate = isGeorgia ? parseFloat(process.env.TAX_RATE ?? '0.08') : 0;
 
     // Load delivery pricing once, then resolve per-item fees
     let deliveryPricing;

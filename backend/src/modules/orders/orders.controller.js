@@ -49,7 +49,8 @@ export const createOrder = async (req, res) => {
       return sum + (price * item.quantity);
     }, 0);
 
-    const taxRate = parseFloat(process.env.TAX_RATE ?? '0.08');
+    const isGeorgia = ['GA', 'Georgia'].includes(address.state?.trim());
+    const taxRate = isGeorgia ? parseFloat(process.env.TAX_RATE ?? '0.08') : 0;
     const shippingCost = parseFloat(process.env.SHIPPING_COST ?? '50');
     const tax = Math.round(subtotal * taxRate * 100) / 100;
     const total = subtotal + tax + shippingCost;
