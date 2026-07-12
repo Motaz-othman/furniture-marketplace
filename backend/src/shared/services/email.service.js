@@ -486,3 +486,90 @@ export const sendOrderStatusEmail = async (order, status) => {
     console.error(`Order status email error (${status}):`, error);
   }
 };
+
+// Send return status update email to customer (APPROVED, REJECTED, REFUNDED)
+export const sendReturnStatusEmail = async ({ email, firstName, orderNumber, orderId, status, adminNotes }) => {
+  if (!email) return;
+
+  const STATUS_CONFIG = {
+    APPROVED: {
+      subject: `Return Approved — Order #${orderNumber}`,
+      title: 'Your Return Has Been Approved',
+      message: `Your return request for order #${orderNumber} has been approved. Our team will contact you with instructions for returning your items.`,
+      accentColor: '#16a34a',
+    },
+    REJECTED: {
+      subject: `Return Update — Order #${orderNumber}`,
+      title: 'Your Return Request Was Not Approved',
+      message: `We reviewed your return request for order #${orderNumber} and unfortunately it doesn't meet our return policy requirements.${adminNotes ? ` Our team notes: ${adminNotes}` : ' If you have any questions, please contact us.'}`,
+      accentColor: '#dc2626',
+    },
+    REFUNDED: {
+      subject: `Return Refund Processed — Order #${orderNumber}`,
+      title: 'Your Refund Has Been Processed',
+      message: `Your refund for the return on order #${orderNumber} has been processed and should appear in your account within 5–10 business days.`,
+      accentColor: '#d97706',
+    },
+  };
+
+  const cfg = STATUS_CONFIG[status];
+  if (!cfg) return;
+
+  const { from, fromName } = await getEmailConfig();
+  const siteUrl = process.env.FRONTEND_URL || 'https://livipoint.com';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+        <tr><td style="background:#1a1a1a;padding:28px 32px;">
+          <p style="margin:0;font-size:22px;font-weight:bold;color:#ffffff;">${fromName}</p>
+        </td></tr>
+
+        <tr><td style="padding:32px;">
+          <div style="display:inline-block;background:${cfg.accentColor}22;border-left:4px solid ${cfg.accentColor};padding:10px 16px;border-radius:0 6px 6px 0;margin-bottom:24px;">
+            <p style="margin:0;font-size:13px;font-weight:700;color:${cfg.accentColor};text-transform:uppercase;letter-spacing:0.5px;">Return ${status}</p>
+          </div>
+          <h1 style="margin:0 0 8px;font-size:22px;color:#111;">${cfg.title}</h1>
+          <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">Hi ${firstName || 'Customer'}, ${cfg.message}</p>
+
+          <div style="background:#f7f7f7;border-radius:6px;padding:16px;margin-bottom:24px;">
+            <p style="margin:0 0 4px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Order Number</p>
+            <p style="margin:0;font-size:18px;font-weight:700;color:#111;">#${orderNumber}</p>
+          </div>
+
+          <div style="text-align:center;margin-top:28px;">
+            <a href="${siteUrl}/account/orders/${orderId}"
+               style="display:inline-block;background:#1a1a1a;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;">
+              View Order
+            </a>
+          </div>
+        </td></tr>
+
+        <tr><td style="padding:20px 32px;border-top:1px solid #f0f0f0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">© ${new Date().getFullYear()} ${fromName}. All rights reserved.</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await createTransporter().sendMail({
+      from: `"${fromName}" <${from}>`,
+      to: email,
+      subject: cfg.subject,
+      html,
+    });
+    console.log(`Return status email (${status}) sent to ${email} for order ${orderNumber}`);
+  } catch (error) {
+    console.error(`Return status email error (${status}):`, error);
+  }
+};

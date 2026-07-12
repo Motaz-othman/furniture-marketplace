@@ -1,6 +1,7 @@
 import prisma from '../../shared/config/db.js';
 import { notifyOrderPlaced, notifyOrderCancelled } from '../../shared/services/notification.service.js';
 import { createPaymentIntent, cancelPaymentIntent, createRefund } from '../../shared/services/stripe.service.js';
+import { sendOrderStatusEmail } from '../../shared/services/email.service.js';
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
@@ -262,7 +263,10 @@ export const cancelOrder = async (req, res) => {
 
     const order = await prisma.order.findUnique({
       where: { id },
-      include: { items: { include: { variant: true } } }
+      include: {
+        items: { include: { variant: true } },
+        customer: { include: { user: { select: { email: true, firstName: true } } } },
+      }
     });
 
     if (!order || order.customerId !== customerId) {
@@ -326,6 +330,8 @@ export const cancelOrder = async (req, res) => {
     } catch (notifError) {
       console.error('Notification error:', notifError);
     }
+
+    sendOrderStatusEmail(order, 'CANCELLED').catch(console.error);
 
     res.json({ message: 'Order cancelled successfully', order: updatedOrder });
   } catch (error) {

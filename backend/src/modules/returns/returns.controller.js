@@ -1,5 +1,5 @@
 import prisma from '../../shared/config/db.js';
-import { sendReturnRequestEmail } from '../../shared/services/email.service.js';
+import { sendReturnRequestEmail, sendReturnStatusEmail } from '../../shared/services/email.service.js';
 import { createRefund, listRefunds } from '../../shared/services/stripe.service.js';
 import { notifyReturnUpdated } from '../../shared/services/notification.service.js';
 
@@ -192,6 +192,15 @@ export const updateReturnRequestStatus = async (req, res) => {
       notifyReturnUpdated(userId, updated.order, status).catch(console.error);
     }
 
+    sendReturnStatusEmail({
+      email: updated.customer?.user?.email,
+      firstName: updated.customer?.user?.firstName,
+      orderNumber: updated.order.orderNumber,
+      orderId: updated.order.id,
+      status,
+      adminNotes: adminNotes || null,
+    }).catch(console.error);
+
     prisma.orderEvent.create({
       data: { orderId: updated.order.id, type: `RETURN_${status}`, actor: 'admin',
         data: { returnRequestId: id, adminNotes: adminNotes || null } }
@@ -250,7 +259,7 @@ export const refundReturnRequest = async (req, res) => {
         data: { status: 'REFUNDED' },
         include: {
           order: { select: { id: true, orderNumber: true } },
-          customer: { include: { user: { select: { id: true } } } },
+          customer: { include: { user: { select: { id: true, email: true, firstName: true } } } },
           items: { include: { orderItem: { include: { product: true, variant: true } } } },
         },
       }),
@@ -270,6 +279,14 @@ export const refundReturnRequest = async (req, res) => {
     if (userId) {
       notifyReturnUpdated(userId, updated.order, 'REFUNDED').catch(console.error);
     }
+
+    sendReturnStatusEmail({
+      email: updated.customer?.user?.email,
+      firstName: updated.customer?.user?.firstName,
+      orderNumber: updated.order.orderNumber,
+      orderId: updated.order.id,
+      status: 'REFUNDED',
+    }).catch(console.error);
 
     prisma.orderEvent.create({
       data: { orderId: order.id, type: 'RETURN_REFUNDED', actor: 'admin',
