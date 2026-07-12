@@ -3,7 +3,7 @@
  * Fetch and manage product data with React Query
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   getProducts,
   getProductById,
@@ -51,8 +51,32 @@ export function useProducts(params = {}, options = {}) {
   return useQuery({
     queryKey: createProductsQueryKey(params),
     queryFn: () => search
-      ? searchProducts(search, rest)   // trigram engine — typo-tolerant, relevance-ranked
+      ? searchProducts(search, rest)
       : getProducts(params),
+    staleTime: STALE_TIME.SHORT,
+    refetchOnWindowFocus: false,
+    ...options,
+  });
+}
+
+/**
+ * Infinite / Load-More version of useProducts.
+ * Each page is fetched and accumulated — call fetchNextPage() to load more.
+ * allProducts = data.pages.flatMap(p => p.data)
+ */
+export function useInfiniteProducts(params = {}, options = {}) {
+  const { search, ...rest } = params;
+  return useInfiniteQuery({
+    queryKey: ['products', 'infinite', JSON.stringify(params)],
+    queryFn: ({ pageParam = 1 }) =>
+      search
+        ? searchProducts(search, { ...rest, page: pageParam })
+        : getProducts({ ...rest, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.pagination ?? {};
+      return page < totalPages ? page + 1 : undefined;
+    },
     staleTime: STALE_TIME.SHORT,
     refetchOnWindowFocus: false,
     ...options,

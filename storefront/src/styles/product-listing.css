@@ -362,6 +362,48 @@
     display: none;
   }
   
+  /* Load More */
+  .load-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 48px;
+    margin-bottom: 16px;
+  }
+
+  .load-more-btn {
+    padding: 14px 48px;
+    background: transparent;
+    border: 2px solid var(--text-primary, #111);
+    color: var(--text-primary, #111);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    min-width: 180px;
+  }
+
+  .load-more-btn:hover:not(:disabled) {
+    background: var(--text-primary, #111);
+    color: #fff;
+  }
+
+  .load-more-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .load-more-skeleton {
+    margin-top: 32px;
+  }
+
+  .category-product-count {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #666);
+    margin: 0;
+  }
+
   /* Pagination */
   .pagination {
     display: flex;

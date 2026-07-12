@@ -6,6 +6,7 @@
 // Export product hooks
 export {
     useProducts,
+    useInfiniteProducts,
     useProduct,
     useProductBySlug,
     useFeaturedProducts,

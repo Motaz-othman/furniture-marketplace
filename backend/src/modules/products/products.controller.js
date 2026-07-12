@@ -80,6 +80,8 @@ export const getAllProducts = async (req, res) => {
 
     const {
       categoryId,
+      categoryIds,   // comma-separated list — for parent+children category trees
+      inStock,
       featured,
       new: isNew,
       sale,
@@ -93,10 +95,14 @@ export const getAllProducts = async (req, res) => {
     const limitNum = Math.min(parseInt(limit), 100);
     const skip = (pageNum - 1) * limitNum;
 
-    // isFeatured/isNew/isOnSale map 1:1 to these StorefrontListing flags
-    // (see transformProductForStorefront), so they can be filtered in SQL.
     const where = { isPublished: true };
-    if (categoryId) {
+    if (categoryIds) {
+      const ids = categoryIds.split(',').filter(Boolean);
+      where.OR = [
+        { categoryId: { in: ids } },
+        { categoryId: null, product: { categoryId: { in: ids } } },
+      ];
+    } else if (categoryId) {
       where.OR = [
         { categoryId },
         { categoryId: null, product: { categoryId } },
@@ -105,6 +111,7 @@ export const getAllProducts = async (req, res) => {
     if (featured === 'true') where.isTrending = true;
     if (isNew === 'true') where.isNewArrival = true;
     if (sale === 'true') where.discountedPrice = { not: null };
+    if (inStock === 'true') where.product = { ...where.product, totalStock: { gt: 0 } };
 
     let listings, total;
 
