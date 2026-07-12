@@ -411,20 +411,20 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Provider</Label>
-              <Select value={form.provider} onValueChange={(v) => set('provider', v)}>
+              <Select value={form.provider || '__none__'} onValueChange={(v) => set('provider', v === '__none__' ? '' : v)}>
                 <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {PROVIDERS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Type</Label>
-              <Select value={form.type} onValueChange={(v) => set('type', v)}>
+              <Select value={form.type || '__none__'} onValueChange={(v) => set('type', v === '__none__' ? '' : v)}>
                 <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {TYPES.map((t) => <SelectItem key={t} value={t}>{t.replace('_', ' ')}</SelectItem>)}
                 </SelectContent>
               </Select>
