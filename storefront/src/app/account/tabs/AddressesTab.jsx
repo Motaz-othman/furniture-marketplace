@@ -155,6 +155,18 @@ export default function AddressesTab() {
                 )}
               </div>
               <div className="auth-field">
+                <label htmlFor="zipCode">Zip Code</label>
+                <input
+                  id="zipCode"
+                  type="text"
+                  value={form.zipCode}
+                  onChange={(e) => updateField('zipCode', e.target.value)}
+                  placeholder="Enter ZIP to auto-fill city & state"
+                  maxLength={5}
+                  required
+                />
+              </div>
+              <div className="auth-field">
                 <label htmlFor="street">Street Address</label>
                 <input
                   id="street"
@@ -188,17 +200,6 @@ export default function AddressesTab() {
                     required
                   />
                 </div>
-              </div>
-              <div className="auth-field">
-                <label htmlFor="zipCode">Zip Code</label>
-                <input
-                  id="zipCode"
-                  type="text"
-                  value={form.zipCode}
-                  onChange={(e) => updateField('zipCode', e.target.value)}
-                  placeholder="10001"
-                  required
-                />
               </div>
               <label className="address-default-checkbox">
                 <input

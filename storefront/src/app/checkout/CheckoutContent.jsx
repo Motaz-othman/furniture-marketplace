@@ -485,6 +485,19 @@ export default function CheckoutContent() {
                   {(!savedAddresses.length || selectedAddressId === 'new' || !selectedAddressId) && (
                     <>
                       <div className="checkout-field">
+                        <label htmlFor="zipCode">ZIP Code</label>
+                        <input
+                          id="zipCode"
+                          type="text"
+                          value={address.zipCode}
+                          onChange={(e) => updateAddress('zipCode', e.target.value)}
+                          className={errors.zipCode ? 'error' : ''}
+                          maxLength={5}
+                          placeholder="Enter ZIP to auto-fill city & state"
+                        />
+                        {errors.zipCode && <span className="field-error">{errors.zipCode}</span>}
+                      </div>
+                      <div className="checkout-field">
                         <label htmlFor="street">Street Address</label>
                         <input
                           id="street"
@@ -518,17 +531,6 @@ export default function CheckoutContent() {
                           />
                           {errors.state && <span className="field-error">{errors.state}</span>}
                         </div>
-                      </div>
-                      <div className="checkout-field">
-                        <label htmlFor="zipCode">ZIP Code</label>
-                        <input
-                          id="zipCode"
-                          type="text"
-                          value={address.zipCode}
-                          onChange={(e) => updateAddress('zipCode', e.target.value)}
-                          className={errors.zipCode ? 'error' : ''}
-                        />
-                        {errors.zipCode && <span className="field-error">{errors.zipCode}</span>}
                       </div>
                     </>
                   )}
