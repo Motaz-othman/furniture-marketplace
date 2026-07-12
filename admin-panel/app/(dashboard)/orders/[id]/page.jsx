@@ -59,7 +59,15 @@ const RETURN_STATUS_VARIANT = {
   REFUNDED: 'secondary',
 };
 
-const ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+const ALLOWED_TRANSITIONS = {
+  PENDING:    ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED:  ['PROCESSING', 'CANCELLED'],
+  PROCESSING: ['SHIPPED', 'CANCELLED'],
+  SHIPPED:    ['DELIVERED'],
+  DELIVERED:  ['REFUNDED'],
+  CANCELLED:  [],
+  REFUNDED:   [],
+};
 const PROVIDERS = ['DELIVERIGHT', 'GIGIGA', 'FEDEX', 'UPS', 'OTHER'];
 const TYPES = ['LTL', 'SMALL_PARCEL'];
 
@@ -486,7 +494,7 @@ export default function OrderDetailPage() {
   });
 
   const orderStatusMutation = useMutation({
-    mutationFn: (status) => updateOrderStatus(id, status, null, true),
+    mutationFn: (status) => updateOrderStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
       toast.success('Order status updated');
@@ -775,7 +783,8 @@ export default function OrderDetailPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {ORDER_STATUSES.map((s) => (
+                            <SelectItem value={order.status} disabled>{order.status}</SelectItem>
+                            {(ALLOWED_TRANSITIONS[order.status] || []).map((s) => (
                               <SelectItem key={s} value={s}>{s}</SelectItem>
                             ))}
                           </SelectContent>
