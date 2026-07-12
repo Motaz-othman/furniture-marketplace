@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getOrder, updateOrderStatus,
+  getOrder,
   createShipment, updateShipment, deleteShipment,
   updateItemStatus,
 } from '@/lib/services/orders';
@@ -35,18 +35,6 @@ import { ArrowLeft, Package, Plus, Pencil, Trash2, ExternalLink, Truck } from 'l
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
-
-const ALLOWED_TRANSITIONS = {
-  PENDING:    ['CONFIRMED', 'CANCELLED'],
-  CONFIRMED:  ['PROCESSING', 'CANCELLED'],
-  PROCESSING: ['SHIPPED', 'CANCELLED'],
-  SHIPPED:    ['DELIVERED'],
-  DELIVERED:  ['REFUNDED'],
-  CANCELLED:  [],
-  REFUNDED:   [],
-};
 
 const ORDER_STATUS_COLOR = {
   PENDING:    'text-yellow-600 border-yellow-300',
@@ -685,8 +673,6 @@ export default function OrderDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [newStatus, setNewStatus] = useState('');
-  const [forceStatus, setForceStatus] = useState(false);
   const [showAddShipment, setShowAddShipment] = useState(false);
   const [editingShipment, setEditingShipment] = useState(null);
 
@@ -695,17 +681,7 @@ export default function OrderDetailPage() {
     queryFn: () => getOrder(id),
   });
 
-  const statusMutation = useMutation({
-    mutationFn: ({ status, force }) => updateOrderStatus(id, status, undefined, force),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
-      toast.success('Order status updated');
-      setNewStatus('');
-      setForceStatus(false);
-    },
-    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update status'),
-  });
+
 
   const itemStatusMutation = useMutation({
     mutationFn: ({ itemId, status }) => updateItemStatus(id, itemId, status),
@@ -719,7 +695,6 @@ export default function OrderDetailPage() {
   if (!order) return <div className="text-muted-foreground">Order not found</div>;
 
   const customer = order.customer?.user;
-  const address = order.address;
 
   // Items that don't have a shipment assigned (using shipment FK on each item)
   const unassignedItems = (order.items || []).filter((item) => !item.shipment);
@@ -729,8 +704,13 @@ export default function OrderDetailPage() {
     ? `${order.guestFirstName} ${order.guestLastName || ''}`.trim()
     : null;
 
+  // Unique pickup locations (vendor brands) derived from order items
+  const pickupLocations = [...new Set(
+    (order.items || []).map((i) => i.product?.brand || i.product?.provider).filter(Boolean)
+  )];
+
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => router.push('/orders')}>
@@ -745,317 +725,276 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column */}
-        <div className="lg:col-span-2 space-y-6">
-
-          {/* Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Items ({order.items?.length ?? 0})</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
-                      <th className="text-left px-4 py-2.5 font-medium w-[280px]">Product</th>
-                      <th className="text-left px-4 py-2.5 font-medium">SKU</th>
-                      <th className="text-center px-4 py-2.5 font-medium">Qty</th>
-                      <th className="text-right px-4 py-2.5 font-medium">Unit Price</th>
-                      <th className="text-left px-4 py-2.5 font-medium">Delivery Method</th>
-                      <th className="text-right px-4 py-2.5 font-medium">Delivery Fee</th>
-                      <th className="text-right px-4 py-2.5 font-medium">Item Total</th>
-                      <th className="text-left px-4 py-2.5 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {order.items?.map((item) => (
-                      <tr key={item.id} className="hover:bg-muted/20 transition-colors">
-                        {/* Product */}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            {item.product?.mainImage ? (
-                              <img
-                                src={item.product.mainImage}
-                                alt={item.product.name}
-                                className="w-10 h-10 rounded object-cover border shrink-0"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center border shrink-0">
-                                <Package className="h-4 w-4 text-muted-foreground" />
+      {/* ── Full-width Items Table ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Items ({order.items?.length ?? 0})</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
+                  <th className="text-left px-4 py-2.5 font-medium">Product</th>
+                  <th className="text-left px-4 py-2.5 font-medium">SKU</th>
+                  <th className="text-center px-4 py-2.5 font-medium">Qty</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Cost Price</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Sale Price</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Delivery Method</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Delivery Fee</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Item Total</th>
+                  <th className="text-left px-4 py-2.5 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {order.items?.map((item) => {
+                  const costPrice = item.variant?.price?.cost ?? null;
+                  const salePrice = item.price;
+                  return (
+                    <tr key={item.id} className="hover:bg-muted/20 transition-colors">
+                      {/* Product */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {item.product?.mainImage ? (
+                            <img
+                              src={item.product.mainImage}
+                              alt={item.product.name}
+                              className="w-10 h-10 rounded object-cover border shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded bg-muted flex items-center justify-center border shrink-0">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="font-medium truncate max-w-[220px]" title={item.product?.name}>
+                              {item.product?.name || '—'}
+                            </div>
+                            {item.variant?.name && (
+                              <div className="text-xs text-muted-foreground truncate max-w-[220px]">
+                                {item.variant.name}
                               </div>
                             )}
-                            <div className="min-w-0">
-                              <div className="font-medium truncate max-w-[180px]" title={item.product?.name}>
-                                {item.product?.name || '—'}
-                              </div>
-                              {item.variant?.name && (
-                                <div className="text-xs text-muted-foreground truncate max-w-[180px]">
-                                  {item.variant.name}
-                                </div>
-                              )}
-                            </div>
+                            {item.product?.brand && (
+                              <div className="text-xs text-muted-foreground/70">{item.product.brand}</div>
+                            )}
                           </div>
-                        </td>
+                        </div>
+                      </td>
 
-                        {/* SKU */}
-                        <td className="px-4 py-3">
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {item.variant?.sku || '—'}
-                          </span>
-                        </td>
+                      {/* SKU */}
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {item.variant?.sku || '—'}
+                        </span>
+                      </td>
 
-                        {/* Qty */}
-                        <td className="px-4 py-3 text-center font-medium">
-                          {item.quantity}
-                        </td>
+                      {/* Qty */}
+                      <td className="px-4 py-3 text-center font-medium">
+                        {item.quantity}
+                      </td>
 
-                        {/* Unit Price */}
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          {formatCurrency(item.price)}
-                        </td>
+                      {/* Cost Price */}
+                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                        {costPrice != null ? formatCurrency(costPrice) : '—'}
+                      </td>
 
-                        {/* Delivery Method */}
-                        <td className="px-4 py-3">
-                          {item.deliveryMethod ? (
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <Truck className="h-3 w-3 text-muted-foreground shrink-0" />
-                              <span>{DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod}</span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </td>
+                      {/* Sale Price */}
+                      <td className="px-4 py-3 text-right tabular-nums font-medium">
+                        {formatCurrency(salePrice)}
+                      </td>
 
-                        {/* Delivery Fee */}
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          {item.deliveryMethod ? (
-                            item.deliveryFee > 0
-                              ? <span>{formatCurrency(item.deliveryFee)}</span>
-                              : <span className="text-green-600 font-medium">Free</span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-
-                        {/* Item Total */}
-                        <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                          {formatCurrency(item.price * item.quantity)}
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-4 py-3">
-                          <Select
-                            value={item.status || 'PENDING'}
-                            onValueChange={(status) => itemStatusMutation.mutate({ itemId: item.id, status })}
-                            disabled={itemStatusMutation.isPending}
-                          >
-                            <SelectTrigger className="h-7 text-xs w-40">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="PENDING">Pending</SelectItem>
-                              <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
-                              <SelectItem value="DELIVERED">Delivered</SelectItem>
-                              <SelectItem value="RETURN_REQUESTED">Return Requested</SelectItem>
-                              <SelectItem value="RETURN_APPROVED">Return Approved</SelectItem>
-                              <SelectItem value="RETURN_REJECTED">Return Rejected</SelectItem>
-                              <SelectItem value="REFUNDED">Refunded</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipments */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">
-                  Shipments ({order.shipments?.length ?? 0})
-                </CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setShowAddShipment(true)}>
-                  <Plus className="h-3.5 w-3.5 mr-1" />
-                  Add Shipment
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {unassignedItems.length > 0 && (order.shipments?.length ?? 0) > 0 && (
-                <p className="text-xs text-orange-500">
-                  {unassignedItems.length} item{unassignedItems.length > 1 ? 's' : ''} not yet assigned to a shipment.
-                </p>
-              )}
-              {(order.shipments?.length ?? 0) === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No shipments yet. Add a shipment to start organizing delivery.
-                </p>
-              ) : (
-                order.shipments.map((shipment) => (
-                  <ShipmentCard
-                    key={shipment.id}
-                    orderId={id}
-                    shipment={shipment}
-                    onEdit={setEditingShipment}
-                  />
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Return Requests */}
-          <ReturnRequestsCard
-            orderId={id}
-            returnRequests={order.returnRequests}
-          />
-
-          {/* Order totals */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <InfoRow label="Subtotal" value={formatCurrency(order.subtotal)} />
-              <InfoRow label="Shipping" value={formatCurrency(order.shippingCost)} />
-              <InfoRow label="Tax" value={formatCurrency(order.tax)} />
-              {order.discountAmount > 0 && (
-                <div className="flex justify-between text-sm py-1 text-green-600">
-                  <span>Discount {order.couponCode ? `(${order.couponCode})` : ''}</span>
-                  <span className="font-medium">−{formatCurrency(order.discountAmount)}</span>
-                </div>
-              )}
-              <Separator className="my-2" />
-              <div className="flex justify-between text-base font-semibold py-1">
-                <span>Total</span>
-                <span>{formatCurrency(order.total)}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right column */}
-        <div className="space-y-6">
-
-          {/* Update status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Update Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {(() => {
-                const allowed = ALLOWED_TRANSITIONS[order.status] || [];
-                const others = ORDER_STATUSES.filter((s) => s !== order.status && !allowed.includes(s));
-                const isOverride = newStatus && !allowed.includes(newStatus);
-                return (
-                  <>
-                    <Select value={newStatus} onValueChange={(v) => { setNewStatus(v); setForceStatus(false); }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={`Current: ${order.status}`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allowed.map((s) => (
-                          <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>
-                        ))}
-                        {others.length > 0 && allowed.length > 0 && (
-                          <div className="px-2 py-1 text-xs text-muted-foreground border-t mt-1 pt-1">Override</div>
+                      {/* Delivery Method */}
+                      <td className="px-4 py-3">
+                        {item.deliveryMethod ? (
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <Truck className="h-3 w-3 text-muted-foreground shrink-0" />
+                            <span>{DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
-                        {others.map((s) => (
-                          <SelectItem key={s} value={s} className="text-muted-foreground">
-                            {s.replace('_', ' ')} ⚠
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {isOverride && (
-                      <p className="text-xs text-amber-600">
-                        This is a non-standard transition — it will be forced.
-                      </p>
-                    )}
-                    <Button
-                      className="w-full"
-                      disabled={!newStatus || statusMutation.isPending}
-                      onClick={() => statusMutation.mutate({ status: newStatus, force: isOverride })}
-                    >
-                      {statusMutation.isPending ? 'Updating...' : 'Update Status'}
-                    </Button>
-                  </>
-                );
-              })()}
-            </CardContent>
-          </Card>
+                      </td>
 
-          {/* Customer */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Customer</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {customer ? (
-                <>
-                  <InfoRow label="Name" value={`${customer.firstName} ${customer.lastName}`} />
-                  <InfoRow label="Email" value={customer.email} />
-                  {customer.phone && <InfoRow label="Phone" value={customer.phone} />}
-                </>
-              ) : guestName ? (
-                <>
-                  <Badge variant="outline" className="text-xs mb-2">Guest</Badge>
-                  <InfoRow label="Name" value={guestName} />
-                  {order.guestEmail && <InfoRow label="Email" value={order.guestEmail} />}
-                  {order.guestPhone && <InfoRow label="Phone" value={order.guestPhone} />}
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">Guest order</p>
-              )}
-            </CardContent>
-          </Card>
+                      {/* Delivery Fee */}
+                      <td className="px-4 py-3 text-right tabular-nums">
+                        {item.deliveryMethod ? (
+                          item.deliveryFee > 0
+                            ? <span>{formatCurrency(item.deliveryFee)}</span>
+                            : <span className="text-green-600 font-medium">Free</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
 
-          {/* Shipping address */}
-          {address && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Shipping Address</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-0.5">
-                {address.label && <p className="font-medium">{address.label}</p>}
-                <p>{address.street}{address.apartment ? `, ${address.apartment}` : ''}</p>
-                <p>{address.city}, {address.state} {address.zipCode}</p>
-                {address.country && <p>{address.country}</p>}
-              </CardContent>
-            </Card>
+                      {/* Item Total (based on sale price) */}
+                      <td className="px-4 py-3 text-right font-semibold tabular-nums">
+                        {formatCurrency(salePrice * item.quantity)}
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-4 py-3">
+                        <Select
+                          value={item.status || 'PENDING'}
+                          onValueChange={(status) => itemStatusMutation.mutate({ itemId: item.id, status })}
+                          disabled={itemStatusMutation.isPending}
+                        >
+                          <SelectTrigger className="h-7 text-xs w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+                            <SelectItem value="DELIVERED">Delivered</SelectItem>
+                            <SelectItem value="RETURN_REQUESTED">Return Requested</SelectItem>
+                            <SelectItem value="RETURN_APPROVED">Return Approved</SelectItem>
+                            <SelectItem value="RETURN_REJECTED">Return Rejected</SelectItem>
+                            <SelectItem value="REFUNDED">Refunded</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Full-width Shipments ── */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">
+              Shipments ({order.shipments?.length ?? 0})
+            </CardTitle>
+            <Button size="sm" variant="outline" onClick={() => setShowAddShipment(true)}>
+              <Plus className="h-3.5 w-3.5 mr-1" /> Add Shipment
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {unassignedItems.length > 0 && (order.shipments?.length ?? 0) > 0 && (
+            <p className="text-xs text-orange-500">
+              {unassignedItems.length} item{unassignedItems.length > 1 ? 's' : ''} not yet assigned to a shipment.
+            </p>
           )}
-
-          {/* Payment */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Payment</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <InfoRow label="Status" value={order.paymentStatus || '—'} />
-              {order.stripePaymentIntentId && (
-                <InfoRow label="Stripe PI" value={order.stripePaymentIntentId} />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          {order.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{order.notes}</p>
-              </CardContent>
-            </Card>
+          {(order.shipments?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No shipments yet. Add a shipment to start organizing delivery.
+            </p>
+          ) : (
+            order.shipments.map((shipment) => (
+              <ShipmentCard key={shipment.id} orderId={id} shipment={shipment} onEdit={setEditingShipment} />
+            ))
           )}
-        </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Full-width Return Requests ── */}
+      <ReturnRequestsCard orderId={id} returnRequests={order.returnRequests} />
+
+      {/* ── Common Info Grid ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Customer */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Customer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {customer ? (
+              <>
+                <InfoRow label="Name" value={`${customer.firstName} ${customer.lastName}`} />
+                <InfoRow label="Email" value={customer.email} />
+                {customer.phone && <InfoRow label="Phone" value={customer.phone} />}
+              </>
+            ) : guestName ? (
+              <>
+                <Badge variant="outline" className="text-xs mb-2">Guest</Badge>
+                <InfoRow label="Name" value={guestName} />
+                {order.guestEmail && <InfoRow label="Email" value={order.guestEmail} />}
+                {order.guestPhone && <InfoRow label="Phone" value={order.guestPhone} />}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Guest order</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Pickup Location */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Pickup Location</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pickupLocations.length > 0 ? (
+              <div className="space-y-1.5">
+                {pickupLocations.map((loc) => (
+                  <div key={loc} className="flex items-center gap-2 text-sm">
+                    <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="font-medium">{loc}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No vendor info available</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Payment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <InfoRow label="Status" value={order.paymentStatus || '—'} />
+            {order.stripePaymentIntentId && (
+              <InfoRow label="Stripe PI" value={
+                <span className="font-mono text-xs truncate block max-w-[120px]" title={order.stripePaymentIntentId}>
+                  {order.stripePaymentIntentId}
+                </span>
+              } />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Order Summary */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <InfoRow label="Subtotal" value={formatCurrency(order.subtotal)} />
+            <InfoRow label="Delivery" value={formatCurrency(order.shippingCost)} />
+            <InfoRow label="Tax" value={formatCurrency(order.tax)} />
+            {order.discountAmount > 0 && (
+              <div className="flex justify-between text-sm py-1 text-green-600">
+                <span>Discount{order.couponCode ? ` (${order.couponCode})` : ''}</span>
+                <span className="font-medium">−{formatCurrency(order.discountAmount)}</span>
+              </div>
+            )}
+            <Separator className="my-2" />
+            <div className="flex justify-between text-base font-semibold py-1">
+              <span>Total</span>
+              <span>{formatCurrency(order.total)}</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Notes */}
+      {order.notes && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{order.notes}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Dialogs */}
       <AddShipmentDialog
