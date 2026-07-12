@@ -95,6 +95,13 @@ function formatCurrency(val) {
   return val != null ? `$${Number(val).toFixed(2)}` : '—';
 }
 
+function getSuggestedShipType(item) {
+  const shipType = (item.variant?.packaging?.shipType || '').trim();
+  if (shipType === 'LTL' || shipType === 'GROUND - OVERSIZE') return 'LTL';
+  if (shipType) return 'Small Parcel';
+  return null;
+}
+
 function getPackagingDims(item) {
   const pkg = item.variant?.packaging;
   const varDims = item.variant?.dimensions;
@@ -695,6 +702,7 @@ export default function OrderDetailPage() {
               <thead>
                 <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
                   <TH>Item</TH>
+                  <TH>Suggested Type</TH>
                   <TH>Shipment</TH>
                   <TH>Shipment Status</TH>
                   <TH>Item Status</TH>
@@ -703,6 +711,7 @@ export default function OrderDetailPage() {
               <tbody className="divide-y">
                 {order.items?.map((item) => {
                   const fullShipment = getFullShipment(item);
+                  const suggestedType = getSuggestedShipType(item);
                   return (
                     <tr key={item.id} className="hover:bg-muted/20 transition-colors">
                       <TD>
@@ -715,6 +724,18 @@ export default function OrderDetailPage() {
                             {item.product?.name || '—'}
                           </span>
                         </div>
+                      </TD>
+                      <TD>
+                        {suggestedType ? (
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${suggestedType === 'LTL' ? 'text-purple-600 border-purple-300' : 'text-blue-600 border-blue-300'}`}
+                          >
+                            {suggestedType}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TD>
                       <TD>
                         {fullShipment ? (
