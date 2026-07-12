@@ -1,6 +1,6 @@
 import prisma from '../../shared/config/db.js';
 import { notifyOrderPlaced, notifyOrderCancelled } from '../../shared/services/notification.service.js';
-import { createPaymentIntent, cancelPaymentIntent } from '../../shared/services/stripe.service.js';
+import { createPaymentIntent, cancelPaymentIntent, createRefund } from '../../shared/services/stripe.service.js';
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
@@ -263,12 +263,24 @@ export const cancelOrder = async (req, res) => {
     if (!order || order.customerId !== customerId) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    if (order.status !== 'PENDING') {
+    const cancellable = ['PENDING', 'CONFIRMED'];
+    if (!cancellable.includes(order.status)) {
       return res.status(400).json({ error: `Cannot cancel order with status: ${order.status}` });
     }
 
+    // For CONFIRMED orders, payment was already captured — issue a full Stripe refund first
+    if (order.status === 'CONFIRMED' && order.stripePaymentIntentId && order.paymentStatus === 'SUCCEEDED') {
+      await createRefund(order.stripePaymentIntentId, order.total, 'requested_by_customer');
+    }
+
     const updatedOrder = await prisma.$transaction(async (tx) => {
-      const cancelled = await tx.order.update({ where: { id }, data: { status: 'CANCELLED' } });
+      const cancelled = await tx.order.update({
+        where: { id },
+        data: {
+          status: 'CANCELLED',
+          ...(order.status === 'CONFIRMED' && { paymentStatus: 'REFUNDED' }),
+        },
+      });
 
       for (const item of order.items) {
         if (item.variantId) {
@@ -280,12 +292,17 @@ export const cancelOrder = async (req, res) => {
       return cancelled;
     }, { maxWait: 10000, timeout: 30000 });
 
-    // Cancel the Stripe PaymentIntent so the client_secret can no longer be used
-    if (order.stripePaymentIntentId) {
+    // For PENDING orders, cancel the PaymentIntent so the client_secret can no longer be used
+    if (order.status === 'PENDING' && order.stripePaymentIntentId) {
       cancelPaymentIntent(order.stripePaymentIntentId).catch((err) => {
         console.error('Failed to cancel PaymentIntent on order cancel:', err.message);
       });
     }
+
+    prisma.orderEvent.create({
+      data: { orderId: id, type: 'STATUS_CHANGE', actor: 'customer',
+        data: { from: order.status, to: 'CANCELLED', note: 'Cancelled by customer' } }
+    }).catch(() => {});
 
     try {
       const customer = await prisma.customer.findUnique({ where: { id: customerId }, select: { userId: true } });
