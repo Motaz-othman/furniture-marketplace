@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getOrder, createShipment, updateShipment,
+  getOrder, createShipment, updateShipment, updateOrderStatus,
 } from '@/lib/services/orders';
 import { updateReturnRequest, refundReturnRequest } from '@/lib/services/returns';
 import { Button } from '@/components/ui/button';
@@ -59,7 +59,7 @@ const RETURN_STATUS_VARIANT = {
   REFUNDED: 'secondary',
 };
 
-const SHIPMENT_STATUSES = ['PENDING', 'QUOTED', 'ARRANGED', 'IN_TRANSIT', 'DELIVERED', 'FAILED'];
+const ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 const PROVIDERS = ['DELIVERIGHT', 'GIGIGA', 'FEDEX', 'UPS', 'OTHER'];
 const TYPES = ['LTL', 'SMALL_PARCEL'];
 
@@ -345,7 +345,6 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
       setForm({
         provider:       shipment.provider || '',
         type:           shipment.type || '',
-        status:         shipment.status || '',
         estimatedCost:  shipment.estimatedCost ?? '',
         actualCost:     shipment.actualCost ?? '',
         trackingNumber: shipment.trackingNumber || '',
@@ -371,7 +370,6 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
     mutation.mutate({
       provider:       form.provider || null,
       type:           form.type || null,
-      status:         form.status || undefined,
       estimatedCost:  form.estimatedCost !== '' ? Number(form.estimatedCost) : null,
       actualCost:     form.actualCost !== '' ? Number(form.actualCost) : null,
       trackingNumber: form.trackingNumber || null,
@@ -411,18 +409,6 @@ function EditShipmentDialog({ open, onClose, orderId, shipment }) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Status</Label>
-            <Select value={form.status} onValueChange={(v) => set('status', v)}>
-              <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
-              <SelectContent>
-                {SHIPMENT_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -497,6 +483,15 @@ export default function OrderDetailPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['admin-order', id],
     queryFn: () => getOrder(id),
+  });
+
+  const orderStatusMutation = useMutation({
+    mutationFn: (status) => updateOrderStatus(id, status, null, true),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
+      toast.success('Order status updated');
+    },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update order status'),
   });
 
   const returnMutation = useMutation({
@@ -771,7 +766,20 @@ export default function OrderDetailPage() {
                         )}
                       </TD>
                       <TD>
-                        <OrderStatusBadge status={order.status} />
+                        <Select
+                          value={order.status}
+                          onValueChange={(status) => orderStatusMutation.mutate(status)}
+                          disabled={orderStatusMutation.isPending}
+                        >
+                          <SelectTrigger className="h-7 text-xs w-36">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ORDER_STATUSES.map((s) => (
+                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TD>
                     </tr>
                   );
