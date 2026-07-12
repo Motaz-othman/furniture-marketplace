@@ -10,7 +10,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
   "font-src 'self' fonts.gstatic.com",
   "img-src 'self' data: blob: res.cloudinary.com images.unsplash.com *.s3.amazonaws.com *.s3.us-east-1.amazonaws.com *.stripe.com",
-  `connect-src 'self' ${backendOrigin} api.stripe.com`,
+  `connect-src 'self' ${backendOrigin} api.stripe.com api.zippopotam.us`,
   "frame-src js.stripe.com hooks.stripe.com *.youtube-nocookie.com player.vimeo.com",
   "worker-src 'self' blob:",
   "media-src 'self' blob:",
