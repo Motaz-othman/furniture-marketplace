@@ -1199,6 +1199,7 @@ export default function OrderDetailPage() {
             <CardTitle className="text-base">Order History</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="max-h-72 overflow-y-auto pr-1">
             <ol className="relative border-l border-border ml-3 space-y-0">
               {order.events.map((ev, idx) => {
                 const isLast = idx === order.events.length - 1;
@@ -1226,6 +1227,7 @@ export default function OrderDetailPage() {
                 );
               })}
             </ol>
+            </div>
           </CardContent>
         </Card>
       )}

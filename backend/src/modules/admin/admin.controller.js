@@ -349,7 +349,7 @@ export const getOrderDetails = async (req, res) => {
           },
           orderBy: { createdAt: 'desc' },
         },
-        events: { orderBy: { createdAt: 'asc' } },
+        events: { orderBy: { createdAt: 'desc' } },
       }
     });
 
