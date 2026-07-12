@@ -98,15 +98,23 @@ export default function AddressesTab() {
     }
   };
 
+  const [zipError, setZipError] = useState('');
+
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   useEffect(() => {
     const zip = form.zipCode?.trim();
-    if (!zip || zip.length !== 5) return;
+    if (!zip || zip.length < 5) { setZipError(''); return; }
     lookupZip(zip).then(result => {
-      if (result) setForm(prev => ({ ...prev, city: result.city, state: result.state }));
+      if (result) {
+        setZipError('');
+        setForm(prev => ({ ...prev, city: result.city, state: result.state }));
+      } else {
+        setZipError('Invalid ZIP code');
+        setForm(prev => ({ ...prev, city: '', state: '' }));
+      }
     });
   }, [form.zipCode]);
 
@@ -165,6 +173,7 @@ export default function AddressesTab() {
                   maxLength={5}
                   required
                 />
+                {zipError && <span style={{ color: '#dc2626', fontSize: 12, marginTop: 4, display: 'block' }}>{zipError}</span>}
               </div>
               <div className="auth-field">
                 <label htmlFor="street">Street Address</label>
@@ -184,9 +193,8 @@ export default function AddressesTab() {
                     id="city"
                     type="text"
                     value={form.city}
-                    onChange={(e) => updateField('city', e.target.value)}
-                    placeholder="New York"
-                    required
+                    readOnly
+                    style={{ background: '#f5f5f5', color: '#888', cursor: 'default' }}
                   />
                 </div>
                 <div className="auth-field">
@@ -195,9 +203,8 @@ export default function AddressesTab() {
                     id="state"
                     type="text"
                     value={form.state}
-                    onChange={(e) => updateField('state', e.target.value)}
-                    placeholder="NY"
-                    required
+                    readOnly
+                    style={{ background: '#f5f5f5', color: '#888', cursor: 'default' }}
                   />
                 </div>
               </div>

@@ -174,13 +174,22 @@ export default function CheckoutContent() {
   }, [items, deliveryOptions, itemDeliveries]);
 
   const [taxRate, setTaxRate] = useState(0);
+  const [zipError, setZipError] = useState('');
   useEffect(() => {
     const zip = address.zipCode?.trim();
-    if (!zip || zip.length < 5) { setTaxRate(0); return; }
+    if (!zip || zip.length < 5) {
+      setTaxRate(0);
+      setZipError('');
+      return;
+    }
 
     lookupZip(zip).then(result => {
       if (result) {
+        setZipError('');
         setAddress(prev => ({ ...prev, city: result.city, state: result.state }));
+      } else {
+        setZipError('Invalid ZIP code');
+        setAddress(prev => ({ ...prev, city: '', state: '' }));
       }
     });
 
@@ -491,11 +500,11 @@ export default function CheckoutContent() {
                           type="text"
                           value={address.zipCode}
                           onChange={(e) => updateAddress('zipCode', e.target.value)}
-                          className={errors.zipCode ? 'error' : ''}
+                          className={errors.zipCode || zipError ? 'error' : ''}
                           maxLength={5}
                           placeholder="Enter ZIP to auto-fill city & state"
                         />
-                        {errors.zipCode && <span className="field-error">{errors.zipCode}</span>}
+                        {(errors.zipCode || zipError) && <span className="field-error">{zipError || errors.zipCode}</span>}
                       </div>
                       <div className="checkout-field">
                         <label htmlFor="street">Street Address</label>
@@ -515,10 +524,9 @@ export default function CheckoutContent() {
                             id="city"
                             type="text"
                             value={address.city}
-                            onChange={(e) => updateAddress('city', e.target.value)}
-                            className={errors.city ? 'error' : ''}
+                            readOnly
+                            style={{ background: '#f5f5f5', color: '#888', cursor: 'default' }}
                           />
-                          {errors.city && <span className="field-error">{errors.city}</span>}
                         </div>
                         <div className="checkout-field">
                           <label htmlFor="state">State</label>
@@ -526,10 +534,9 @@ export default function CheckoutContent() {
                             id="state"
                             type="text"
                             value={address.state}
-                            onChange={(e) => updateAddress('state', e.target.value)}
-                            className={errors.state ? 'error' : ''}
+                            readOnly
+                            style={{ background: '#f5f5f5', color: '#888', cursor: 'default' }}
                           />
-                          {errors.state && <span className="field-error">{errors.state}</span>}
                         </div>
                       </div>
                     </>
