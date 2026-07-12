@@ -97,12 +97,20 @@ function formatCurrency(val) {
 
 function getPackagingDims(item) {
   const pkg = item.variant?.packaging;
-  const dims = pkg?.dimensions || {};
+  const varDims = item.variant?.dimensions;
+
+  // Prefer carton/packaging dims; fall back to product dims if carton has none
+  const pkgDims = pkg?.dimensions;
+  const dims = (pkgDims?.length || pkgDims?.width || pkgDims?.height)
+    ? pkgDims
+    : (varDims || {});
+
   const L = Number(dims.length) || 0;
   const W = Number(dims.width) || 0;
   const H = Number(dims.height) || 0;
-  const weight = Number(pkg?.weight) || 0;               // weight lives at pkg root
-  const uomDist = pkg?.dimensionsUnitOfMeasure || 'in'; // unit lives at pkg root
+  // pkg.weight is at root; varDims.weight is inside the object
+  const weight = Number(pkg?.weight) || Number(varDims?.weight) || 0;
+  const uomDist = pkg?.dimensionsUnitOfMeasure || varDims?.unitOfMeasureDistance || 'in';
   const cuFt = (L && W && H) ? (L * W * H) / 1728 : 0;
   const longestDim = Math.max(L, W);
   return { longestDim, height: H, cuFt, weight, uomDist };
