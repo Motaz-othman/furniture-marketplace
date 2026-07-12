@@ -69,57 +69,6 @@ export const verifyWebhookSignature = (payload, signature) => {
   }
 };
 
-// ===== STRIPE CONNECT FUNCTIONS =====
-
-// Create Stripe Connect account
-export const createConnectAccount = async (email, country = 'US') => {
-  try {
-    const account = await stripe.accounts.create({
-      type: 'express',
-      country,
-      email,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true }
-      }
-    });
-
-    return account;
-  } catch (error) {
-    console.error('Create connect account error:', error);
-    throw error;
-  }
-};
-
-// Create account onboarding link
-export const createAccountLink = async (accountId, refreshUrl, returnUrl) => {
-  try {
-    const accountLink = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: refreshUrl,
-      return_url: returnUrl,
-      type: 'account_onboarding'
-    });
-
-    return accountLink;
-  } catch (error) {
-    console.error('Create account link error:', error);
-    throw error;
-  }
-};
-
-// Get account details
-export const getAccountDetails = async (accountId) => {
-  try {
-    const account = await stripe.accounts.retrieve(accountId);
-    return account;
-  } catch (error) {
-    console.error('Get account details error:', error);
-    throw error;
-  }
-};
-
-
 // ===== REFUND FUNCTIONS =====
 
 // Create refund
