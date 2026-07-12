@@ -2,8 +2,26 @@ import prisma from '../../shared/config/db.js';
 import { Prisma } from '../../generated/prisma/index.js';
 import { buildSearchScoring } from '../../shared/utils/fuzzySearch.js';
 import { getKeywords as getKeywordsCached } from '../../shared/services/keywords.service.js';
+import { transformProductForListing } from '../../shared/utils/storefront.transforms.js';
 
-// Search products — uses Postgres trigram similarity for typo-tolerant matching
+const storefrontListingInclude = {
+  product: {
+    include: {
+      category: { select: { id: true, name: true, slug: true, parentId: true } },
+      variants: {
+        select: {
+          id: true, sku: true, externalProductId: true, name: true,
+          price: true, stockQuantity: true, attributes: true, options: true,
+        },
+        orderBy: { rank: 'asc' },
+      },
+    },
+  },
+  category: { select: { id: true, name: true, slug: true, parentId: true } },
+};
+
+// Search products — uses Postgres trigram similarity for typo-tolerant matching.
+// Only returns published StorefrontListings so raw/unpublished products never appear.
 export const search = async (req, res) => {
   try {
     const {
@@ -22,21 +40,32 @@ export const search = async (req, res) => {
 
     const term = q ? q.trim() : '';
 
+    // Base published gate — applied to every query path
+    const listingWhere = { isPublished: true };
+    if (categoryId) {
+      listingWhere.OR = [
+        { categoryId },
+        { categoryId: null, product: { categoryId } },
+      ];
+    }
+
     if (term) {
-      // A product matches if it matches AT LEAST ONE word of the search term;
-      // products matching MORE words rank higher (see ORDER BY below).
+      // ── Step 1: get ranked product IDs from trigram search ──────────────────
+      // The raw SQL scores only against Product columns (name, brand, description).
+      // We JOIN StorefrontListing here so unpublished products are excluded at
+      // the DB level. Only IDs are selected — full data comes from Prisma below.
       const { matchCountExpr, similarityScoreExpr, anyWordMatches } = buildSearchScoring(term);
-      const conditions = [Prisma.sql`p."isActive" = true`, anyWordMatches];
 
-      if (categoryId) conditions.push(Prisma.sql`p."categoryId" = ${categoryId}`);
-      if (minPrice) conditions.push(Prisma.sql`p."minPrice" >= ${parseFloat(minPrice)}`);
-      if (maxPrice) conditions.push(Prisma.sql`p."minPrice" <= ${parseFloat(maxPrice)}`);
+      const priceConditions = [];
+      if (minPrice) priceConditions.push(Prisma.sql`p."minPrice" >= ${parseFloat(minPrice)}`);
+      if (maxPrice) priceConditions.push(Prisma.sql`p."minPrice" <= ${parseFloat(maxPrice)}`);
+      const priceClause = priceConditions.length
+        ? Prisma.sql`AND ${Prisma.join(priceConditions, ' AND ')}`
+        : Prisma.sql``;
 
-      const whereClause = Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`;
-
-      const orderByClause = sort === 'price:asc' ? Prisma.sql`p."minPrice" ASC`
-        : sort === 'price:desc' ? Prisma.sql`p."minPrice" DESC`
-        : sort === 'name:asc' ? Prisma.sql`p.name ASC`
+      const orderByClause = sort === 'price:asc'   ? Prisma.sql`p."minPrice" ASC`
+        : sort === 'price:desc'  ? Prisma.sql`p."minPrice" DESC`
+        : sort === 'name:asc'    ? Prisma.sql`p.name ASC`
         : sort === 'rating:desc' ? Prisma.sql`p.rating DESC`
         : Prisma.sql`
           ${matchCountExpr} DESC,
@@ -45,29 +74,31 @@ export const search = async (req, res) => {
           similarity(p.name, ${term}) DESC
         `;
 
-      const rows = await prisma.$queryRaw`
-        SELECT
-          p.id, p.name, p.slug, p.description, p.brand,
-          p."minPrice", p."maxPrice", p."compareAtPrice", p."mainImage",
-          p."totalStock", p.rating, p."totalReviews", p."categoryId",
-          c.id AS "categoryId_", c.name AS "categoryName_", c.slug AS "categorySlug_"
+      const rankedRows = await prisma.$queryRaw`
+        SELECT p.id
         FROM "Product" p
-        LEFT JOIN "Category" c ON c.id = p."categoryId"
-        ${whereClause}
+        INNER JOIN "StorefrontListing" sl ON sl."productId" = p.id
+        WHERE sl."isPublished" = true
+          AND ${anyWordMatches}
+          ${priceClause}
         ORDER BY ${orderByClause}
-        LIMIT ${limitNum} OFFSET ${offset}
       `;
 
-      const [{ count: total }] = await prisma.$queryRaw`
-        SELECT COUNT(*)::int AS count
-        FROM "Product" p
-        ${whereClause}
-      `;
+      const orderedIds = rankedRows.map(r => r.id);
 
-      const hits = rows.map(({ categoryId_, categoryName_, categorySlug_, ...p }) => ({
-        ...p,
-        category: categoryId_ ? { id: categoryId_, name: categoryName_, slug: categorySlug_ } : null,
-      }));
+      // ── Step 2: fetch published listings and apply category filter ───────────
+      const listings = await prisma.storefrontListing.findMany({
+        where: { ...listingWhere, productId: { in: orderedIds } },
+        include: storefrontListingInclude,
+      });
+
+      // Restore trigram rank order (Prisma IN queries don't preserve order)
+      const rankMap = new Map(orderedIds.map((id, i) => [id, i]));
+      listings.sort((a, b) => rankMap.get(a.productId) - rankMap.get(b.productId));
+
+      const total = listings.length;
+      const page_listings = listings.slice(offset, offset + limitNum);
+      const hits = page_listings.map(l => transformProductForListing(l.product, l));
 
       return res.json({
         query: term,
@@ -76,50 +107,44 @@ export const search = async (req, res) => {
         page: pageNum,
         limit: limitNum,
         totalPages: Math.ceil(total / limitNum),
-        processingTimeMs: 0
+        processingTimeMs: 0,
       });
     }
 
-    // ── No query: plain filtered/sorted listing ──
-    const where = { isActive: true };
-
-    if (categoryId) where.categoryId = categoryId;
+    // ── No query: plain filtered/sorted listing ───────────────────────────────
     if (minPrice || maxPrice) {
-      where.minPrice = {};
-      if (minPrice) where.minPrice.gte = parseFloat(minPrice);
-      if (maxPrice) where.minPrice.lte = parseFloat(maxPrice);
+      listingWhere.product = { minPrice: {} };
+      if (minPrice) listingWhere.product.minPrice.gte = parseFloat(minPrice);
+      if (maxPrice) listingWhere.product.minPrice.lte = parseFloat(maxPrice);
     }
 
-    const orderBy = sort === 'price:asc' ? { minPrice: 'asc' }
-      : sort === 'price:desc' ? { minPrice: 'desc' }
-      : sort === 'name:asc' ? { name: 'asc' }
-      : sort === 'rating:desc' ? { rating: 'desc' }
-      : { createdAt: 'desc' };
+    const orderBy = sort === 'price:asc'   ? [{ product: { minPrice: 'asc' } }, { id: 'asc' }]
+      : sort === 'price:desc'  ? [{ product: { minPrice: 'desc' } }, { id: 'asc' }]
+      : sort === 'name:asc'    ? [{ product: { name: 'asc' } }, { id: 'asc' }]
+      : sort === 'rating:desc' ? [{ product: { rating: 'desc' } }, { id: 'asc' }]
+      : [{ id: 'desc' }];
 
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
+    const [total, listings] = await Promise.all([
+      prisma.storefrontListing.count({ where: listingWhere }),
+      prisma.storefrontListing.findMany({
+        where: listingWhere,
         orderBy,
         skip: offset,
         take: limitNum,
-        select: {
-          id: true, name: true, slug: true, description: true, brand: true,
-          minPrice: true, maxPrice: true, compareAtPrice: true, mainImage: true,
-          totalStock: true, rating: true, totalReviews: true, categoryId: true,
-          category: { select: { id: true, name: true, slug: true } },
-        },
+        include: storefrontListingInclude,
       }),
-      prisma.product.count({ where }),
     ]);
+
+    const hits = listings.map(l => transformProductForListing(l.product, l));
 
     res.json({
       query: '',
-      hits: products,
+      hits,
       totalHits: total,
       page: pageNum,
       limit: limitNum,
       totalPages: Math.ceil(total / limitNum),
-      processingTimeMs: 0
+      processingTimeMs: 0,
     });
 
   } catch (error) {
