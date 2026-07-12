@@ -187,6 +187,7 @@ export const guestCheckoutSchema = z.object({
     productId: z.string().uuid('Invalid product ID'),
     variantId: z.string().uuid('Invalid variant ID').optional(),
     quantity: z.number().int().positive('Quantity must be at least 1').max(100),
+    deliveryMethod: z.string().max(50).optional(),
   })).min(1, 'At least one item is required'),
   notes: z.string().max(500).optional(),
   couponCode: z.string().max(50).optional(),

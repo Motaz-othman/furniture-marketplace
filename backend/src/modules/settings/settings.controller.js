@@ -1,5 +1,19 @@
 import db from '../../shared/config/db.js';
 
+export const DEFAULT_DELIVERY_PRICING = {
+  smallParcel: [
+    { key: 'GROUND',   label: 'Ground Shipping', description: 'Delivered within 7–14 business days once shipped', price: 0 },
+    { key: 'TWO_DAY',  label: '2-Day Shipping',  description: 'Delivered within 2 business days once shipped',   price: 29 },
+    { key: 'ONE_DAY',  label: '1-Day Shipping',  description: 'Delivered within 1 business day once shipped',    price: 59 },
+  ],
+  ltl: [
+    { key: 'OUTSIDE_DROP_OFF', label: 'Outside Drop Off',        description: 'Scheduled delivery to the outside entrance of your home at ground level', price: 0 },
+    { key: 'IN_HOME_DROP_OFF', label: 'In Home Drop Off',        description: 'Scheduled delivery to the immediate entryway inside your home',           price: 0 },
+    { key: 'ROOM_OF_CHOICE',  label: 'Room of Choice Delivery', description: 'Scheduled delivery to your room of choice on any floor',                  price: 119 },
+    { key: 'WHITE_GLOVE',     label: 'White Glove Delivery',    description: 'Room of Choice + Full Assembly & Packaging Removal',                      price: 199 },
+  ],
+};
+
 const DEFAULT_SETTINGS = {
   heroSlides: {
     items: [
@@ -71,6 +85,16 @@ export async function getSettings(req, res) {
     res.json(settings);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+}
+
+export async function getDeliveryOptions(req, res) {
+  try {
+    const record = await db.siteSettings.findUnique({ where: { id: 'main' } });
+    const pricing = record?.settings?.deliveryPricing || DEFAULT_DELIVERY_PRICING;
+    res.json(pricing);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch delivery options' });
   }
 }
 

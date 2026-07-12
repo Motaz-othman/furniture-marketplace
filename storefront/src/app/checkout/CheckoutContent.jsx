@@ -11,7 +11,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { useCart } from '@/lib/hooks';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { formatPrice } from '@/lib/utils';
-import { guestCheckout, validateCoupon } from '@/lib/api/checkout';
+import { guestCheckout, validateCoupon, getDeliveryOptions } from '@/lib/api/checkout';
 import { getAddresses } from '@/lib/api/addresses';
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -80,6 +80,11 @@ export default function CheckoutContent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Delivery state
+  const [deliveryOptions, setDeliveryOptions] = useState(null); // { smallParcel: [...], ltl: [...] }
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [itemDeliveries, setItemDeliveries] = useState({}); // { [itemId]: methodKey }
+
   // Coupon state
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, type, value, discountAmount }
@@ -127,11 +132,52 @@ export default function CheckoutContent() {
     }
   }, [authLoading, itemCount, router, orderData]);
 
-  const shipping = useMemo(() => (total >= 500 ? 0 : 49.99), [total]);
+  // Load delivery options once on mount; auto-default each item to cheapest option
+  useEffect(() => {
+    setDeliveryLoading(true);
+    getDeliveryOptions()
+      .then((res) => {
+        const opts = res.data || res;
+        setDeliveryOptions(opts);
+        // Default every item to the first (cheapest) option for its tier
+        setItemDeliveries((prev) => {
+          const defaults = {};
+          items.forEach((item) => {
+            if (!prev[item.id]) {
+              const tier = getItemTier(item);
+              const first = (opts[tier] || [])[0];
+              if (first) defaults[item.id] = first.key;
+            }
+          });
+          return { ...prev, ...defaults };
+        });
+      })
+      .catch(() => {/* silently fall through; user can still proceed */})
+      .finally(() => setDeliveryLoading(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function getItemTier(item) {
+    const shipType = item.variant?.shipType || '';
+    return shipType === 'LTL' || shipType === 'GROUND - OVERSIZE' ? 'ltl' : 'smallParcel';
+  }
+
+  const deliveryTotal = useMemo(() => {
+    if (!deliveryOptions) return 0;
+    return items.reduce((sum, item) => {
+      const tier = getItemTier(item);
+      const key = itemDeliveries[item.id];
+      const opt = (deliveryOptions[tier] || []).find((o) => o.key === key);
+      return sum + (opt?.price ?? 0);
+    }, 0);
+  }, [items, deliveryOptions, itemDeliveries]);
+
   const taxRate = 0.08;
   const tax = useMemo(() => Math.round(total * taxRate * 100) / 100, [total]);
   const discount = appliedCoupon?.discountAmount ?? 0;
-  const grandTotal = useMemo(() => Math.round(Math.max(0, total + shipping + tax - discount) * 100) / 100, [total, shipping, tax, discount]);
+  const grandTotal = useMemo(
+    () => Math.round(Math.max(0, total + deliveryTotal + tax - discount) * 100) / 100,
+    [total, deliveryTotal, tax, discount],
+  );
 
   async function handleApplyCoupon() {
     const code = couponInput.trim().toUpperCase();
@@ -201,6 +247,11 @@ export default function CheckoutContent() {
     }
   }
 
+  function handleDeliveryContinue() {
+    setStep(3);
+    window.scrollTo(0, 0);
+  }
+
   // Place order → get clientSecret → move to payment step
   async function handlePlaceOrder() {
     setIsSubmitting(true);
@@ -210,6 +261,7 @@ export default function CheckoutContent() {
         productId: item.productId,
         ...(item.variantId && uuidRe.test(item.variantId) ? { variantId: item.variantId } : {}),
         quantity: Number(item.quantity) || 1,
+        ...(itemDeliveries[item.id] ? { deliveryMethod: itemDeliveries[item.id] } : {}),
       }));
 
       const result = await guestCheckout({
@@ -236,7 +288,7 @@ export default function CheckoutContent() {
       if (clientSecretValue) {
         setOrderData([order]);
         setClientSecret(clientSecretValue);
-        setStep(3);
+        setStep(4);
         window.scrollTo(0, 0);
       } else {
         // No payment intent (e.g. Stripe not configured) — go to confirmation
@@ -308,11 +360,15 @@ export default function CheckoutContent() {
             </span>
             <span className="step-divider" />
             <span className={`checkout-step ${step >= 2 ? 'active' : ''}`}>
-              <span className="step-number">2</span> Review
+              <span className="step-number">2</span> Delivery
             </span>
             <span className="step-divider" />
             <span className={`checkout-step ${step >= 3 ? 'active' : ''}`}>
-              <span className="step-number">3</span> Payment
+              <span className="step-number">3</span> Review
+            </span>
+            <span className="step-divider" />
+            <span className={`checkout-step ${step >= 4 ? 'active' : ''}`}>
+              <span className="step-number">4</span> Payment
             </span>
           </div>
         </div>
@@ -463,12 +519,98 @@ export default function CheckoutContent() {
                 </section>
 
                 <button className="checkout-continue-btn" onClick={handleContinue}>
-                  Continue to Review
+                  Continue to Delivery
                 </button>
               </>
             )}
 
             {step === 2 && (
+              <>
+                <section className="checkout-section">
+                  <div className="review-header">
+                    <h2>Delivery Method</h2>
+                    <button className="checkout-edit-btn" onClick={() => setStep(1)}>Edit Shipping</button>
+                  </div>
+                  <p className="checkout-delivery-note">
+                    Choose a delivery method for each item in your order.
+                  </p>
+                  {deliveryLoading ? (
+                    <div className="checkout-delivery-loading">Loading delivery options…</div>
+                  ) : (
+                    <div className="checkout-shipments">
+                      {items.map((item, idx) => {
+                        const tier = getItemTier(item);
+                        const options = deliveryOptions?.[tier] || [];
+                        const selectedKey = itemDeliveries[item.id];
+                        const imageUrl = item.product?.mainImage || item.product?.images?.[0]?.imageUrl;
+                        const name = item.product?.name || 'Product';
+                        const variantName = item.variant?.name || null;
+
+                        return (
+                          <div key={item.id} className="checkout-shipment-block">
+                            <div className="checkout-shipment-header">
+                              <span className="checkout-shipment-label">
+                                Shipment {idx + 1} of {items.length}
+                              </span>
+                            </div>
+                            <div className="checkout-shipment-item">
+                              <div className="checkout-shipment-thumb">
+                                {imageUrl ? (
+                                  <Image src={imageUrl} alt={name} width={52} height={52} style={{ objectFit: 'cover', borderRadius: 4 }} />
+                                ) : (
+                                  <div className="checkout-item-no-image" style={{ width: 52, height: 52 }} />
+                                )}
+                              </div>
+                              <div className="checkout-shipment-item-info">
+                                <span className="checkout-item-name">{name}</span>
+                                {variantName && <span className="checkout-item-variant">{variantName}</span>}
+                                <span className="checkout-item-qty-label">Qty: {item.quantity}</span>
+                              </div>
+                            </div>
+                            <div className="checkout-delivery-options">
+                              {options.map((opt) => (
+                                <label
+                                  key={opt.key}
+                                  className={`checkout-delivery-option${selectedKey === opt.key ? ' selected' : ''}`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name={`delivery-${item.id}`}
+                                    value={opt.key}
+                                    checked={selectedKey === opt.key}
+                                    onChange={() =>
+                                      setItemDeliveries((prev) => ({ ...prev, [item.id]: opt.key }))
+                                    }
+                                  />
+                                  <div className="checkout-delivery-option-content">
+                                    <div className="checkout-delivery-option-header">
+                                      <span className="checkout-delivery-option-label">{opt.label}</span>
+                                      <span className="checkout-delivery-option-price">
+                                        {opt.price === 0 ? 'Free' : formatPrice(opt.price)}
+                                      </span>
+                                    </div>
+                                    <span className="checkout-delivery-option-desc">{opt.description}</span>
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+                <button
+                  className="checkout-continue-btn"
+                  onClick={handleDeliveryContinue}
+                  disabled={deliveryLoading}
+                >
+                  Continue to Review
+                </button>
+              </>
+            )}
+
+            {step === 3 && (
               <>
                 {/* Review Info */}
                 <section className="checkout-section">
@@ -590,7 +732,7 @@ export default function CheckoutContent() {
               </>
             )}
 
-            {step === 3 && clientSecret && stripeOptions && (
+            {step === 4 && clientSecret && stripeOptions && (
               <>
                 <section className="checkout-section">
                   <h2>Payment</h2>
@@ -629,8 +771,8 @@ export default function CheckoutContent() {
               <span>{formatPrice(total)}</span>
             </div>
             <div className="summary-row">
-              <span>{shipping === 0 ? 'Free Shipping' : 'Standard Delivery'}</span>
-              <span>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
+              <span>Delivery</span>
+              <span>{deliveryTotal === 0 ? 'Free' : formatPrice(deliveryTotal)}</span>
             </div>
             <div className="summary-row">
               <span>Tax (est.)</span>

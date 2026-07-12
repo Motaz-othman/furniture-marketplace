@@ -244,7 +244,9 @@ exports.Prisma.OrderItemScalarFieldEnum = {
   variantId: 'variantId',
   quantity: 'quantity',
   price: 'price',
-  status: 'status'
+  status: 'status',
+  deliveryMethod: 'deliveryMethod',
+  deliveryFee: 'deliveryFee'
 };
 
 exports.Prisma.ShipmentScalarFieldEnum = {

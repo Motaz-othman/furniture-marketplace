@@ -660,6 +660,141 @@
   font-weight: 500;
 }
 
+/* ─── Delivery Step ──────────────────────────────────────────────── */
+
+.checkout-delivery-note {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #666);
+  margin-bottom: 1.25rem;
+}
+
+.checkout-delivery-loading {
+  padding: 1.5rem 0;
+  color: var(--text-secondary, #666);
+  font-size: 0.875rem;
+}
+
+.checkout-shipments {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.checkout-shipment-block {
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.checkout-shipment-header {
+  background: var(--bg-secondary, #f9fafb);
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.checkout-shipment-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #666);
+}
+
+.checkout-shipment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.checkout-shipment-thumb {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--bg-secondary, #f5f5f5);
+}
+
+.checkout-shipment-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.checkout-item-qty-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #888);
+}
+
+.checkout-delivery-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.checkout-delivery-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  transition: background 0.15s;
+}
+
+.checkout-delivery-option:first-of-type {
+  border-top: none;
+}
+
+.checkout-delivery-option:hover {
+  background: var(--bg-secondary, #f9fafb);
+}
+
+.checkout-delivery-option.selected {
+  background: var(--color-primary-faint, #f0f9ff);
+}
+
+.checkout-delivery-option input[type="radio"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--color-primary, #111);
+}
+
+.checkout-delivery-option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.checkout-delivery-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkout-delivery-option-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary, #111);
+}
+
+.checkout-delivery-option-price {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary, #111);
+  white-space: nowrap;
+}
+
+.checkout-delivery-option-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #777);
+  line-height: 1.4;
+}
+
 @media (max-width: 600px) {
   .checkout-page {
     padding: 1rem 1rem 6rem;

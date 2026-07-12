@@ -1,4 +1,4 @@
-import { post } from './client';
+import { get, post } from './client';
 
 export async function guestCheckout(data) {
   return post('/checkout/guest', data, { timeout: 30000 });
@@ -10,4 +10,8 @@ export async function validateCoupon(code, subtotal) {
 
 export async function trackOrder(orderNumber, email) {
   return post(`/checkout/track/${orderNumber}`, { email });
+}
+
+export async function getDeliveryOptions() {
+  return get('/settings/delivery-options');
 }

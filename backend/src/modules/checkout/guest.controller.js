@@ -1,5 +1,27 @@
 import prisma from '../../shared/config/db.js';
 import { createPaymentIntent, cancelPaymentIntent, updatePaymentIntentMetadata } from '../../shared/services/stripe.service.js';
+import { DEFAULT_DELIVERY_PRICING } from '../settings/settings.controller.js';
+
+// Map variant packaging.shipType → pricing tier
+function getDeliveryTier(shipType) {
+  const s = (shipType || '').trim();
+  if (s === 'LTL' || s === 'GROUND - OVERSIZE') return 'ltl';
+  return 'smallParcel';
+}
+
+// Resolve the delivery fee for a given method + tier from current settings
+async function resolveDeliveryFee(deliveryMethod, tier) {
+  if (!deliveryMethod) return 0;
+  try {
+    const record = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
+    const pricing = record?.settings?.deliveryPricing || DEFAULT_DELIVERY_PRICING;
+    const options = pricing[tier] || [];
+    const option = options.find(o => o.key === deliveryMethod);
+    return option?.price ?? 0;
+  } catch {
+    return 0;
+  }
+}
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36);
@@ -110,7 +132,30 @@ export const guestCheckout = async (req, res) => {
     // ── Calculate totals ──────────────────────────────────────────────
     const subtotal = items.reduce((sum, item) => sum + resolvePrice(item) * item.quantity, 0);
     const taxRate = parseFloat(process.env.TAX_RATE ?? '0.08');
-    const shippingCost = parseFloat(process.env.SHIPPING_COST ?? '0');
+
+    // Load delivery pricing once, then resolve per-item fees
+    let deliveryPricing;
+    try {
+      const settingsRecord = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
+      deliveryPricing = settingsRecord?.settings?.deliveryPricing || DEFAULT_DELIVERY_PRICING;
+    } catch {
+      deliveryPricing = DEFAULT_DELIVERY_PRICING;
+    }
+
+    const itemDeliveryData = items.map(item => {
+      const product = productMap.get(item.productId);
+      const variant = item.variantId ? product.variants.find(v => v.id === item.variantId) : null;
+      const shipType = variant?.packaging?.shipType || null;
+      const tier = getDeliveryTier(shipType);
+      const tierOptions = deliveryPricing[tier] || [];
+      const selectedMethod = item.deliveryMethod || null;
+      const fee = selectedMethod
+        ? (tierOptions.find(o => o.key === selectedMethod)?.price ?? 0)
+        : 0;
+      return { deliveryMethod: selectedMethod, deliveryFee: fee };
+    });
+
+    const shippingCost = itemDeliveryData.reduce((sum, d) => sum + d.deliveryFee, 0);
     const tax = Math.round(subtotal * taxRate * 100) / 100;
 
     // ── Validate and apply coupon ─────────────────────────────────────
@@ -185,11 +230,13 @@ export const guestCheckout = async (req, res) => {
           stripePaymentIntentId: paymentIntent.id,
           paymentStatus: 'PROCESSING',
           items: {
-            create: items.map(item => ({
+            create: items.map((item, idx) => ({
               productId: item.productId,
               variantId: item.variantId || undefined,
               quantity: item.quantity,
               price: resolvePrice(item),
+              deliveryMethod: itemDeliveryData[idx].deliveryMethod,
+              deliveryFee: itemDeliveryData[idx].deliveryFee,
             })),
           },
         },

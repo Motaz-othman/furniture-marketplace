@@ -12336,11 +12336,13 @@ export namespace Prisma {
   export type OrderItemAvgAggregateOutputType = {
     quantity: number | null
     price: number | null
+    deliveryFee: number | null
   }
 
   export type OrderItemSumAggregateOutputType = {
     quantity: number | null
     price: number | null
+    deliveryFee: number | null
   }
 
   export type OrderItemMinAggregateOutputType = {
@@ -12352,6 +12354,8 @@ export namespace Prisma {
     quantity: number | null
     price: number | null
     status: $Enums.ItemStatus | null
+    deliveryMethod: string | null
+    deliveryFee: number | null
   }
 
   export type OrderItemMaxAggregateOutputType = {
@@ -12363,6 +12367,8 @@ export namespace Prisma {
     quantity: number | null
     price: number | null
     status: $Enums.ItemStatus | null
+    deliveryMethod: string | null
+    deliveryFee: number | null
   }
 
   export type OrderItemCountAggregateOutputType = {
@@ -12374,6 +12380,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status: number
+    deliveryMethod: number
+    deliveryFee: number
     _all: number
   }
 
@@ -12381,11 +12389,13 @@ export namespace Prisma {
   export type OrderItemAvgAggregateInputType = {
     quantity?: true
     price?: true
+    deliveryFee?: true
   }
 
   export type OrderItemSumAggregateInputType = {
     quantity?: true
     price?: true
+    deliveryFee?: true
   }
 
   export type OrderItemMinAggregateInputType = {
@@ -12397,6 +12407,8 @@ export namespace Prisma {
     quantity?: true
     price?: true
     status?: true
+    deliveryMethod?: true
+    deliveryFee?: true
   }
 
   export type OrderItemMaxAggregateInputType = {
@@ -12408,6 +12420,8 @@ export namespace Prisma {
     quantity?: true
     price?: true
     status?: true
+    deliveryMethod?: true
+    deliveryFee?: true
   }
 
   export type OrderItemCountAggregateInputType = {
@@ -12419,6 +12433,8 @@ export namespace Prisma {
     quantity?: true
     price?: true
     status?: true
+    deliveryMethod?: true
+    deliveryFee?: true
     _all?: true
   }
 
@@ -12517,6 +12533,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status: $Enums.ItemStatus
+    deliveryMethod: string | null
+    deliveryFee: number
     _count: OrderItemCountAggregateOutputType | null
     _avg: OrderItemAvgAggregateOutputType | null
     _sum: OrderItemSumAggregateOutputType | null
@@ -12547,6 +12565,8 @@ export namespace Prisma {
     quantity?: boolean
     price?: boolean
     status?: boolean
+    deliveryMethod?: boolean
+    deliveryFee?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     shipment?: boolean | OrderItem$shipmentArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
@@ -12564,6 +12584,8 @@ export namespace Prisma {
     quantity?: boolean
     price?: boolean
     status?: boolean
+    deliveryMethod?: boolean
+    deliveryFee?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     shipment?: boolean | OrderItem$shipmentArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
@@ -12579,6 +12601,8 @@ export namespace Prisma {
     quantity?: boolean
     price?: boolean
     status?: boolean
+    deliveryMethod?: boolean
+    deliveryFee?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     shipment?: boolean | OrderItem$shipmentArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
@@ -12594,9 +12618,11 @@ export namespace Prisma {
     quantity?: boolean
     price?: boolean
     status?: boolean
+    deliveryMethod?: boolean
+    deliveryFee?: boolean
   }
 
-  export type OrderItemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "shipmentId" | "productId" | "variantId" | "quantity" | "price" | "status", ExtArgs["result"]["orderItem"]>
+  export type OrderItemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "shipmentId" | "productId" | "variantId" | "quantity" | "price" | "status" | "deliveryMethod" | "deliveryFee", ExtArgs["result"]["orderItem"]>
   export type OrderItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
     shipment?: boolean | OrderItem$shipmentArgs<ExtArgs>
@@ -12636,6 +12662,8 @@ export namespace Prisma {
       quantity: number
       price: number
       status: $Enums.ItemStatus
+      deliveryMethod: string | null
+      deliveryFee: number
     }, ExtArgs["result"]["orderItem"]>
     composites: {}
   }
@@ -13072,6 +13100,8 @@ export namespace Prisma {
     readonly quantity: FieldRef<"OrderItem", 'Int'>
     readonly price: FieldRef<"OrderItem", 'Float'>
     readonly status: FieldRef<"OrderItem", 'ItemStatus'>
+    readonly deliveryMethod: FieldRef<"OrderItem", 'String'>
+    readonly deliveryFee: FieldRef<"OrderItem", 'Float'>
   }
     
 
@@ -28577,7 +28607,9 @@ export namespace Prisma {
     variantId: 'variantId',
     quantity: 'quantity',
     price: 'price',
-    status: 'status'
+    status: 'status',
+    deliveryMethod: 'deliveryMethod',
+    deliveryFee: 'deliveryFee'
   };
 
   export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
@@ -29812,6 +29844,8 @@ export namespace Prisma {
     quantity?: IntFilter<"OrderItem"> | number
     price?: FloatFilter<"OrderItem"> | number
     status?: EnumItemStatusFilter<"OrderItem"> | $Enums.ItemStatus
+    deliveryMethod?: StringNullableFilter<"OrderItem"> | string | null
+    deliveryFee?: FloatFilter<"OrderItem"> | number
     order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
     shipment?: XOR<ShipmentNullableScalarRelationFilter, ShipmentWhereInput> | null
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
@@ -29828,6 +29862,8 @@ export namespace Prisma {
     quantity?: SortOrder
     price?: SortOrder
     status?: SortOrder
+    deliveryMethod?: SortOrderInput | SortOrder
+    deliveryFee?: SortOrder
     order?: OrderOrderByWithRelationInput
     shipment?: ShipmentOrderByWithRelationInput
     product?: ProductOrderByWithRelationInput
@@ -29847,6 +29883,8 @@ export namespace Prisma {
     quantity?: IntFilter<"OrderItem"> | number
     price?: FloatFilter<"OrderItem"> | number
     status?: EnumItemStatusFilter<"OrderItem"> | $Enums.ItemStatus
+    deliveryMethod?: StringNullableFilter<"OrderItem"> | string | null
+    deliveryFee?: FloatFilter<"OrderItem"> | number
     order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
     shipment?: XOR<ShipmentNullableScalarRelationFilter, ShipmentWhereInput> | null
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
@@ -29863,6 +29901,8 @@ export namespace Prisma {
     quantity?: SortOrder
     price?: SortOrder
     status?: SortOrder
+    deliveryMethod?: SortOrderInput | SortOrder
+    deliveryFee?: SortOrder
     _count?: OrderItemCountOrderByAggregateInput
     _avg?: OrderItemAvgOrderByAggregateInput
     _max?: OrderItemMaxOrderByAggregateInput
@@ -29882,6 +29922,8 @@ export namespace Prisma {
     quantity?: IntWithAggregatesFilter<"OrderItem"> | number
     price?: FloatWithAggregatesFilter<"OrderItem"> | number
     status?: EnumItemStatusWithAggregatesFilter<"OrderItem"> | $Enums.ItemStatus
+    deliveryMethod?: StringNullableWithAggregatesFilter<"OrderItem"> | string | null
+    deliveryFee?: FloatWithAggregatesFilter<"OrderItem"> | number
   }
 
   export type ShipmentWhereInput = {
@@ -31858,6 +31900,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     order: OrderCreateNestedOneWithoutItemsInput
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
@@ -31874,6 +31918,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
@@ -31882,6 +31928,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
@@ -31898,6 +31946,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
@@ -31910,6 +31960,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
   }
 
   export type OrderItemUpdateManyMutationInput = {
@@ -31917,6 +31969,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
   }
 
   export type OrderItemUncheckedUpdateManyInput = {
@@ -31928,6 +31982,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
   }
 
   export type ShipmentCreateInput = {
@@ -34065,11 +34121,14 @@ export namespace Prisma {
     quantity?: SortOrder
     price?: SortOrder
     status?: SortOrder
+    deliveryMethod?: SortOrder
+    deliveryFee?: SortOrder
   }
 
   export type OrderItemAvgOrderByAggregateInput = {
     quantity?: SortOrder
     price?: SortOrder
+    deliveryFee?: SortOrder
   }
 
   export type OrderItemMaxOrderByAggregateInput = {
@@ -34081,6 +34140,8 @@ export namespace Prisma {
     quantity?: SortOrder
     price?: SortOrder
     status?: SortOrder
+    deliveryMethod?: SortOrder
+    deliveryFee?: SortOrder
   }
 
   export type OrderItemMinOrderByAggregateInput = {
@@ -34092,11 +34153,14 @@ export namespace Prisma {
     quantity?: SortOrder
     price?: SortOrder
     status?: SortOrder
+    deliveryMethod?: SortOrder
+    deliveryFee?: SortOrder
   }
 
   export type OrderItemSumOrderByAggregateInput = {
     quantity?: SortOrder
     price?: SortOrder
+    deliveryFee?: SortOrder
   }
 
   export type EnumItemStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -38031,6 +38095,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     order: OrderCreateNestedOneWithoutItemsInput
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     variant?: ProductVariantCreateNestedOneWithoutOrderItemsInput
@@ -38045,6 +38111,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
@@ -38318,6 +38386,8 @@ export namespace Prisma {
     quantity?: IntFilter<"OrderItem"> | number
     price?: FloatFilter<"OrderItem"> | number
     status?: EnumItemStatusFilter<"OrderItem"> | $Enums.ItemStatus
+    deliveryMethod?: StringNullableFilter<"OrderItem"> | string | null
+    deliveryFee?: FloatFilter<"OrderItem"> | number
   }
 
   export type ReviewUpsertWithWhereUniqueWithoutProductInput = {
@@ -38912,6 +38982,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
     variant?: ProductVariantCreateNestedOneWithoutOrderItemsInput
@@ -38926,6 +38998,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
@@ -39794,6 +39868,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     order: OrderCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
     variant?: ProductVariantCreateNestedOneWithoutOrderItemsInput
@@ -39808,6 +39884,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
@@ -40560,6 +40638,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     order: OrderCreateNestedOneWithoutItemsInput
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
@@ -40574,6 +40654,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     returnRequestItems?: ReturnRequestItemUncheckedCreateNestedManyWithoutOrderItemInput
   }
 
@@ -41341,6 +41423,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
     order: OrderCreateNestedOneWithoutItemsInput
     shipment?: ShipmentCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
@@ -41356,6 +41440,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
   }
 
   export type OrderItemCreateOrConnectWithoutReturnRequestItemsInput = {
@@ -41410,6 +41496,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
@@ -41425,6 +41513,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
   }
 
   export type NotificationCreateManyUserInput = {
@@ -42145,6 +42235,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
   }
 
   export type ReviewCreateManyProductInput = {
@@ -42224,6 +42316,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     variant?: ProductVariantUpdateOneWithoutOrderItemsNestedInput
@@ -42238,6 +42332,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
@@ -42249,6 +42345,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
   }
 
   export type ReviewUpdateWithoutProductInput = {
@@ -42407,6 +42505,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
   }
 
   export type ShipmentCreateManyOrderInput = {
@@ -42437,6 +42537,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
     variant?: ProductVariantUpdateOneWithoutOrderItemsNestedInput
@@ -42451,6 +42553,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
@@ -42462,6 +42566,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
   }
 
   export type ShipmentUpdateWithoutOrderInput = {
@@ -42573,6 +42679,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
   }
 
   export type OrderItemUpdateWithoutShipmentInput = {
@@ -42580,6 +42688,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
     variant?: ProductVariantUpdateOneWithoutOrderItemsNestedInput
@@ -42594,6 +42704,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
@@ -42605,6 +42717,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
   }
 
   export type CartItemCreateManyVariantInput = {
@@ -42623,6 +42737,8 @@ export namespace Prisma {
     quantity: number
     price: number
     status?: $Enums.ItemStatus
+    deliveryMethod?: string | null
+    deliveryFee?: number
   }
 
   export type CartItemUpdateWithoutVariantInput = {
@@ -42654,6 +42770,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     shipment?: ShipmentUpdateOneWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
@@ -42668,6 +42786,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
     returnRequestItems?: ReturnRequestItemUncheckedUpdateManyWithoutOrderItemNestedInput
   }
 
@@ -42679,6 +42799,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     price?: FloatFieldUpdateOperationsInput | number
     status?: EnumItemStatusFieldUpdateOperationsInput | $Enums.ItemStatus
+    deliveryMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    deliveryFee?: FloatFieldUpdateOperationsInput | number
   }
 
   export type SyncLogCreateManyProviderInput = {

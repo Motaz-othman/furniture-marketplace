@@ -49,7 +49,13 @@ function buildProductSnapshot(product) {
 }
 
 function buildVariantSnapshot(variant) {
-  return { id: variant.id, name: variant.variantName || variant.name, price: variant.price, sku: variant.sku || null };
+  return {
+    id: variant.id,
+    name: variant.variantName || variant.name,
+    price: variant.price,
+    sku: variant.sku || null,
+    shipType: variant.packaging?.shipType || null,
+  };
 }
 
 // Normalize a backend cart item to local shape

@@ -254,14 +254,16 @@ model Order {
 }
 
 model OrderItem {
-  id         String     @id @default(uuid())
-  orderId    String
-  shipmentId String?
-  productId  String
-  variantId  String?
-  quantity   Int
-  price      Float
-  status     ItemStatus @default(PENDING)
+  id             String     @id @default(uuid())
+  orderId        String
+  shipmentId     String?
+  productId      String
+  variantId      String?
+  quantity       Int
+  price          Float
+  status         ItemStatus @default(PENDING)
+  deliveryMethod String?
+  deliveryFee    Float      @default(0)
 
   order              Order               @relation(fields: [orderId], references: [id])
   shipment           Shipment?           @relation(fields: [shipmentId], references: [id])
