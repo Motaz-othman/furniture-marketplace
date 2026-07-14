@@ -135,7 +135,10 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt',
   resetPasswordToken: 'resetPasswordToken',
   resetPasswordExpires: 'resetPasswordExpires',
-  tokenVersion: 'tokenVersion'
+  tokenVersion: 'tokenVersion',
+  emailVerified: 'emailVerified',
+  emailVerifyToken: 'emailVerifyToken',
+  emailVerifyExpires: 'emailVerifyExpires'
 };
 
 exports.Prisma.CustomerScalarFieldEnum = {
@@ -480,7 +483,8 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   SHIPPED: 'SHIPPED',
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED',
-  REFUNDED: 'REFUNDED'
+  REFUNDED: 'REFUNDED',
+  DISPUTED: 'DISPUTED'
 };
 
 exports.PaymentStatus = exports.$Enums.PaymentStatus = {
@@ -489,7 +493,8 @@ exports.PaymentStatus = exports.$Enums.PaymentStatus = {
   SUCCEEDED: 'SUCCEEDED',
   FAILED: 'FAILED',
   PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
-  REFUNDED: 'REFUNDED'
+  REFUNDED: 'REFUNDED',
+  DISPUTED: 'DISPUTED'
 };
 
 exports.ItemStatus = exports.$Enums.ItemStatus = {

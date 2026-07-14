@@ -229,7 +229,7 @@ export const changePassword = async (req, res) => {
     // ✅ FIX: Use passwordHash (the correct field name in Prisma schema)
     const validPassword = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!validPassword) {
-      return res.status(401).json({ error: 'Current password is incorrect' });
+      return res.status(400).json({ error: 'Current password is incorrect' });
     }
 
     // Hash new password

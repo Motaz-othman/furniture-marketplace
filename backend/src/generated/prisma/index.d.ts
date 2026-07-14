@@ -148,7 +148,8 @@ export const OrderStatus: {
   SHIPPED: 'SHIPPED',
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED',
-  REFUNDED: 'REFUNDED'
+  REFUNDED: 'REFUNDED',
+  DISPUTED: 'DISPUTED'
 };
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
@@ -191,7 +192,8 @@ export const PaymentStatus: {
   SUCCEEDED: 'SUCCEEDED',
   FAILED: 'FAILED',
   PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
-  REFUNDED: 'REFUNDED'
+  REFUNDED: 'REFUNDED',
+  DISPUTED: 'DISPUTED'
 };
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
@@ -3500,6 +3502,9 @@ export namespace Prisma {
     resetPasswordToken: string | null
     resetPasswordExpires: Date | null
     tokenVersion: number | null
+    emailVerified: boolean | null
+    emailVerifyToken: string | null
+    emailVerifyExpires: Date | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -3517,6 +3522,9 @@ export namespace Prisma {
     resetPasswordToken: string | null
     resetPasswordExpires: Date | null
     tokenVersion: number | null
+    emailVerified: boolean | null
+    emailVerifyToken: string | null
+    emailVerifyExpires: Date | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -3534,6 +3542,9 @@ export namespace Prisma {
     resetPasswordToken: number
     resetPasswordExpires: number
     tokenVersion: number
+    emailVerified: number
+    emailVerifyToken: number
+    emailVerifyExpires: number
     _all: number
   }
 
@@ -3561,6 +3572,9 @@ export namespace Prisma {
     resetPasswordToken?: true
     resetPasswordExpires?: true
     tokenVersion?: true
+    emailVerified?: true
+    emailVerifyToken?: true
+    emailVerifyExpires?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -3578,6 +3592,9 @@ export namespace Prisma {
     resetPasswordToken?: true
     resetPasswordExpires?: true
     tokenVersion?: true
+    emailVerified?: true
+    emailVerifyToken?: true
+    emailVerifyExpires?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -3595,6 +3612,9 @@ export namespace Prisma {
     resetPasswordToken?: true
     resetPasswordExpires?: true
     tokenVersion?: true
+    emailVerified?: true
+    emailVerifyToken?: true
+    emailVerifyExpires?: true
     _all?: true
   }
 
@@ -3699,6 +3719,9 @@ export namespace Prisma {
     resetPasswordToken: string | null
     resetPasswordExpires: Date | null
     tokenVersion: number
+    emailVerified: boolean
+    emailVerifyToken: string | null
+    emailVerifyExpires: Date | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -3735,6 +3758,9 @@ export namespace Prisma {
     resetPasswordToken?: boolean
     resetPasswordExpires?: boolean
     tokenVersion?: boolean
+    emailVerified?: boolean
+    emailVerifyToken?: boolean
+    emailVerifyExpires?: boolean
     notifications?: boolean | User$notificationsArgs<ExtArgs>
     customer?: boolean | User$customerArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -3755,6 +3781,9 @@ export namespace Prisma {
     resetPasswordToken?: boolean
     resetPasswordExpires?: boolean
     tokenVersion?: boolean
+    emailVerified?: boolean
+    emailVerifyToken?: boolean
+    emailVerifyExpires?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3772,6 +3801,9 @@ export namespace Prisma {
     resetPasswordToken?: boolean
     resetPasswordExpires?: boolean
     tokenVersion?: boolean
+    emailVerified?: boolean
+    emailVerifyToken?: boolean
+    emailVerifyExpires?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -3789,9 +3821,12 @@ export namespace Prisma {
     resetPasswordToken?: boolean
     resetPasswordExpires?: boolean
     tokenVersion?: boolean
+    emailVerified?: boolean
+    emailVerifyToken?: boolean
+    emailVerifyExpires?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "passwordHash" | "role" | "isBlocked" | "firstName" | "lastName" | "phone" | "lastLoginAt" | "createdAt" | "updatedAt" | "resetPasswordToken" | "resetPasswordExpires" | "tokenVersion", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "passwordHash" | "role" | "isBlocked" | "firstName" | "lastName" | "phone" | "lastLoginAt" | "createdAt" | "updatedAt" | "resetPasswordToken" | "resetPasswordExpires" | "tokenVersion" | "emailVerified" | "emailVerifyToken" | "emailVerifyExpires", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     notifications?: boolean | User$notificationsArgs<ExtArgs>
     customer?: boolean | User$customerArgs<ExtArgs>
@@ -3821,6 +3856,9 @@ export namespace Prisma {
       resetPasswordToken: string | null
       resetPasswordExpires: Date | null
       tokenVersion: number
+      emailVerified: boolean
+      emailVerifyToken: string | null
+      emailVerifyExpires: Date | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -4260,6 +4298,9 @@ export namespace Prisma {
     readonly resetPasswordToken: FieldRef<"User", 'String'>
     readonly resetPasswordExpires: FieldRef<"User", 'DateTime'>
     readonly tokenVersion: FieldRef<"User", 'Int'>
+    readonly emailVerified: FieldRef<"User", 'Boolean'>
+    readonly emailVerifyToken: FieldRef<"User", 'String'>
+    readonly emailVerifyExpires: FieldRef<"User", 'DateTime'>
   }
     
 
@@ -27690,7 +27731,7 @@ export namespace Prisma {
   export type ReturnRequestGroupByOutputType = {
     id: string
     orderId: string
-    customerId: string
+    customerId: string | null
     status: $Enums.ReturnStatus
     adminNotes: string | null
     createdAt: Date
@@ -27723,7 +27764,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    customer?: boolean | ReturnRequest$customerArgs<ExtArgs>
     items?: boolean | ReturnRequest$itemsArgs<ExtArgs>
     _count?: boolean | ReturnRequestCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["returnRequest"]>
@@ -27737,7 +27778,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    customer?: boolean | ReturnRequest$customerArgs<ExtArgs>
   }, ExtArgs["result"]["returnRequest"]>
 
   export type ReturnRequestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -27749,7 +27790,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    customer?: boolean | ReturnRequest$customerArgs<ExtArgs>
   }, ExtArgs["result"]["returnRequest"]>
 
   export type ReturnRequestSelectScalar = {
@@ -27765,30 +27806,30 @@ export namespace Prisma {
   export type ReturnRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "customerId" | "status" | "adminNotes" | "createdAt" | "updatedAt", ExtArgs["result"]["returnRequest"]>
   export type ReturnRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    customer?: boolean | ReturnRequest$customerArgs<ExtArgs>
     items?: boolean | ReturnRequest$itemsArgs<ExtArgs>
     _count?: boolean | ReturnRequestCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ReturnRequestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    customer?: boolean | ReturnRequest$customerArgs<ExtArgs>
   }
   export type ReturnRequestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
-    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    customer?: boolean | ReturnRequest$customerArgs<ExtArgs>
   }
 
   export type $ReturnRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ReturnRequest"
     objects: {
       order: Prisma.$OrderPayload<ExtArgs>
-      customer: Prisma.$CustomerPayload<ExtArgs>
+      customer: Prisma.$CustomerPayload<ExtArgs> | null
       items: Prisma.$ReturnRequestItemPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       orderId: string
-      customerId: string
+      customerId: string | null
       status: $Enums.ReturnStatus
       adminNotes: string | null
       createdAt: Date
@@ -28188,7 +28229,7 @@ export namespace Prisma {
   export interface Prisma__ReturnRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     order<T extends OrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderDefaultArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    customer<T extends ReturnRequest$customerArgs<ExtArgs> = {}>(args?: Subset<T, ReturnRequest$customerArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     items<T extends ReturnRequest$itemsArgs<ExtArgs> = {}>(args?: Subset<T, ReturnRequest$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnRequestItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -28619,6 +28660,25 @@ export namespace Prisma {
      * Limit how many ReturnRequests to delete.
      */
     limit?: number
+  }
+
+  /**
+   * ReturnRequest.customer
+   */
+  export type ReturnRequest$customerArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Customer
+     */
+    select?: CustomerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Customer
+     */
+    omit?: CustomerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerInclude<ExtArgs> | null
+    where?: CustomerWhereInput
   }
 
   /**
@@ -30808,7 +30868,10 @@ export namespace Prisma {
     updatedAt: 'updatedAt',
     resetPasswordToken: 'resetPasswordToken',
     resetPasswordExpires: 'resetPasswordExpires',
-    tokenVersion: 'tokenVersion'
+    tokenVersion: 'tokenVersion',
+    emailVerified: 'emailVerified',
+    emailVerifyToken: 'emailVerifyToken',
+    emailVerifyExpires: 'emailVerifyExpires'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -31444,6 +31507,9 @@ export namespace Prisma {
     resetPasswordToken?: StringNullableFilter<"User"> | string | null
     resetPasswordExpires?: DateTimeNullableFilter<"User"> | Date | string | null
     tokenVersion?: IntFilter<"User"> | number
+    emailVerified?: BoolFilter<"User"> | boolean
+    emailVerifyToken?: StringNullableFilter<"User"> | string | null
+    emailVerifyExpires?: DateTimeNullableFilter<"User"> | Date | string | null
     notifications?: NotificationListRelationFilter
     customer?: XOR<CustomerNullableScalarRelationFilter, CustomerWhereInput> | null
   }
@@ -31463,6 +31529,9 @@ export namespace Prisma {
     resetPasswordToken?: SortOrderInput | SortOrder
     resetPasswordExpires?: SortOrderInput | SortOrder
     tokenVersion?: SortOrder
+    emailVerified?: SortOrder
+    emailVerifyToken?: SortOrderInput | SortOrder
+    emailVerifyExpires?: SortOrderInput | SortOrder
     notifications?: NotificationOrderByRelationAggregateInput
     customer?: CustomerOrderByWithRelationInput
   }
@@ -31471,6 +31540,7 @@ export namespace Prisma {
     id?: string
     email?: string
     resetPasswordToken?: string
+    emailVerifyToken?: string
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
@@ -31485,9 +31555,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     resetPasswordExpires?: DateTimeNullableFilter<"User"> | Date | string | null
     tokenVersion?: IntFilter<"User"> | number
+    emailVerified?: BoolFilter<"User"> | boolean
+    emailVerifyExpires?: DateTimeNullableFilter<"User"> | Date | string | null
     notifications?: NotificationListRelationFilter
     customer?: XOR<CustomerNullableScalarRelationFilter, CustomerWhereInput> | null
-  }, "id" | "email" | "resetPasswordToken">
+  }, "id" | "email" | "resetPasswordToken" | "emailVerifyToken">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
@@ -31504,6 +31576,9 @@ export namespace Prisma {
     resetPasswordToken?: SortOrderInput | SortOrder
     resetPasswordExpires?: SortOrderInput | SortOrder
     tokenVersion?: SortOrder
+    emailVerified?: SortOrder
+    emailVerifyToken?: SortOrderInput | SortOrder
+    emailVerifyExpires?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -31529,6 +31604,9 @@ export namespace Prisma {
     resetPasswordToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetPasswordExpires?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     tokenVersion?: IntWithAggregatesFilter<"User"> | number
+    emailVerified?: BoolWithAggregatesFilter<"User"> | boolean
+    emailVerifyToken?: StringNullableWithAggregatesFilter<"User"> | string | null
+    emailVerifyExpires?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   }
 
   export type CustomerWhereInput = {
@@ -33318,20 +33396,20 @@ export namespace Prisma {
     NOT?: ReturnRequestWhereInput | ReturnRequestWhereInput[]
     id?: StringFilter<"ReturnRequest"> | string
     orderId?: StringFilter<"ReturnRequest"> | string
-    customerId?: StringFilter<"ReturnRequest"> | string
+    customerId?: StringNullableFilter<"ReturnRequest"> | string | null
     status?: EnumReturnStatusFilter<"ReturnRequest"> | $Enums.ReturnStatus
     adminNotes?: StringNullableFilter<"ReturnRequest"> | string | null
     createdAt?: DateTimeFilter<"ReturnRequest"> | Date | string
     updatedAt?: DateTimeFilter<"ReturnRequest"> | Date | string
     order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
-    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    customer?: XOR<CustomerNullableScalarRelationFilter, CustomerWhereInput> | null
     items?: ReturnRequestItemListRelationFilter
   }
 
   export type ReturnRequestOrderByWithRelationInput = {
     id?: SortOrder
     orderId?: SortOrder
-    customerId?: SortOrder
+    customerId?: SortOrderInput | SortOrder
     status?: SortOrder
     adminNotes?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -33347,20 +33425,20 @@ export namespace Prisma {
     OR?: ReturnRequestWhereInput[]
     NOT?: ReturnRequestWhereInput | ReturnRequestWhereInput[]
     orderId?: StringFilter<"ReturnRequest"> | string
-    customerId?: StringFilter<"ReturnRequest"> | string
+    customerId?: StringNullableFilter<"ReturnRequest"> | string | null
     status?: EnumReturnStatusFilter<"ReturnRequest"> | $Enums.ReturnStatus
     adminNotes?: StringNullableFilter<"ReturnRequest"> | string | null
     createdAt?: DateTimeFilter<"ReturnRequest"> | Date | string
     updatedAt?: DateTimeFilter<"ReturnRequest"> | Date | string
     order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
-    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    customer?: XOR<CustomerNullableScalarRelationFilter, CustomerWhereInput> | null
     items?: ReturnRequestItemListRelationFilter
   }, "id">
 
   export type ReturnRequestOrderByWithAggregationInput = {
     id?: SortOrder
     orderId?: SortOrder
-    customerId?: SortOrder
+    customerId?: SortOrderInput | SortOrder
     status?: SortOrder
     adminNotes?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -33376,7 +33454,7 @@ export namespace Prisma {
     NOT?: ReturnRequestScalarWhereWithAggregatesInput | ReturnRequestScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"ReturnRequest"> | string
     orderId?: StringWithAggregatesFilter<"ReturnRequest"> | string
-    customerId?: StringWithAggregatesFilter<"ReturnRequest"> | string
+    customerId?: StringNullableWithAggregatesFilter<"ReturnRequest"> | string | null
     status?: EnumReturnStatusWithAggregatesFilter<"ReturnRequest"> | $Enums.ReturnStatus
     adminNotes?: StringNullableWithAggregatesFilter<"ReturnRequest"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ReturnRequest"> | Date | string
@@ -33507,6 +33585,9 @@ export namespace Prisma {
     resetPasswordToken?: string | null
     resetPasswordExpires?: Date | string | null
     tokenVersion?: number
+    emailVerified?: boolean
+    emailVerifyToken?: string | null
+    emailVerifyExpires?: Date | string | null
     notifications?: NotificationCreateNestedManyWithoutUserInput
     customer?: CustomerCreateNestedOneWithoutUserInput
   }
@@ -33526,6 +33607,9 @@ export namespace Prisma {
     resetPasswordToken?: string | null
     resetPasswordExpires?: Date | string | null
     tokenVersion?: number
+    emailVerified?: boolean
+    emailVerifyToken?: string | null
+    emailVerifyExpires?: Date | string | null
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     customer?: CustomerUncheckedCreateNestedOneWithoutUserInput
   }
@@ -33545,6 +33629,9 @@ export namespace Prisma {
     resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tokenVersion?: IntFieldUpdateOperationsInput | number
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerifyExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     customer?: CustomerUpdateOneWithoutUserNestedInput
   }
@@ -33564,6 +33651,9 @@ export namespace Prisma {
     resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tokenVersion?: IntFieldUpdateOperationsInput | number
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerifyExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     customer?: CustomerUncheckedUpdateOneWithoutUserNestedInput
   }
@@ -33583,6 +33673,9 @@ export namespace Prisma {
     resetPasswordToken?: string | null
     resetPasswordExpires?: Date | string | null
     tokenVersion?: number
+    emailVerified?: boolean
+    emailVerifyToken?: string | null
+    emailVerifyExpires?: Date | string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -33600,6 +33693,9 @@ export namespace Prisma {
     resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tokenVersion?: IntFieldUpdateOperationsInput | number
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerifyExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -33617,6 +33713,9 @@ export namespace Prisma {
     resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tokenVersion?: IntFieldUpdateOperationsInput | number
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerifyExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type CustomerCreateInput = {
@@ -35634,14 +35733,14 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     order: OrderCreateNestedOneWithoutReturnRequestsInput
-    customer: CustomerCreateNestedOneWithoutReturnRequestsInput
+    customer?: CustomerCreateNestedOneWithoutReturnRequestsInput
     items?: ReturnRequestItemCreateNestedManyWithoutReturnRequestInput
   }
 
   export type ReturnRequestUncheckedCreateInput = {
     id?: string
     orderId: string
-    customerId: string
+    customerId?: string | null
     status?: $Enums.ReturnStatus
     adminNotes?: string | null
     createdAt?: Date | string
@@ -35656,14 +35755,14 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     order?: OrderUpdateOneRequiredWithoutReturnRequestsNestedInput
-    customer?: CustomerUpdateOneRequiredWithoutReturnRequestsNestedInput
+    customer?: CustomerUpdateOneWithoutReturnRequestsNestedInput
     items?: ReturnRequestItemUpdateManyWithoutReturnRequestNestedInput
   }
 
   export type ReturnRequestUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
-    customerId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
     adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35674,7 +35773,7 @@ export namespace Prisma {
   export type ReturnRequestCreateManyInput = {
     id?: string
     orderId: string
-    customerId: string
+    customerId?: string | null
     status?: $Enums.ReturnStatus
     adminNotes?: string | null
     createdAt?: Date | string
@@ -35692,7 +35791,7 @@ export namespace Prisma {
   export type ReturnRequestUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
-    customerId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
     adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35912,6 +36011,9 @@ export namespace Prisma {
     resetPasswordToken?: SortOrder
     resetPasswordExpires?: SortOrder
     tokenVersion?: SortOrder
+    emailVerified?: SortOrder
+    emailVerifyToken?: SortOrder
+    emailVerifyExpires?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -35933,6 +36035,9 @@ export namespace Prisma {
     resetPasswordToken?: SortOrder
     resetPasswordExpires?: SortOrder
     tokenVersion?: SortOrder
+    emailVerified?: SortOrder
+    emailVerifyToken?: SortOrder
+    emailVerifyExpires?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -35950,6 +36055,9 @@ export namespace Prisma {
     resetPasswordToken?: SortOrder
     resetPasswordExpires?: SortOrder
     tokenVersion?: SortOrder
+    emailVerified?: SortOrder
+    emailVerifyToken?: SortOrder
+    emailVerifyExpires?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
@@ -39174,10 +39282,12 @@ export namespace Prisma {
     update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutReturnRequestsInput, OrderUpdateWithoutReturnRequestsInput>, OrderUncheckedUpdateWithoutReturnRequestsInput>
   }
 
-  export type CustomerUpdateOneRequiredWithoutReturnRequestsNestedInput = {
+  export type CustomerUpdateOneWithoutReturnRequestsNestedInput = {
     create?: XOR<CustomerCreateWithoutReturnRequestsInput, CustomerUncheckedCreateWithoutReturnRequestsInput>
     connectOrCreate?: CustomerCreateOrConnectWithoutReturnRequestsInput
     upsert?: CustomerUpsertWithoutReturnRequestsInput
+    disconnect?: CustomerWhereInput | boolean
+    delete?: CustomerWhereInput | boolean
     connect?: CustomerWhereUniqueInput
     update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutReturnRequestsInput, CustomerUpdateWithoutReturnRequestsInput>, CustomerUncheckedUpdateWithoutReturnRequestsInput>
   }
@@ -39788,6 +39898,9 @@ export namespace Prisma {
     resetPasswordToken?: string | null
     resetPasswordExpires?: Date | string | null
     tokenVersion?: number
+    emailVerified?: boolean
+    emailVerifyToken?: string | null
+    emailVerifyExpires?: Date | string | null
     notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
@@ -39806,6 +39919,9 @@ export namespace Prisma {
     resetPasswordToken?: string | null
     resetPasswordExpires?: Date | string | null
     tokenVersion?: number
+    emailVerified?: boolean
+    emailVerifyToken?: string | null
+    emailVerifyExpires?: Date | string | null
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
@@ -40052,6 +40168,9 @@ export namespace Prisma {
     resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tokenVersion?: IntFieldUpdateOperationsInput | number
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerifyExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
@@ -40070,6 +40189,9 @@ export namespace Prisma {
     resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tokenVersion?: IntFieldUpdateOperationsInput | number
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerifyExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -40256,7 +40378,7 @@ export namespace Prisma {
     NOT?: ReturnRequestScalarWhereInput | ReturnRequestScalarWhereInput[]
     id?: StringFilter<"ReturnRequest"> | string
     orderId?: StringFilter<"ReturnRequest"> | string
-    customerId?: StringFilter<"ReturnRequest"> | string
+    customerId?: StringNullableFilter<"ReturnRequest"> | string | null
     status?: EnumReturnStatusFilter<"ReturnRequest"> | $Enums.ReturnStatus
     adminNotes?: StringNullableFilter<"ReturnRequest"> | string | null
     createdAt?: DateTimeFilter<"ReturnRequest"> | Date | string
@@ -41805,13 +41927,13 @@ export namespace Prisma {
     adminNotes?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    customer: CustomerCreateNestedOneWithoutReturnRequestsInput
+    customer?: CustomerCreateNestedOneWithoutReturnRequestsInput
     items?: ReturnRequestItemCreateNestedManyWithoutReturnRequestInput
   }
 
   export type ReturnRequestUncheckedCreateWithoutOrderInput = {
     id?: string
-    customerId: string
+    customerId?: string | null
     status?: $Enums.ReturnStatus
     adminNotes?: string | null
     createdAt?: Date | string
@@ -43407,6 +43529,9 @@ export namespace Prisma {
     resetPasswordToken?: string | null
     resetPasswordExpires?: Date | string | null
     tokenVersion?: number
+    emailVerified?: boolean
+    emailVerifyToken?: string | null
+    emailVerifyExpires?: Date | string | null
     customer?: CustomerCreateNestedOneWithoutUserInput
   }
 
@@ -43425,6 +43550,9 @@ export namespace Prisma {
     resetPasswordToken?: string | null
     resetPasswordExpires?: Date | string | null
     tokenVersion?: number
+    emailVerified?: boolean
+    emailVerifyToken?: string | null
+    emailVerifyExpires?: Date | string | null
     customer?: CustomerUncheckedCreateNestedOneWithoutUserInput
   }
 
@@ -43459,6 +43587,9 @@ export namespace Prisma {
     resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tokenVersion?: IntFieldUpdateOperationsInput | number
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerifyExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customer?: CustomerUpdateOneWithoutUserNestedInput
   }
 
@@ -43477,6 +43608,9 @@ export namespace Prisma {
     resetPasswordToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetPasswordExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tokenVersion?: IntFieldUpdateOperationsInput | number
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    emailVerifyToken?: NullableStringFieldUpdateOperationsInput | string | null
+    emailVerifyExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     customer?: CustomerUncheckedUpdateOneWithoutUserNestedInput
   }
 
@@ -44362,13 +44496,13 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     order: OrderCreateNestedOneWithoutReturnRequestsInput
-    customer: CustomerCreateNestedOneWithoutReturnRequestsInput
+    customer?: CustomerCreateNestedOneWithoutReturnRequestsInput
   }
 
   export type ReturnRequestUncheckedCreateWithoutItemsInput = {
     id?: string
     orderId: string
-    customerId: string
+    customerId?: string | null
     status?: $Enums.ReturnStatus
     adminNotes?: string | null
     createdAt?: Date | string
@@ -44429,13 +44563,13 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     order?: OrderUpdateOneRequiredWithoutReturnRequestsNestedInput
-    customer?: CustomerUpdateOneRequiredWithoutReturnRequestsNestedInput
+    customer?: CustomerUpdateOneWithoutReturnRequestsNestedInput
   }
 
   export type ReturnRequestUncheckedUpdateWithoutItemsInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
-    customerId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
     adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45503,7 +45637,7 @@ export namespace Prisma {
 
   export type ReturnRequestCreateManyOrderInput = {
     id?: string
-    customerId: string
+    customerId?: string | null
     status?: $Enums.ReturnStatus
     adminNotes?: string | null
     createdAt?: Date | string
@@ -45606,13 +45740,13 @@ export namespace Prisma {
     adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    customer?: CustomerUpdateOneRequiredWithoutReturnRequestsNestedInput
+    customer?: CustomerUpdateOneWithoutReturnRequestsNestedInput
     items?: ReturnRequestItemUpdateManyWithoutReturnRequestNestedInput
   }
 
   export type ReturnRequestUncheckedUpdateWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
-    customerId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
     adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45622,7 +45756,7 @@ export namespace Prisma {
 
   export type ReturnRequestUncheckedUpdateManyWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
-    customerId?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumReturnStatusFieldUpdateOperationsInput | $Enums.ReturnStatus
     adminNotes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

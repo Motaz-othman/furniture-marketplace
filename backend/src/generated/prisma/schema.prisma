@@ -22,6 +22,7 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+  DISPUTED
 }
 
 enum ShipmentProvider {
@@ -59,10 +60,14 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  resetPasswordToken   String?        @unique
+  resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
-  tokenVersion         Int            @default(0)
-  notifications        Notification[]
+  tokenVersion         Int       @default(0)
+
+  emailVerified      Boolean        @default(false)
+  emailVerifyToken   String?        @unique
+  emailVerifyExpires DateTime?
+  notifications      Notification[]
 
   customer Customer?
 
@@ -74,7 +79,7 @@ model Customer {
   userId           String  @unique
   stripeCustomerId String?
 
-  user           User            @relation(fields: [userId], references: [id])
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   cartItems      CartItem[]
   addresses      Address[]
   orders         Order[]
@@ -98,7 +103,7 @@ model Address {
   isDefault  Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  customer Customer? @relation(fields: [customerId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   orders   Order[]
 
   @@index([customerId])
@@ -203,7 +208,7 @@ model CartItem {
   quantity   Int      @default(1)
   addedAt    DateTime @default(now())
 
-  customer Customer        @relation(fields: [customerId], references: [id])
+  customer Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   product  Product         @relation(fields: [productId], references: [id])
   variant  ProductVariant? @relation(fields: [variantId], references: [id])
 
@@ -242,7 +247,7 @@ model Order {
   couponCode     String?
   discountAmount Float?  @default(0)
 
-  customer       Customer?       @relation(fields: [customerId], references: [id])
+  customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
   address        Address         @relation(fields: [addressId], references: [id])
   items          OrderItem[]
   shipments      Shipment[]
@@ -366,6 +371,7 @@ enum PaymentStatus {
   FAILED
   PARTIALLY_REFUNDED
   REFUNDED
+  DISPUTED
 }
 
 enum ReturnStatus {
@@ -567,14 +573,14 @@ model NewsletterSubscriber {
 model ReturnRequest {
   id         String       @id @default(uuid())
   orderId    String
-  customerId String
+  customerId String?
   status     ReturnStatus @default(PENDING)
   adminNotes String?
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 
   order    Order               @relation(fields: [orderId], references: [id])
-  customer Customer            @relation(fields: [customerId], references: [id])
+  customer Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
   items    ReturnRequestItem[]
 
   @@index([orderId])

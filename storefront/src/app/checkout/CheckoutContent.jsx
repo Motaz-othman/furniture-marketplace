@@ -69,7 +69,7 @@ function PaymentForm({ onSuccess, onError, isProcessing, setIsProcessing }) {
 // ─── Main Checkout ────────────────────────────────────────────────
 export default function CheckoutContent() {
   const router = useRouter();
-  const { items, total, itemCount, clearAll } = useCart();
+  const { items, total, itemCount, clearAll, isLoading: cartLoading } = useCart();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [step, setStep] = useState(1);
@@ -129,12 +129,12 @@ export default function CheckoutContent() {
     }
   }, [isAuthenticated, user]); // selectedAddressId intentionally excluded — only set default on first load
 
-  // Redirect to cart if empty
+  // Redirect to cart if empty — wait for cart to finish loading to avoid race condition
   useEffect(() => {
-    if (!authLoading && itemCount === 0 && !orderData) {
+    if (!authLoading && !cartLoading && itemCount === 0 && !orderData) {
       router.replace('/cart');
     }
-  }, [authLoading, itemCount, router, orderData]);
+  }, [authLoading, cartLoading, itemCount, router, orderData]);
 
   // Load delivery options once on mount; auto-default each item to cheapest option
   useEffect(() => {
@@ -356,7 +356,7 @@ export default function CheckoutContent() {
     toast.error(`${message || 'Payment failed.'} ${detail}`, { duration: 8000 });
   }, [orderData]);
 
-  if (authLoading || (itemCount === 0 && !orderData)) {
+  if (authLoading || cartLoading || (itemCount === 0 && !orderData)) {
     return (
       <MainLayout>
         <div className="checkout-page">
