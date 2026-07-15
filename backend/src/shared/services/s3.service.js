@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import crypto from 'crypto';
+import sharp from 'sharp';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -37,6 +38,27 @@ export const uploadToS3 = async (file, folder = 'products') => {
     throw new Error('Failed to upload image');
   }
 };
+
+// ─── Image Compression ───────────────────────────────────────────────
+
+// Compress and resize any image buffer before uploading to S3.
+// Targets max 1600px wide, WebP at 82% quality → typically 150–400 KB from multi-MB originals.
+// Falls back to the original buffer if Sharp fails (e.g. unsupported format like SVG).
+async function compressImage(buffer) {
+  try {
+    return {
+      buffer: await sharp(buffer)
+        .resize({ width: 1600, withoutEnlargement: true })
+        .webp({ quality: 82 })
+        .toBuffer(),
+      ext: '.webp',
+      contentType: 'image/webp',
+    };
+  } catch (err) {
+    console.warn('[ImageSync] Compression skipped:', err.message);
+    return { buffer, ext: '.jpg', contentType: 'image/jpeg' };
+  }
+}
 
 // ─── Image Sync Helpers ──────────────────────────────────────────────
 
@@ -98,15 +120,16 @@ export async function uploadBufferIfNew(identifier, buffer, ext = '.jpg', conten
   }
 
   try {
+    const compressed = await compressImage(buffer);
     const hash = crypto.createHash('sha256').update(identifier).digest('hex').substring(0, 32);
-    const key = `media/${hash}${ext}`;
+    const key = `media/${hash}${compressed.ext}`;
 
     if (!(await existsInS3(key))) {
       await s3Client.send(new PutObjectCommand({
         Bucket: process.env.AWS_S3_BUCKET,
         Key: key,
-        Body: buffer,
-        ContentType: contentType,
+        Body: compressed.buffer,
+        ContentType: compressed.contentType,
         CacheControl: 'public, max-age=31536000, immutable',
       }));
     }
@@ -135,12 +158,11 @@ export async function downloadAndUploadImage(externalUrl) {
 
   try {
     const hash = crypto.createHash('sha256').update(externalUrl).digest('hex').substring(0, 32);
-    const ext = getExtensionFromUrl(externalUrl);
-    const key = `media/${hash}${ext}`;
+    const webpKey = `media/${hash}.webp`;
 
-    // Check if already in S3
-    if (await existsInS3(key)) {
-      const s3Url = buildS3Url(key);
+    // Check if already uploaded (compressed WebP key takes priority)
+    if (await existsInS3(webpKey)) {
+      const s3Url = buildS3Url(webpKey);
       syncCache.set(externalUrl, s3Url);
       return s3Url;
     }
@@ -152,21 +174,24 @@ export async function downloadAndUploadImage(externalUrl) {
       return externalUrl;
     }
 
-    const buffer = Buffer.from(await response.arrayBuffer());
-    const contentType = response.headers.get('content-type') || CONTENT_TYPE_MAP[ext] || 'image/jpeg';
+    const rawBuffer = Buffer.from(await response.arrayBuffer());
+    const compressed = await compressImage(rawBuffer);
 
-    // Upload to S3
+    // Re-key with compressed extension so .webp and .jpg don't collide
+    const compressedKey = `media/${hash}${compressed.ext}`;
+
+    // Upload compressed image to S3
     await s3Client.send(new PutObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
+      Key: compressedKey,
+      Body: compressed.buffer,
+      ContentType: compressed.contentType,
       CacheControl: 'public, max-age=31536000, immutable',
     }));
 
-    const s3Url = buildS3Url(key);
+    const s3Url = buildS3Url(compressedKey);
     syncCache.set(externalUrl, s3Url);
-    console.log(`[ImageSync] Uploaded: ${externalUrl.substring(0, 60)}... → ${key}`);
+    console.log(`[ImageSync] Uploaded: ${externalUrl.substring(0, 60)}... → ${compressedKey}`);
     return s3Url;
 
   } catch (err) {
