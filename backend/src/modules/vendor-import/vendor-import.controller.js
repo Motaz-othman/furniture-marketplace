@@ -2,7 +2,7 @@ import prisma from '../../shared/config/db.js';
 import { parseAcmeCatalog } from '../../shared/adapters/acme.adapter.js';
 import { parseGlobalFurnitureCatalog } from '../../shared/adapters/globalFurniture.adapter.js';
 import { parseUnitedWeaversRugs } from '../../shared/adapters/unitedweavers.adapter.js';
-import { runVendorImport, refreshAcmePricing, getImportStatus, syncGfwDropboxAssets, getDropboxSyncStatus, resetGfwDropboxSync, syncUwImagesToS3 } from '../../shared/services/vendorImport.service.js';
+import { runVendorImport, refreshAcmePricing, getImportStatus, syncGfwDropboxAssets, getDropboxSyncStatus, resetGfwDropboxSync, syncUwImagesToS3, getUwImageSyncStatus } from '../../shared/services/vendorImport.service.js';
 import { toCSVBuffer } from '../../shared/adapters/excelToCSV.js';
 
 function buf(file) {
@@ -26,6 +26,7 @@ export const getStatus = async (req, res) => {
       data: {
         ...status,
         dropboxSync: getDropboxSyncStatus(),
+        uwImageSync: getUwImageSyncStatus(),
         lastSyncs: lastLogs.map(log => ({
           source: log.source,
           type: log.type,

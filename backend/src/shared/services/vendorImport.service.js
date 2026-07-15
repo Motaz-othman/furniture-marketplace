@@ -38,6 +38,14 @@ export function getImportStatus() {
   return { ...importState };
 }
 
+// ─── UV image sync state ─────────────────────────────────────────
+
+let uwImageSyncState = { running: false, startedAt: null, done: 0, total: 0, lastRun: null, lastResult: null };
+
+export function getUwImageSyncStatus() {
+  return { ...uwImageSyncState };
+}
+
 // ─── GFW Dropbox sync state ───────────────────────────────────────
 
 let dropboxSyncState = { running: false, startedAt: null, progress: null, lastRun: null, lastResult: null };
@@ -354,12 +362,15 @@ async function upsertRecord({ product: p, variant: v }, source, extraImagesMap, 
 const UV_IMAGE_BATCH = 5; // products per batch — keeps Sharp RSS well under 512 MB
 
 export async function syncUwImagesToS3() {
-  console.log('[UV ImageSync] Starting Phase 2 image migration...');
+  if (uwImageSyncState.running) {
+    console.log('[UV ImageSync] Already running — skipping duplicate trigger');
+    return;
+  }
+
   const bucket = process.env.AWS_S3_BUCKET;
   const region = process.env.AWS_REGION;
   const prefix = `https://${bucket}.s3.${region}.amazonaws.com/`;
 
-  // Find UV products whose main image is still a Dropbox URL (not yet on S3)
   const products = await prisma.product.findMany({
     where: { source: 'UW' },
     select: { id: true, name: true, media: true, mainImage: true },
@@ -370,7 +381,16 @@ export async function syncUwImagesToS3() {
     return main && !main.startsWith(prefix);
   });
 
-  console.log(`[UV ImageSync] ${needsSync.length}/${products.length} products need image migration`);
+  uwImageSyncState = {
+    running: true,
+    startedAt: new Date().toISOString(),
+    done: 0,
+    total: needsSync.length,
+    lastRun: uwImageSyncState.lastRun,
+    lastResult: null,
+  };
+
+  console.log(`[UV ImageSync] Starting — ${needsSync.length}/${products.length} products need migration`);
 
   let done = 0;
   for (let i = 0; i < needsSync.length; i += UV_IMAGE_BATCH) {
@@ -386,19 +406,29 @@ export async function syncUwImagesToS3() {
           data: { media: migratedMedia, mainImage },
         });
         done++;
+        uwImageSyncState.done = done;
       } catch (err) {
         console.warn(`[UV ImageSync] Failed for "${product.name}": ${err.message}`);
       }
     }
 
     const memMB = Math.round(process.memoryUsage().rss / 1024 / 1024);
-    console.log(`[UV ImageSync] Batch ${Math.floor(i / UV_IMAGE_BATCH) + 1} done — ${done}/${needsSync.length} migrated, RSS ${memMB}MB`);
+    console.log(`[UV ImageSync] ${done}/${needsSync.length} migrated — RSS ${memMB}MB`);
 
-    // Pause between batches — lets V8 GC collect Sharp buffers before the next batch
     await new Promise(r => setTimeout(r, 2000));
   }
 
-  console.log(`[UV ImageSync] Phase 2 complete — ${done} products migrated to S3`);
+  const now = new Date().toISOString();
+  uwImageSyncState = {
+    running: false,
+    startedAt: null,
+    done,
+    total: needsSync.length,
+    lastRun: now,
+    lastResult: { migrated: done, total: needsSync.length },
+  };
+
+  console.log(`[UV ImageSync] Done — ${done}/${needsSync.length} migrated to S3`);
 }
 
 // ─── Run a full vendor import ──────────────────────────────────────

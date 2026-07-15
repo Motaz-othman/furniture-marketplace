@@ -12,6 +12,7 @@ import {
   importUnitedWeavers,
   triggerGfwDropboxSync,
   resetGfwDropboxSync,
+  triggerUwImageSync,
 } from '@/lib/services/vendorImport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -95,7 +96,7 @@ export default function VendorImportPage() {
     queryFn: getVendorImportStatus,
     refetchInterval: (query) => {
       const d = query.state.data?.data;
-      return (d?.running || d?.dropboxSync?.running) ? 2000 : 10000;
+      return (d?.running || d?.dropboxSync?.running || d?.uwImageSync?.running) ? 2000 : 10000;
     },
   });
 
@@ -107,6 +108,7 @@ export default function VendorImportPage() {
   const status = statusRes?.data;
   const isRunning = status?.running;
   const dropbox = status?.dropboxSync;
+  const uwSync = status?.uwImageSync;
   const logs = logsRes?.data || [];
   const pagination = logsRes?.pagination;
 
@@ -114,6 +116,12 @@ export default function VendorImportPage() {
     queryClient.invalidateQueries({ queryKey: ['vendor-import-status'] });
     queryClient.invalidateQueries({ queryKey: ['vendor-import-logs'] });
   }
+
+  const uwImageSyncMutation = useMutation({
+    mutationFn: triggerUwImageSync,
+    onSuccess: () => { toast.success('UV image sync started'); invalidate(); },
+    onError: (err) => toast.error(err.response?.data?.error || 'Failed to start UV image sync'),
+  });
 
   const dropboxResetMutation = useMutation({
     mutationFn: resetGfwDropboxSync,
@@ -190,7 +198,7 @@ export default function VendorImportPage() {
       </div>
 
       {/* Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Import Status</CardTitle>
@@ -274,6 +282,58 @@ export default function VendorImportPage() {
                     {dropboxResetMutation.isPending ? 'Resetting...' : 'Reset & Re-sync'}
                   </Button>
                 </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* UV Image Sync */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">UV Image Sync (S3)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {uwSync?.running ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                  <span className="font-semibold text-blue-600">Syncing</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {uwSync.done} / {uwSync.total} products migrated
+                </p>
+                {uwSync.total > 0 && (
+                  <div className="w-full bg-muted rounded-full h-1.5">
+                    <div
+                      className="bg-blue-500 h-1.5 rounded-full transition-all"
+                      style={{ width: `${Math.round((uwSync.done / uwSync.total) * 100)}%` }}
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">Started: {formatDate(uwSync.startedAt)}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className={`font-semibold text-sm ${uwSync?.lastRun ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {uwSync?.lastRun ? 'Idle' : 'Not run yet'}
+                </p>
+                {uwSync?.lastRun && (
+                  <p className="text-xs text-muted-foreground">Last run: {formatDate(uwSync.lastRun)}</p>
+                )}
+                {uwSync?.lastResult && (
+                  <p className="text-xs text-muted-foreground">
+                    {uwSync.lastResult.migrated} / {uwSync.lastResult.total} migrated to S3
+                  </p>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={uwSync?.running || uwImageSyncMutation.isPending}
+                  onClick={() => uwImageSyncMutation.mutate()}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  {uwImageSyncMutation.isPending ? 'Starting...' : 'Sync Images Now'}
+                </Button>
               </div>
             )}
           </CardContent>

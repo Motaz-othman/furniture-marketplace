@@ -58,3 +58,8 @@ export async function resetGfwDropboxSync() {
   const { data } = await api.post('/admin/vendor-import/gfw/dropbox-reset');
   return data;
 }
+
+export async function triggerUwImageSync() {
+  const { data } = await api.post('/admin/vendor-import/uw/sync-images');
+  return data;
+}
