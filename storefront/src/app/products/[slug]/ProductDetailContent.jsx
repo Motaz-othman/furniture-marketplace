@@ -134,12 +134,16 @@ function getVariantOptionLabel(variant, hasColor, hasSize) {
   return variant.options?.[0]?.value ?? variant.sku ?? '—';
 }
 
-export default function ProductDetailContent({ slug }) {
+export default function ProductDetailContent({ slug, initialProduct, initialParentCategory }) {
   const router = useRouter();
   const { addItem } = useCart();
 
-  // Fetch single product by slug - much more efficient than fetching all products
-  const { data: productData, isLoading, error } = useProductBySlug(slug);
+  // SSR data seeds the cache so isLoading is false on first render — no spinner CLS
+  const ssrTimestamp = useRef(Date.now());
+  const { data: productData, isLoading, error } = useProductBySlug(slug, {
+    initialData: initialProduct ? { data: initialProduct } : undefined,
+    initialDataUpdatedAt: initialProduct ? ssrTimestamp.current : undefined,
+  });
   const product = productData?.data || null;
 
   // Fetch products for related products section (only when we have product category)
@@ -154,7 +158,11 @@ export default function ProductDetailContent({ slug }) {
 
   // Fetch parent category for breadcrumb URL
   const parentCategoryId = product?.category?.parentId;
-  const { data: parentCatData } = useCategory(parentCategoryId, { enabled: !!parentCategoryId });
+  const { data: parentCatData } = useCategory(parentCategoryId, {
+    enabled: !!parentCategoryId,
+    initialData: initialParentCategory ? { data: initialParentCategory } : undefined,
+    initialDataUpdatedAt: initialParentCategory ? ssrTimestamp.current : undefined,
+  });
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);

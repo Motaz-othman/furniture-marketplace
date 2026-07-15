@@ -183,8 +183,12 @@ export default async function ProductDetailPage({ params }) {
         </>
       )}
 
-      {/* Client Component with all interactive UI */}
-      <ProductDetailContent slug={slug} />
+      {/* Client Component with all interactive UI — pass SSR data so it skips the loading state */}
+      <ProductDetailContent
+        slug={slug}
+        initialProduct={product}
+        initialParentCategory={parentCategory}
+      />
     </>
   );
 }

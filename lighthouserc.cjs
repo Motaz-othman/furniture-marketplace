@@ -7,7 +7,8 @@
 //   PDP:       perf=20  a11y=89  bp=100  seo=92   LCP=35s  CLS=0.361  TBT=2790ms
 //
 // Production scores will be significantly better (minified bundles, image cache).
-// CLS on PDP (0.361) needs investigation — layout shift from image containers.
+// CLS on PDP was 0.361 — fixed by seeding React Query initialData from RSC so
+// the client component skips the loading spinner on first render.
 // Target thresholds below are for a production build.
 
 const BASE = process.env.LIGHTHOUSE_URL || 'http://localhost:3001';

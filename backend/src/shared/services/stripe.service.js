@@ -103,15 +103,4 @@ export const listRefunds = async (paymentIntentId) => {
   }
 };
 
-// Create Stripe Express dashboard login link
-export const createDashboardLink = async (accountId) => {
-  try {
-    const loginLink = await stripe.accounts.createLoginLink(accountId);
-    return loginLink;
-  } catch (error) {
-    console.error('Create dashboard link error:', error);
-    throw error;
-  }
-};
-
 export default stripe;
