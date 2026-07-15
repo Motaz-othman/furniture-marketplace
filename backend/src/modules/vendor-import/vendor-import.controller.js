@@ -237,9 +237,61 @@ export const importUnitedWeavers = async (req, res) => {
   }
 };
 
-// POST /vendor-import/uw-sync-images
-// Manually re-trigger Phase 2 UV image migration (safe to call multiple times — skips already-migrated products)
 export const syncUwImages = async (req, res) => {
   res.json({ message: 'UV image S3 migration started in background' });
   syncUwImagesToS3().catch(err => console.error('[UV ImageSync] Manual trigger failed:', err.message));
+};
+
+// GET /uw/pending-images
+// Returns list of UV products whose images are not yet on S3
+export const getUwPendingImages = async (req, res) => {
+  try {
+    const bucket = process.env.AWS_S3_BUCKET;
+    const region = process.env.AWS_REGION;
+    const s3Prefix = `https://${bucket}.s3.${region}.amazonaws.com/`;
+
+    const products = await prisma.product.findMany({
+      where: { source: 'UW' },
+      select: { id: true, name: true, mainImage: true, media: true },
+    });
+
+    const pending = products
+      .filter(p => {
+        const main = p.media?.mainImages?.[0]?.url || p.mainImage || '';
+        return main && !main.startsWith(s3Prefix);
+      })
+      .map(p => ({ id: p.id, name: p.name }));
+
+    res.json({ total: products.length, pending: pending.length, products: pending });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// POST /uw/migrate-product/:id
+// Migrates all images for one UV product to S3. Called by the browser one product at a time.
+export const migrateUwProductImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await prisma.product.findUnique({
+      where: { id },
+      select: { id: true, name: true, media: true, mainImage: true },
+    });
+
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const { migrateMediaToS3Raw } = await import('../../shared/services/s3.service.js');
+    const migratedMedia = await migrateMediaToS3Raw(product.media);
+    const mainImage = migratedMedia?.mainImages?.[0]?.url || product.mainImage;
+
+    await prisma.product.update({
+      where: { id },
+      data: { media: migratedMedia, mainImage },
+    });
+
+    res.json({ ok: true, name: product.name, mainImage });
+  } catch (err) {
+    console.error(`[UV migrate] ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
 };

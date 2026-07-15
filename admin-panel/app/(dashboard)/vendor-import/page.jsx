@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getVendorImportStatus,
@@ -13,6 +13,8 @@ import {
   triggerGfwDropboxSync,
   resetGfwDropboxSync,
   triggerUwImageSync,
+  getUwPendingImages,
+  migrateUwProductImages,
 } from '@/lib/services/vendorImport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,6 +92,51 @@ export default function VendorImportPage() {
   // UW import
   const [uwCatalog, setUwCatalog] = useState(null);
   const [uwInventory, setUwInventory] = useState(null);
+
+  // UW browser-driven image migration
+  const [migrating, setMigrating] = useState(false);
+  const [migDone, setMigDone] = useState(0);
+  const [migTotal, setMigTotal] = useState(0);
+  const [migCurrent, setMigCurrent] = useState('');
+  const [migErrors, setMigErrors] = useState(0);
+  const stopRef = useRef(false);
+
+  const { data: pendingRes, refetch: refetchPending } = useQuery({
+    queryKey: ['uw-pending-images'],
+    queryFn: getUwPendingImages,
+    refetchOnWindowFocus: false,
+  });
+  const pending = pendingRes?.pending ?? 0;
+  const totalUw = pendingRes?.total ?? 0;
+
+  async function startMigration() {
+    stopRef.current = false;
+    const res = await getUwPendingImages();
+    const products = res.products || [];
+    if (!products.length) return;
+
+    setMigrating(true);
+    setMigDone(0);
+    setMigTotal(products.length);
+    setMigErrors(0);
+
+    for (let i = 0; i < products.length; i++) {
+      if (stopRef.current) break;
+      const p = products[i];
+      setMigCurrent(p.name);
+      try {
+        await migrateUwProductImages(p.id);
+        setMigDone(i + 1);
+      } catch {
+        setMigErrors(e => e + 1);
+        setMigDone(i + 1);
+      }
+    }
+
+    setMigrating(false);
+    setMigCurrent('');
+    refetchPending();
+  }
 
   const { data: statusRes } = useQuery({
     queryKey: ['vendor-import-status'],
@@ -462,28 +509,84 @@ export default function VendorImportPage() {
         </TabsContent>
 
         <TabsContent value="uw-import">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">United Weavers Rug Import</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Upload the UW MasterFile (catalog) and the Inventory file. Size variants are grouped into one product per
-                Variation Group Code. All three price tiers (Cost / MAP / MSRP) are stored per variant.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FileField id="uw-catalog" label="Catalog (MasterFile)" file={uwCatalog} onChange={setUwCatalog} />
-                <FileField id="uw-inventory" label="Inventory file" file={uwInventory} onChange={setUwInventory} />
-              </div>
-              <Button onClick={() => uwImportMutation.mutate()} disabled={uwImportDisabled}>
-                <Upload className="h-4 w-4 mr-1" />
-                {uwImportMutation.isPending ? 'Starting...' : 'Start Import'}
-              </Button>
-              {isRunning && (
-                <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
-              )}
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            {/* CSV upload */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Step 1 — Upload Catalog</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Upload the UW MasterFile (catalog) and the Inventory file. Products are created instantly — images are migrated to S3 separately in Step 2.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FileField id="uw-catalog" label="Catalog (MasterFile)" file={uwCatalog} onChange={setUwCatalog} />
+                  <FileField id="uw-inventory" label="Inventory file" file={uwInventory} onChange={setUwInventory} />
+                </div>
+                <Button onClick={() => uwImportMutation.mutate()} disabled={uwImportDisabled}>
+                  <Upload className="h-4 w-4 mr-1" />
+                  {uwImportMutation.isPending ? 'Starting...' : 'Start Import'}
+                </Button>
+                {isRunning && (
+                  <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Browser-driven image migration */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Step 2 — Migrate Images to S3</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {pending > 0
+                    ? `${pending} of ${totalUw} products still have Dropbox images. Click Start to upload them all to S3.`
+                    : totalUw > 0
+                    ? `All ${totalUw} products already have S3 images.`
+                    : 'Upload a catalog first.'}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {migrating ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                      <span className="text-sm font-medium text-blue-600">
+                        Migrating {migDone} / {migTotal}
+                        {migErrors > 0 && <span className="text-red-500 ml-2">({migErrors} errors)</span>}
+                      </span>
+                    </div>
+                    {migCurrent && (
+                      <p className="text-xs text-muted-foreground truncate">Current: {migCurrent}</p>
+                    )}
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: migTotal ? `${Math.round((migDone / migTotal) * 100)}%` : '0%' }}
+                      />
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => { stopRef.current = true; }}>
+                      Stop
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {migDone > 0 && (
+                      <p className="text-sm text-green-600 font-medium">
+                        Done — {migDone - migErrors} migrated{migErrors > 0 ? `, ${migErrors} failed` : ''}.
+                      </p>
+                    )}
+                    <Button
+                      onClick={startMigration}
+                      disabled={pending === 0 || isRunning}
+                    >
+                      <Upload className="h-4 w-4 mr-1" />
+                      {pending === 0 ? 'All images on S3' : `Start Migration (${pending} products)`}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 

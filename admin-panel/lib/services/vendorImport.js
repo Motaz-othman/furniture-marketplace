@@ -63,3 +63,13 @@ export async function triggerUwImageSync() {
   const { data } = await api.post('/admin/vendor-import/uw/sync-images');
   return data;
 }
+
+export async function getUwPendingImages() {
+  const { data } = await api.get('/admin/vendor-import/uw/pending-images');
+  return data;
+}
+
+export async function migrateUwProductImages(productId) {
+  const { data } = await api.post(`/admin/vendor-import/uw/migrate-product/${productId}`);
+  return data;
+}
