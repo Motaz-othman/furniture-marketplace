@@ -253,6 +253,110 @@ export async function downloadAndUploadImage(externalUrl) {
 }
 
 /**
+ * Download an image and upload to S3 WITHOUT Sharp compression.
+ * Used for Phase-2 UV image sync where Sharp's memory overhead causes OOM
+ * on the 512 MB Render instance. Images land on S3 as-is (original JPEG/PNG).
+ * compress-s3-images.js can be run separately to convert them to WebP later.
+ */
+export async function downloadAndUploadRaw(externalUrl) {
+  if (!externalUrl) return externalUrl;
+
+  if (syncCache.has(externalUrl)) return syncCache.get(externalUrl);
+
+  try {
+    const hash = crypto.createHash('sha256').update(externalUrl).digest('hex').substring(0, 32);
+    const ext = getExtensionFromUrl(externalUrl);
+    const key = `media/${hash}${ext}`;
+
+    if (await existsInS3(key)) {
+      const s3Url = buildS3Url(key);
+      syncCache.set(externalUrl, s3Url);
+      return s3Url;
+    }
+
+    const fetchUrl = toDirectUrl(externalUrl);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30_000);
+    let response;
+    try {
+      response = await fetch(fetchUrl, { signal: controller.signal });
+    } catch (err) {
+      console.warn(`[ImageSync:raw] Timeout/network error for ${externalUrl}: ${err.message}`);
+      return externalUrl;
+    } finally {
+      clearTimeout(timer);
+    }
+    if (!response.ok) {
+      console.warn(`[ImageSync:raw] HTTP ${response.status} for ${externalUrl}`);
+      return externalUrl;
+    }
+
+    // Stream with 25 MB cap — no Sharp decoding so RSS stays flat
+    const MAX_BYTES = 25 * 1024 * 1024;
+    const chunks = [];
+    let totalBytes = 0;
+    let tooLarge = false;
+    for await (const chunk of response.body) {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_BYTES) { tooLarge = true; break; }
+      chunks.push(chunk);
+    }
+    if (tooLarge) {
+      console.warn(`[ImageSync:raw] Skipping oversized image (>25MB): ${externalUrl.substring(0, 60)}`);
+      return externalUrl;
+    }
+
+    const contentType = response.headers.get('content-type')?.split(';')[0]?.trim()
+      || CONTENT_TYPE_MAP[ext] || 'image/jpeg';
+
+    await s3Client.send(new PutObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: key,
+      Body: Buffer.concat(chunks),
+      ContentType: contentType,
+      CacheControl: 'public, max-age=31536000, immutable',
+    }));
+
+    const s3Url = buildS3Url(key);
+    syncCache.set(externalUrl, s3Url);
+    const memMB = Math.round(process.memoryUsage().rss / 1024 / 1024);
+    console.log(`[ImageSync:raw] ${(totalBytes / 1024).toFixed(0)}KB uploaded — RSS ${memMB}MB → ${key}`);
+    return s3Url;
+
+  } catch (err) {
+    console.warn(`[ImageSync:raw] Error for ${externalUrl}: ${err.message}`);
+    return externalUrl;
+  }
+}
+
+/**
+ * Same as migrateMediaToS3 but uses downloadAndUploadRaw (no Sharp) — safe on 512 MB.
+ */
+export async function migrateMediaToS3Raw(media) {
+  if (!media || process.env.SYNC_IMAGES_TO_S3 !== 'true') return media;
+
+  const result = { ...media };
+
+  if (Array.isArray(result.mainImages)) {
+    const out = [];
+    for (const img of result.mainImages) {
+      out.push({ ...img, url: await downloadAndUploadRaw(img.url) });
+    }
+    result.mainImages = out;
+  }
+
+  if (Array.isArray(result.additionalImages)) {
+    const out = [];
+    for (const img of result.additionalImages) {
+      out.push({ ...img, url: await downloadAndUploadRaw(img.url) });
+    }
+    result.additionalImages = out;
+  }
+
+  return result;
+}
+
+/**
  * Migrate a single image URL to S3. Returns S3 URL or original on failure.
  */
 export async function migrateImageUrl(url) {

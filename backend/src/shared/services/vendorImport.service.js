@@ -11,7 +11,7 @@
  */
 
 import prisma from '../config/db.js';
-import { migrateMediaToS3, clearSyncCache } from './s3.service.js';
+import { migrateMediaToS3, migrateMediaToS3Raw, clearSyncCache } from './s3.service.js';
 import { parseAcmePriceAndInventory } from '../adapters/acme.adapter.js';
 import { fetchCollectionImages, verifyDropboxToken } from '../adapters/gfwDropboxAssets.js';
 
@@ -359,7 +359,7 @@ async function upsertRecord({ product: p, variant: v }, source, extraImagesMap, 
 
 // ─── UV Phase-2: migrate Dropbox images to S3 in small batches ────
 
-const UV_IMAGE_BATCH = 5; // products per batch — keeps Sharp RSS well under 512 MB
+const UV_IMAGE_BATCH = 3; // products per batch — no Sharp, but conservative to allow GC between batches
 
 export async function syncUwImagesToS3() {
   if (uwImageSyncState.running) {
@@ -398,7 +398,9 @@ export async function syncUwImagesToS3() {
 
     for (const product of batch) {
       try {
-        const migratedMedia = await migrateMediaToS3(product.media);
+        // Raw upload (no Sharp) keeps RSS flat on the 512 MB Render instance.
+        // compress-s3-images.js can WebP-convert these later.
+        const migratedMedia = await migrateMediaToS3Raw(product.media);
         if (!migratedMedia) continue;
         const mainImage = migratedMedia.mainImages?.[0]?.url || product.mainImage || null;
         await prisma.product.update({
@@ -415,7 +417,7 @@ export async function syncUwImagesToS3() {
     const memMB = Math.round(process.memoryUsage().rss / 1024 / 1024);
     console.log(`[UV ImageSync] ${done}/${needsSync.length} migrated — RSS ${memMB}MB`);
 
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 5000));
   }
 
   const now = new Date().toISOString();
