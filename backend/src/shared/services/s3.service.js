@@ -148,6 +148,19 @@ export async function uploadBufferIfNew(identifier, buffer, ext = '.jpg', conten
  * Uses a deterministic key (SHA-256 of the URL) so the same URL is never uploaded twice.
  * Returns the S3 URL, or the original URL on failure (graceful fallback).
  */
+// Rewrite Dropbox shared-link URLs to force a direct file download.
+// /s/ links without ?raw=1 redirect to an HTML preview page in some clients.
+function toDirectUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'www.dropbox.com' || u.hostname === 'dropbox.com') {
+      u.searchParams.set('raw', '1');
+      return u.toString();
+    }
+  } catch { /* not a valid URL — return as-is */ }
+  return url;
+}
+
 export async function downloadAndUploadImage(externalUrl) {
   if (!externalUrl) return externalUrl;
 
@@ -167,12 +180,14 @@ export async function downloadAndUploadImage(externalUrl) {
       return s3Url;
     }
 
+    const fetchUrl = toDirectUrl(externalUrl);
+
     // Download from external source — 30s timeout so one slow URL can't freeze the import
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 30_000);
     let response;
     try {
-      response = await fetch(externalUrl, { signal: controller.signal });
+      response = await fetch(fetchUrl, { signal: controller.signal });
     } catch (fetchErr) {
       console.warn(`[ImageSync] Timeout/network error for ${externalUrl}: ${fetchErr.message}`);
       return externalUrl;
@@ -184,7 +199,24 @@ export async function downloadAndUploadImage(externalUrl) {
       return externalUrl;
     }
 
-    const rawBuffer = Buffer.from(await response.arrayBuffer());
+    // Stream into memory with a 25 MB cap — prevents OOM from large TIFFs/PNGs
+    const MAX_BYTES = 25 * 1024 * 1024;
+    const chunks = [];
+    let totalBytes = 0;
+    let tooLarge = false;
+    for await (const chunk of response.body) {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_BYTES) { tooLarge = true; break; }
+      chunks.push(chunk);
+    }
+    if (tooLarge) {
+      console.warn(`[ImageSync] Skipping oversized image (>${MAX_BYTES / 1024 / 1024}MB): ${externalUrl.substring(0, 60)}`);
+      return externalUrl;
+    }
+    const rawBuffer = Buffer.concat(chunks);
+    const memMB = Math.round(process.memoryUsage().rss / 1024 / 1024);
+    console.log(`[ImageSync] Downloaded ${(totalBytes / 1024).toFixed(0)}KB — RSS ${memMB}MB`);
+
     const compressed = await compressImage(rawBuffer);
     // Release the original buffer immediately — only keep the compressed copy
     rawBuffer.fill(0);
