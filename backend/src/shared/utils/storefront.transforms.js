@@ -267,6 +267,7 @@ export function transformProductForStorefront(product, listing = null) {
     stockQuantity: v.stockQuantity ?? 0,
     attributes: v.attributes || [],
     options: v.options || [],
+    packaging: v.packaging || null,
   }));
 
   // Specifications from first variant options
