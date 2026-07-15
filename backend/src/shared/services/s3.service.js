@@ -4,6 +4,13 @@ import sharp from 'sharp';
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Disable libvips operation cache — by default libvips caches every decoded
+// image in RAM for reuse, which causes unbounded memory growth on a 512MB
+// Render instance when importing hundreds of large vendor images sequentially.
+sharp.cache(false);
+// One Sharp worker thread at a time reduces peak RSS by ~30–50 MB.
+sharp.concurrency(1);
+
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -42,13 +49,14 @@ export const uploadToS3 = async (file, folder = 'products') => {
 // ─── Image Compression ───────────────────────────────────────────────
 
 // Compress and resize any image buffer before uploading to S3.
-// Targets max 1600px wide, WebP at 82% quality → typically 150–400 KB from multi-MB originals.
+// Max 1200px wide — lower than the original 1600px to reduce Sharp's peak RSS
+// on the 512MB Render instance when processing large vendor images.
 // Falls back to the original buffer if Sharp fails (e.g. unsupported format like SVG).
 async function compressImage(buffer) {
   try {
     return {
       buffer: await sharp(buffer)
-        .resize({ width: 1600, withoutEnlargement: true })
+        .resize({ width: 1200, withoutEnlargement: true })
         .webp({ quality: 82 })
         .toBuffer(),
       ext: '.webp',
@@ -261,11 +269,14 @@ export async function migrateMediaToS3(media) {
 
   const result = { ...media };
 
-  // Process sequentially to avoid loading multiple large images into memory at once
+  // Process sequentially to avoid loading multiple large images into memory at once.
+  // setImmediate between each image yields to the event loop and gives V8 a chance
+  // to collect the previous Sharp buffers before the next download starts.
   if (Array.isArray(result.mainImages)) {
     const out = [];
     for (const img of result.mainImages) {
       out.push({ ...img, url: await downloadAndUploadImage(img.url) });
+      await new Promise(r => setImmediate(r));
     }
     result.mainImages = out;
   }
@@ -274,6 +285,7 @@ export async function migrateMediaToS3(media) {
     const out = [];
     for (const img of result.additionalImages) {
       out.push({ ...img, url: await downloadAndUploadImage(img.url) });
+      await new Promise(r => setImmediate(r));
     }
     result.additionalImages = out;
   }
