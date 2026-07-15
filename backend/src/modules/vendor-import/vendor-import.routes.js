@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { getStatus, getLogs, importAcme, refreshAcme, importGlobalFurniture, clearGlobalFurnitureProducts, importUnitedWeavers, triggerGfwDropboxSync, resetGfwDropboxSyncHandler, syncUwImages, getUwPendingImages, migrateUwProductImages } from './vendor-import.controller.js';
+import { getStatus, getLogs, importAcme, refreshAcme, importGlobalFurniture, clearGlobalFurnitureProducts, importUnitedWeavers, triggerGfwDropboxSync, resetGfwDropboxSyncHandler, syncUwImages, getUwPendingImages, migrateUwProductImages, getUwPendingCompress, compressUwProductImages } from './vendor-import.controller.js';
 import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware.js';
 
 const router = Router();
@@ -60,5 +60,7 @@ router.post('/uw/import', upload.fields([
 router.post('/uw/sync-images', syncUwImages);
 router.get('/uw/pending-images', getUwPendingImages);
 router.post('/uw/migrate-product/:id', migrateUwProductImages);
+router.get('/uw/pending-compress', getUwPendingCompress);
+router.post('/uw/compress-product/:id', compressUwProductImages);
 
 export default router;

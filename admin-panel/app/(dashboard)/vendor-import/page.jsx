@@ -15,6 +15,8 @@ import {
   triggerUwImageSync,
   getUwPendingImages,
   migrateUwProductImages,
+  getUwPendingCompress,
+  compressUwProductImages,
 } from '@/lib/services/vendorImport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -93,12 +95,12 @@ export default function VendorImportPage() {
   const [uwCatalog, setUwCatalog] = useState(null);
   const [uwInventory, setUwInventory] = useState(null);
 
-  // UW browser-driven image migration
-  const [migrating, setMigrating] = useState(false);
-  const [migDone, setMigDone] = useState(0);
-  const [migTotal, setMigTotal] = useState(0);
-  const [migCurrent, setMigCurrent] = useState('');
-  const [migErrors, setMigErrors] = useState(0);
+  // UW 3-step pipeline state
+  const [uwStep, setUwStep] = useState(0);      // 0=idle 1=uploading 2=migrating 3=compressing 4=done
+  const [uwDone, setUwDone] = useState(0);
+  const [uwTotal, setUwTotal] = useState(0);
+  const [uwCurrent, setUwCurrent] = useState('');
+  const [uwErrors, setUwErrors] = useState(0);
   const stopRef = useRef(false);
 
   const { data: pendingRes, refetch: refetchPending } = useQuery({
@@ -106,36 +108,79 @@ export default function VendorImportPage() {
     queryFn: getUwPendingImages,
     refetchOnWindowFocus: false,
   });
-  const pending = pendingRes?.pending ?? 0;
-  const totalUw = pendingRes?.total ?? 0;
 
-  async function startMigration() {
-    stopRef.current = false;
-    const res = await getUwPendingImages();
+  async function runLoop(fetchFn, processFn) {
+    const res = await fetchFn();
     const products = res.products || [];
+    setUwTotal(products.length);
+    setUwDone(0);
     if (!products.length) return;
 
-    setMigrating(true);
-    setMigDone(0);
-    setMigTotal(products.length);
-    setMigErrors(0);
-
     for (let i = 0; i < products.length; i++) {
-      if (stopRef.current) break;
-      const p = products[i];
-      setMigCurrent(p.name);
+      if (stopRef.current) return;
+      setUwCurrent(products[i].name);
       try {
-        await migrateUwProductImages(p.id);
-        setMigDone(i + 1);
+        await processFn(products[i].id);
       } catch {
-        setMigErrors(e => e + 1);
-        setMigDone(i + 1);
+        setUwErrors(e => e + 1);
       }
+      setUwDone(i + 1);
     }
+  }
 
-    setMigrating(false);
-    setMigCurrent('');
-    refetchPending();
+  async function handleUwImport() {
+    stopRef.current = false;
+    setUwErrors(0);
+    setUwCurrent('');
+    setUwStep(1);
+
+    try {
+      // Trigger CSV upload (server responds immediately, runs import in background)
+      await uwImportMutation.mutateAsync();
+
+      // Poll until the background import finishes (max ~15 min)
+      setUwCurrent('Importing products to database…');
+      for (let i = 0; i < 300 && !stopRef.current; i++) {
+        const res = await getVendorImportStatus();
+        if (!res?.data?.running) break;
+        await new Promise(r => setTimeout(r, 3000));
+      }
+      if (stopRef.current) { setUwStep(0); return; }
+
+      // Step 2 — Migrate Dropbox → S3 JPEG
+      setUwStep(2);
+      await runLoop(getUwPendingImages, migrateUwProductImages);
+      if (stopRef.current) { setUwStep(0); return; }
+
+      // Step 3 — Compress JPEG → WebP
+      setUwStep(3);
+      await runLoop(getUwPendingCompress, compressUwProductImages);
+
+      setUwStep(4);
+      setUwCurrent('');
+      refetchPending();
+    } catch {
+      setUwStep(0);
+    }
+  }
+
+  async function runImagePipelineOnly() {
+    stopRef.current = false;
+    setUwErrors(0);
+    setUwCurrent('');
+    setUwStep(2);
+
+    try {
+      await runLoop(getUwPendingImages, migrateUwProductImages);
+      if (stopRef.current) { setUwStep(0); return; }
+      setUwStep(3);
+      await runLoop(getUwPendingCompress, compressUwProductImages);
+      setUwStep(4);
+      setUwCurrent('');
+      refetchPending();
+    } catch {
+      setUwStep(0);
+    }
   }
 
   const { data: statusRes } = useQuery({
@@ -232,7 +277,8 @@ export default function VendorImportPage() {
   const acmeImportDisabled = isRunning || acmeImportMutation.isPending || !acmeSpec || !acmeImages || !acmePrice || !acmeInventory;
   const acmeRefreshDisabled = isRunning || acmeRefreshMutation.isPending || !refreshPrice || !refreshInventory;
   const gfwImportDisabled = isRunning || gfwImportMutation.isPending || !gfwData || !gfwInventory;
-  const uwImportDisabled = isRunning || uwImportMutation.isPending || !uwCatalog || !uwInventory;
+  const uwPipelineRunning = uwStep > 0 && uwStep < 4;
+  const uwImportDisabled = isRunning || uwImportMutation.isPending || !uwCatalog || !uwInventory || uwPipelineRunning;
 
   return (
     <div className="space-y-6">
@@ -509,84 +555,113 @@ export default function VendorImportPage() {
         </TabsContent>
 
         <TabsContent value="uw-import">
-          <div className="space-y-4">
-            {/* CSV upload */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Step 1 — Upload Catalog</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Upload the UW MasterFile (catalog) and the Inventory file. Products are created instantly — images are migrated to S3 separately in Step 2.
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FileField id="uw-catalog" label="Catalog (MasterFile)" file={uwCatalog} onChange={setUwCatalog} />
-                  <FileField id="uw-inventory" label="Inventory file" file={uwInventory} onChange={setUwInventory} />
-                </div>
-                <Button onClick={() => uwImportMutation.mutate()} disabled={uwImportDisabled}>
-                  <Upload className="h-4 w-4 mr-1" />
-                  {uwImportMutation.isPending ? 'Starting...' : 'Start Import'}
-                </Button>
-                {isRunning && (
-                  <p className="text-xs text-muted-foreground">An import is already running — wait for it to finish.</p>
-                )}
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">United Weavers — Catalog Import</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Upload the MasterFile and Inventory CSV. Once uploaded, the pipeline automatically migrates images from Dropbox to S3, then compresses them to WebP.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
 
-            {/* Browser-driven image migration */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Step 2 — Migrate Images to S3</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {pending > 0
-                    ? `${pending} of ${totalUw} products still have Dropbox images. Click Start to upload them all to S3.`
-                    : totalUw > 0
-                    ? `All ${totalUw} products already have S3 images.`
-                    : 'Upload a catalog first.'}
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {migrating ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                      <span className="text-sm font-medium text-blue-600">
-                        Migrating {migDone} / {migTotal}
-                        {migErrors > 0 && <span className="text-red-500 ml-2">({migErrors} errors)</span>}
-                      </span>
-                    </div>
-                    {migCurrent && (
-                      <p className="text-xs text-muted-foreground truncate">Current: {migCurrent}</p>
-                    )}
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: migTotal ? `${Math.round((migDone / migTotal) * 100)}%` : '0%' }}
-                      />
-                    </div>
-                    <Button size="sm" variant="outline" onClick={() => { stopRef.current = true; }}>
-                      Stop
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {migDone > 0 && (
-                      <p className="text-sm text-green-600 font-medium">
-                        Done — {migDone - migErrors} migrated{migErrors > 0 ? `, ${migErrors} failed` : ''}.
+              {/* File pickers + start button — shown when idle or done */}
+              {(uwStep === 0 || uwStep === 4) && (
+                <div className="space-y-4">
+                  {uwStep === 4 && (
+                    <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                      <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                        Pipeline complete — all 3 steps finished.
+                        {uwErrors > 0 && <span className="text-red-500 ml-2">({uwErrors} error{uwErrors > 1 ? 's' : ''})</span>}
                       </p>
-                    )}
-                    <Button
-                      onClick={startMigration}
-                      disabled={pending === 0 || isRunning}
-                    >
-                      <Upload className="h-4 w-4 mr-1" />
-                      {pending === 0 ? 'All images on S3' : `Start Migration (${pending} products)`}
-                    </Button>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FileField id="uw-catalog" label="Catalog (MasterFile)" file={uwCatalog} onChange={setUwCatalog} />
+                    <FileField id="uw-inventory" label="Inventory file" file={uwInventory} onChange={setUwInventory} />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={handleUwImport} disabled={uwImportDisabled}>
+                      <Upload className="h-4 w-4 mr-1" />
+                      {uwStep === 4 ? 'Import Another Catalog' : 'Start Import'}
+                    </Button>
+                    {pendingRes?.pending > 0 && uwStep === 0 && (
+                      <Button variant="outline" onClick={runImagePipelineOnly} disabled={uwPipelineRunning}>
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        Migrate Images Only ({pendingRes.pending} pending)
+                      </Button>
+                    )}
+                  </div>
+                  {isRunning && (
+                    <p className="text-xs text-muted-foreground">A server import is already running — wait for it to finish before starting a new one.</p>
+                  )}
+                </div>
+              )}
+
+              {/* 3-step progress — shown while pipeline is running */}
+              {uwPipelineRunning && (
+                <div className="space-y-3">
+                  {[
+                    { num: 1, label: 'Upload products to database' },
+                    { num: 2, label: 'Migrate images: Dropbox → S3' },
+                    { num: 3, label: 'Compress images to WebP' },
+                  ].map(step => {
+                    const isActive = uwStep === step.num;
+                    const isDone = uwStep > step.num;
+                    const isPending = uwStep < step.num;
+                    return (
+                      <div
+                        key={step.num}
+                        className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                          isActive
+                            ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30'
+                            : isDone
+                            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20'
+                            : 'border-border bg-muted/30 opacity-50'
+                        }`}
+                      >
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5 ${
+                          isActive ? 'bg-blue-500 text-white' : isDone ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {isDone ? '✓' : isActive ? <Loader2 className="h-3 w-3 animate-spin" /> : step.num}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${
+                            isActive ? 'text-blue-700 dark:text-blue-300' : isDone ? 'text-green-700 dark:text-green-300' : 'text-muted-foreground'
+                          }`}>
+                            {step.label}
+                          </p>
+                          {isActive && step.num === 1 && (
+                            <p className="text-xs text-muted-foreground mt-0.5 truncate">{uwCurrent || 'Starting…'}</p>
+                          )}
+                          {isActive && step.num >= 2 && (
+                            <div className="mt-2 space-y-1.5">
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span className="truncate max-w-[70%]">{uwCurrent || 'Starting…'}</span>
+                                <span className="flex-shrink-0 ml-2">{uwDone} / {uwTotal}</span>
+                              </div>
+                              <div className="w-full bg-muted rounded-full h-1.5">
+                                <div
+                                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                                  style={{ width: uwTotal ? `${Math.round((uwDone / uwTotal) * 100)}%` : '0%' }}
+                                />
+                              </div>
+                              {uwErrors > 0 && (
+                                <p className="text-xs text-red-500">{uwErrors} error{uwErrors > 1 ? 's' : ''}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <Button size="sm" variant="outline" onClick={() => { stopRef.current = true; }}>
+                    Stop Pipeline
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 

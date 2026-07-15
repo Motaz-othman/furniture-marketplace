@@ -73,3 +73,13 @@ export async function migrateUwProductImages(productId) {
   const { data } = await api.post(`/admin/vendor-import/uw/migrate-product/${productId}`);
   return data;
 }
+
+export async function getUwPendingCompress() {
+  const { data } = await api.get('/admin/vendor-import/uw/pending-compress');
+  return data;
+}
+
+export async function compressUwProductImages(productId) {
+  const { data } = await api.post(`/admin/vendor-import/uw/compress-product/${productId}`);
+  return data;
+}

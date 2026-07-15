@@ -269,7 +269,7 @@ export const getUwPendingImages = async (req, res) => {
 };
 
 // POST /uw/migrate-product/:id
-// Migrates all images for one UV product to S3. Called by the browser one product at a time.
+// Step 2: download from Dropbox, upload raw JPEG to S3
 export const migrateUwProductImages = async (req, res) => {
   try {
     const { id } = req.params;
@@ -277,21 +277,62 @@ export const migrateUwProductImages = async (req, res) => {
       where: { id },
       select: { id: true, name: true, media: true, mainImage: true },
     });
-
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
     const { migrateMediaToS3Raw } = await import('../../shared/services/s3.service.js');
     const migratedMedia = await migrateMediaToS3Raw(product.media);
     const mainImage = migratedMedia?.mainImages?.[0]?.url || product.mainImage;
 
-    await prisma.product.update({
-      where: { id },
-      data: { media: migratedMedia, mainImage },
-    });
-
-    res.json({ ok: true, name: product.name, mainImage });
+    await prisma.product.update({ where: { id }, data: { media: migratedMedia, mainImage } });
+    res.json({ ok: true, name: product.name });
   } catch (err) {
     console.error(`[UV migrate] ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET /uw/pending-compress
+// Returns UV products whose main image is on S3 but still JPEG (not WebP)
+export const getUwPendingCompress = async (req, res) => {
+  try {
+    const bucket = process.env.AWS_S3_BUCKET;
+    const region = process.env.AWS_REGION;
+    const s3Prefix = `https://${bucket}.s3.${region}.amazonaws.com/`;
+
+    const products = await prisma.product.findMany({
+      where: { source: 'UW' },
+      select: { id: true, name: true, mainImage: true },
+    });
+
+    const pending = products
+      .filter(p => p.mainImage?.startsWith(s3Prefix) && !p.mainImage.endsWith('.webp'))
+      .map(p => ({ id: p.id, name: p.name }));
+
+    res.json({ total: products.length, pending: pending.length, products: pending });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// POST /uw/compress-product/:id
+// Step 3: re-compress one product's S3 images to WebP using Sharp
+export const compressUwProductImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await prisma.product.findUnique({
+      where: { id },
+      select: { id: true, name: true, media: true, mainImage: true },
+    });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const { migrateMediaToS3 } = await import('../../shared/services/s3.service.js');
+    const compressedMedia = await migrateMediaToS3(product.media);
+    const mainImage = compressedMedia?.mainImages?.[0]?.url || product.mainImage;
+
+    await prisma.product.update({ where: { id }, data: { media: compressedMedia, mainImage } });
+    res.json({ ok: true, name: product.name });
+  } catch (err) {
+    console.error(`[UV compress] ${err.message}`);
     res.status(500).json({ error: err.message });
   }
 };
