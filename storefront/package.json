@@ -7,7 +7,8 @@
     "dev": "NODE_OPTIONS=--no-deprecation next dev --webpack",
     "build": "next build",
     "start": "NODE_OPTIONS=--no-deprecation next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lighthouse": "npx @lhci/cli@0.14 autorun --config=../lighthouserc.cjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.2.0",
