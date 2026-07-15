@@ -2,7 +2,7 @@ import prisma from '../../shared/config/db.js';
 import { parseAcmeCatalog } from '../../shared/adapters/acme.adapter.js';
 import { parseGlobalFurnitureCatalog } from '../../shared/adapters/globalFurniture.adapter.js';
 import { parseUnitedWeaversRugs } from '../../shared/adapters/unitedweavers.adapter.js';
-import { runVendorImport, refreshAcmePricing, getImportStatus, syncGfwDropboxAssets, getDropboxSyncStatus, resetGfwDropboxSync } from '../../shared/services/vendorImport.service.js';
+import { runVendorImport, refreshAcmePricing, getImportStatus, syncGfwDropboxAssets, getDropboxSyncStatus, resetGfwDropboxSync, syncUwImagesToS3 } from '../../shared/services/vendorImport.service.js';
 import { toCSVBuffer } from '../../shared/adapters/excelToCSV.js';
 
 function buf(file) {
@@ -234,4 +234,11 @@ export const importUnitedWeavers = async (req, res) => {
     console.error('UW import error:', error);
     res.status(400).json({ error: error.message || 'Failed to start United Weavers import' });
   }
+};
+
+// POST /vendor-import/uw-sync-images
+// Manually re-trigger Phase 2 UV image migration (safe to call multiple times — skips already-migrated products)
+export const syncUwImages = async (req, res) => {
+  res.json({ message: 'UV image S3 migration started in background' });
+  syncUwImagesToS3().catch(err => console.error('[UV ImageSync] Manual trigger failed:', err.message));
 };

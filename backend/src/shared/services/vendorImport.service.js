@@ -230,7 +230,7 @@ function resolveCategoryId(categoryPath) {
 
 // ─── Upsert a single { product, variant } record ──────────────────
 
-async function upsertRecord({ product: p, variant: v }, source, extraImagesMap) {
+async function upsertRecord({ product: p, variant: v }, source, extraImagesMap, skipImages = false) {
   // Look up existing first — needed for hash check before any expensive S3 work.
   let existing = await prisma.product.findUnique({
     where: { externalId_source: { externalId: p.externalId, source } },
@@ -272,7 +272,7 @@ async function upsertRecord({ product: p, variant: v }, source, extraImagesMap) 
   }
 
   const categoryId = resolveCategoryId(p.categoryPath);
-  const media = await migrateMediaToS3(p.media) || p.media || null;
+  const media = skipImages ? (p.media || null) : (await migrateMediaToS3(p.media) || p.media || null);
   const mainImage = media?.mainImages?.[0]?.url || p.mainImage || null;
 
   const extraAssets = extraImagesMap?.get(v.sku);
@@ -349,6 +349,58 @@ async function upsertRecord({ product: p, variant: v }, source, extraImagesMap) 
   return existing ? 'updated' : 'created';
 }
 
+// ─── UV Phase-2: migrate Dropbox images to S3 in small batches ────
+
+const UV_IMAGE_BATCH = 5; // products per batch — keeps Sharp RSS well under 512 MB
+
+export async function syncUwImagesToS3() {
+  console.log('[UV ImageSync] Starting Phase 2 image migration...');
+  const bucket = process.env.AWS_S3_BUCKET;
+  const region = process.env.AWS_REGION;
+  const prefix = `https://${bucket}.s3.${region}.amazonaws.com/`;
+
+  // Find UV products whose main image is still a Dropbox URL (not yet on S3)
+  const products = await prisma.product.findMany({
+    where: { source: 'UW' },
+    select: { id: true, name: true, media: true, mainImage: true },
+  });
+
+  const needsSync = products.filter(p => {
+    const main = p.media?.mainImages?.[0]?.url || p.mainImage || '';
+    return main && !main.startsWith(prefix);
+  });
+
+  console.log(`[UV ImageSync] ${needsSync.length}/${products.length} products need image migration`);
+
+  let done = 0;
+  for (let i = 0; i < needsSync.length; i += UV_IMAGE_BATCH) {
+    const batch = needsSync.slice(i, i + UV_IMAGE_BATCH);
+
+    for (const product of batch) {
+      try {
+        const migratedMedia = await migrateMediaToS3(product.media);
+        if (!migratedMedia) continue;
+        const mainImage = migratedMedia.mainImages?.[0]?.url || product.mainImage || null;
+        await prisma.product.update({
+          where: { id: product.id },
+          data: { media: migratedMedia, mainImage },
+        });
+        done++;
+      } catch (err) {
+        console.warn(`[UV ImageSync] Failed for "${product.name}": ${err.message}`);
+      }
+    }
+
+    const memMB = Math.round(process.memoryUsage().rss / 1024 / 1024);
+    console.log(`[UV ImageSync] Batch ${Math.floor(i / UV_IMAGE_BATCH) + 1} done — ${done}/${needsSync.length} migrated, RSS ${memMB}MB`);
+
+    // Pause between batches — lets V8 GC collect Sharp buffers before the next batch
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  console.log(`[UV ImageSync] Phase 2 complete — ${done} products migrated to S3`);
+}
+
 // ─── Run a full vendor import ──────────────────────────────────────
 
 /**
@@ -376,7 +428,9 @@ export async function runVendorImport(source, records) {
       setProgress(`Importing ${i + 1}/${records.length}: ${record.product.name}`);
 
       try {
-        const result = await upsertRecord(record, source, null);
+        // UV: skip S3 image migration during the product upsert — images are
+        // processed in Phase 2 in small batches to avoid OOM on 512 MB Render.
+        const result = await upsertRecord(record, source, null, source === 'UW');
         if (result === 'created') created++;
         else if (result === 'updated') updated++;
         else skipped++;
@@ -387,9 +441,15 @@ export async function runVendorImport(source, records) {
       }
     }
 
-    // Phase 2 (GFW only): fire Dropbox asset sync in background — does not block the import response
+    // Phase 2 (GFW only): fire Dropbox asset sync in background
     if (source === 'GFW') {
       syncGfwDropboxAssets().catch(err => console.error('[GFW Dropbox Auto-sync]', err.message));
+    }
+
+    // Phase 2 (UV only): migrate Dropbox image URLs to S3 in small batches.
+    // Runs after all DB writes are committed so a crash here doesn't lose products.
+    if (source === 'UW' && process.env.SYNC_IMAGES_TO_S3 === 'true') {
+      syncUwImagesToS3().catch(err => console.error('[UV ImageSync] Background sync failed:', err.message));
     }
 
     // ACME spec sheet is always the full catalog — any product missing from this
