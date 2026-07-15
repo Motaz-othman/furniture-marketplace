@@ -176,6 +176,8 @@ export async function downloadAndUploadImage(externalUrl) {
 
     const rawBuffer = Buffer.from(await response.arrayBuffer());
     const compressed = await compressImage(rawBuffer);
+    // Release the original buffer immediately — only keep the compressed copy
+    rawBuffer.fill(0);
 
     // Re-key with compressed extension so .webp and .jpg don't collide
     const compressedKey = `media/${hash}${compressed.ext}`;
@@ -217,22 +219,21 @@ export async function migrateMediaToS3(media) {
 
   const result = { ...media };
 
+  // Process sequentially to avoid loading multiple large images into memory at once
   if (Array.isArray(result.mainImages)) {
-    result.mainImages = await Promise.all(
-      result.mainImages.map(async (img) => ({
-        ...img,
-        url: await downloadAndUploadImage(img.url),
-      }))
-    );
+    const out = [];
+    for (const img of result.mainImages) {
+      out.push({ ...img, url: await downloadAndUploadImage(img.url) });
+    }
+    result.mainImages = out;
   }
 
   if (Array.isArray(result.additionalImages)) {
-    result.additionalImages = await Promise.all(
-      result.additionalImages.map(async (img) => ({
-        ...img,
-        url: await downloadAndUploadImage(img.url),
-      }))
-    );
+    const out = [];
+    for (const img of result.additionalImages) {
+      out.push({ ...img, url: await downloadAndUploadImage(img.url) });
+    }
+    result.additionalImages = out;
   }
 
   return result;
