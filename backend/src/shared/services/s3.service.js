@@ -167,8 +167,18 @@ export async function downloadAndUploadImage(externalUrl) {
       return s3Url;
     }
 
-    // Download from external source
-    const response = await fetch(externalUrl);
+    // Download from external source — 30s timeout so one slow URL can't freeze the import
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30_000);
+    let response;
+    try {
+      response = await fetch(externalUrl, { signal: controller.signal });
+    } catch (fetchErr) {
+      console.warn(`[ImageSync] Timeout/network error for ${externalUrl}: ${fetchErr.message}`);
+      return externalUrl;
+    } finally {
+      clearTimeout(timer);
+    }
     if (!response.ok) {
       console.warn(`[ImageSync] Failed to download ${externalUrl}: ${response.status}`);
       return externalUrl;
