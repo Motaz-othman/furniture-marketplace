@@ -265,22 +265,22 @@ export default function OrdersPage() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-sm">
-                    <div className="flex items-center gap-1.5">
+                  <TableCell className="text-sm max-w-[220px]">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       {order.items?.[0]?.product?.mainImage ? (
                         <Image
                           src={order.items[0].product.mainImage}
                           alt=""
                           width={32}
                           height={32}
-                          className="rounded object-cover border"
+                          className="rounded object-cover border shrink-0"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
                           <Package className="h-3.5 w-3.5 text-muted-foreground" />
                         </div>
                       )}
-                      <span>
+                      <span className="truncate">
                         {order.items?.[0]?.product?.name
                           ? order.items.length > 1
                             ? `${order.items[0].product.name} +${order.items.length - 1} more`
