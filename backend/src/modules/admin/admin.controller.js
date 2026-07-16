@@ -272,14 +272,20 @@ export const getAllOrders = async (req, res) => {
     const { page = 1, limit = 20, status, customerId, search, sortBy = 'createdAt', order = 'desc' } = req.query;
 
     let matchingCustomerIds = [];
+    let matchingOrderIdsByTracking = [];
     if (search) {
-      const matchingUsers = await prisma.user.findMany({
-        where: { email: { contains: search, mode: 'insensitive' } },
-        select: { customer: { select: { id: true } } },
-      });
-      matchingCustomerIds = matchingUsers
-        .map((u) => u.customer?.id)
-        .filter(Boolean);
+      const [matchingUsers, matchingShipments] = await Promise.all([
+        prisma.user.findMany({
+          where: { email: { contains: search, mode: 'insensitive' } },
+          select: { customer: { select: { id: true } } },
+        }),
+        prisma.shipment.findMany({
+          where: { trackingNumber: { contains: search, mode: 'insensitive' } },
+          select: { orderId: true },
+        }),
+      ]);
+      matchingCustomerIds = matchingUsers.map((u) => u.customer?.id).filter(Boolean);
+      matchingOrderIdsByTracking = [...new Set(matchingShipments.map((s) => s.orderId))];
     }
 
     const where = {
@@ -288,9 +294,9 @@ export const getAllOrders = async (req, res) => {
       ...(search && {
         OR: [
           { orderNumber: { contains: search, mode: 'insensitive' } },
-          { trackingNumber: { contains: search, mode: 'insensitive' } },
           { guestEmail: { contains: search, mode: 'insensitive' } },
           ...(matchingCustomerIds.length > 0 ? [{ customerId: { in: matchingCustomerIds } }] : []),
+          ...(matchingOrderIdsByTracking.length > 0 ? [{ id: { in: matchingOrderIdsByTracking } }] : []),
         ],
       }),
     };
