@@ -264,22 +264,14 @@ export default function UsersPage() {
             Page {page} of {pagination.totalPages} ({pagination.totalCount} users)
           </p>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(1)}>«</Button>
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
               <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
+            <Button variant="outline" size="sm" disabled={page >= pagination.totalPages} onClick={() => setPage((p) => p + 1)}>
               Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
+            <Button variant="outline" size="sm" disabled={page >= pagination.totalPages} onClick={() => setPage(pagination.totalPages)}>»</Button>
           </div>
         </div>
       )}
