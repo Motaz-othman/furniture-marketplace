@@ -199,11 +199,13 @@ export default function CheckoutContent() {
       .then(data => setTaxRate(data?.rate ?? 0))
       .catch(() => setTaxRate(0));
   }, [address.zipCode]);
-  const tax = useMemo(() => Math.round(total * taxRate * 100) / 100, [total, taxRate]);
-  const discount = appliedCoupon?.discountAmount ?? 0;
+  // Coupon applies to product subtotal only — never to delivery.
+  const discount = Math.min(appliedCoupon?.discountAmount ?? 0, total);
+  const discountedSubtotal = total - discount;
+  const tax = useMemo(() => Math.round(discountedSubtotal * taxRate * 100) / 100, [discountedSubtotal, taxRate]);
   const grandTotal = useMemo(
-    () => Math.round(Math.max(0, total + deliveryTotal + tax - discount) * 100) / 100,
-    [total, deliveryTotal, tax, discount],
+    () => Math.round((discountedSubtotal + deliveryTotal + tax) * 100) / 100,
+    [discountedSubtotal, deliveryTotal, tax],
   );
 
   async function handleApplyCoupon() {
@@ -846,6 +848,12 @@ export default function CheckoutContent() {
               <span>Subtotal</span>
               <span>{formatPrice(total)}</span>
             </div>
+            {discount > 0 && (
+              <div className="summary-row summary-discount">
+                <span>Discount {appliedCoupon?.code ? `(${appliedCoupon.code})` : ''}</span>
+                <span>−{formatPrice(discount)}</span>
+              </div>
+            )}
             <div className="summary-row">
               <span>Delivery</span>
               <span>{deliveryTotal === 0 ? 'Free' : formatPrice(deliveryTotal)}</span>
@@ -854,12 +862,6 @@ export default function CheckoutContent() {
               <span>Tax (est.)</span>
               <span>{formatPrice(tax)}</span>
             </div>
-            {discount > 0 && (
-              <div className="summary-row summary-discount">
-                <span>Discount {appliedCoupon?.code ? `(${appliedCoupon.code})` : ''}</span>
-                <span>−{formatPrice(discount)}</span>
-              </div>
-            )}
             <div className="summary-divider" />
             <div className="summary-row summary-total">
               <span>Total</span>

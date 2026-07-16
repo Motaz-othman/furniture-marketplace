@@ -157,9 +157,9 @@ export const guestCheckout = async (req, res) => {
     });
 
     const shippingCost = itemDeliveryData.reduce((sum, d) => sum + d.deliveryFee, 0);
-    const tax = Math.round(subtotal * taxRate * 100) / 100;
 
     // ── Validate and apply coupon ─────────────────────────────────────
+    // Coupon is applied to product subtotal ONLY — never to delivery fees.
     let appliedCoupon = null;
     let discountAmount = 0;
     if (couponCode) {
@@ -182,7 +182,10 @@ export const guestCheckout = async (req, res) => {
       appliedCoupon = coupon;
     }
 
-    const total = Math.max(0, subtotal + tax + shippingCost - discountAmount);
+    // Tax is computed on the discounted product subtotal (post-coupon, pre-delivery).
+    const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+    const tax = Math.round(discountedSubtotal * taxRate * 100) / 100;
+    const total = discountedSubtotal + tax + shippingCost;
 
     // ── Create Stripe payment intent FIRST — if this fails, no order is created ─
     let paymentIntent;

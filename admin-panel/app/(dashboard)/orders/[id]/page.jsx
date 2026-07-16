@@ -1166,14 +1166,14 @@ export default function OrderDetailPage() {
           </CardHeader>
           <CardContent>
             <InfoRow label="Subtotal" value={formatCurrency(order.subtotal)} />
-            <InfoRow label="Delivery" value={formatCurrency(order.shippingCost)} />
-            <InfoRow label="Tax" value={formatCurrency(order.tax)} />
             {order.discountAmount > 0 && (
               <div className="flex justify-between text-sm py-1 text-green-600">
                 <span>Discount{order.couponCode ? ` (${order.couponCode})` : ''}</span>
                 <span className="font-medium">−{formatCurrency(order.discountAmount)}</span>
               </div>
             )}
+            <InfoRow label="Delivery" value={formatCurrency(order.shippingCost)} />
+            <InfoRow label="Tax" value={formatCurrency(order.tax)} />
             <Separator className="my-2" />
             <div className="flex justify-between text-base font-semibold py-1">
               <span>Total</span>
