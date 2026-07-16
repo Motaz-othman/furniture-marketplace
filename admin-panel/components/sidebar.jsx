@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { getOrders } from '@/lib/services/orders';
+import { getReturnRequests } from '@/lib/services/returns';
 
 const navSections = [
   {
@@ -65,6 +66,14 @@ export function Sidebar() {
   });
   const pendingCount = pendingData?.pagination?.totalCount ?? 0;
 
+  const { data: pendingReturnsData } = useQuery({
+    queryKey: ['pending-returns-count'],
+    queryFn: () => getReturnRequests({ status: 'PENDING', limit: 1 }),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  });
+  const pendingReturnsCount = pendingReturnsData?.pagination?.total ?? 0;
+
   function handleLogout() {
     logout();
     window.location.href = '/login';
@@ -100,6 +109,11 @@ export function Sidebar() {
                   {href === '/orders' && pendingCount > 0 && (
                     <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white leading-none">
                       {pendingCount > 99 ? '99+' : pendingCount}
+                    </span>
+                  )}
+                  {href === '/returns' && pendingReturnsCount > 0 && (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white leading-none">
+                      {pendingReturnsCount > 99 ? '99+' : pendingReturnsCount}
                     </span>
                   )}
                 </Link>
