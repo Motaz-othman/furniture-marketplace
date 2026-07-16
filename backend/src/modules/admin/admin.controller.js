@@ -271,6 +271,15 @@ export const getAllOrders = async (req, res) => {
   try {
     const { page = 1, limit = 20, status, customerId, search, sortBy = 'createdAt', order = 'desc' } = req.query;
 
+    let matchingCustomerIds = [];
+    if (search) {
+      const matchingCustomers = await prisma.customer.findMany({
+        where: { user: { email: { contains: search, mode: 'insensitive' } } },
+        select: { id: true },
+      });
+      matchingCustomerIds = matchingCustomers.map((c) => c.id);
+    }
+
     const where = {
       ...(status && { status }),
       ...(customerId && { customerId }),
@@ -279,7 +288,7 @@ export const getAllOrders = async (req, res) => {
           { orderNumber: { contains: search, mode: 'insensitive' } },
           { trackingNumber: { contains: search, mode: 'insensitive' } },
           { guestEmail: { contains: search, mode: 'insensitive' } },
-          { customer: { user: { email: { contains: search, mode: 'insensitive' } } } },
+          ...(matchingCustomerIds.length > 0 ? [{ customerId: { in: matchingCustomerIds } }] : []),
         ],
       }),
     };
