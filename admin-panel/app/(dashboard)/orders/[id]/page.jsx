@@ -177,8 +177,7 @@ function getPackagingDims(item) {
   const weight = Number(pkg?.weight) || Number(varDims?.weight) || 0;
   const uomDist = pkg?.dimensionsUnitOfMeasure || varDims?.unitOfMeasureDistance || 'in';
   const cuFt = (L && W && H) ? (L * W * H) / 1728 : 0;
-  const longestDim = Math.max(L, W);
-  return { longestDim, height: H, cuFt, weight, uomDist };
+  return { L, W, H, cuFt, weight, uomDist };
 }
 
 function exportToCSV(order) {
@@ -187,19 +186,20 @@ function exportToCSV(order) {
   const esc = (s) => `"${String(s ?? '').replace(/"/g, '""')}"`;
   const headers = [
     'Item', 'SKU', 'Qty',
-    'Longest Dim (in)', 'Height (in)', 'Cu.Ft', 'Weight (lbs)',
+    'Length (in)', 'Width (in)', 'Height (in)', 'Cu.Ft', 'Weight (lbs)',
     'Pickup Location', 'Delivery Location', 'Delivery Method',
   ];
   const rows = (order.items || []).map((item) => {
-    const { longestDim, height, cuFt, weight } = getPackagingDims(item);
+    const { L, W, H, cuFt, weight } = getPackagingDims(item);
     const method = DELIVERY_METHOD_LABELS[item.deliveryMethod] || item.deliveryMethod || '';
     const pickup = item.product?.brand || item.product?.provider || '';
     return [
       esc(item.product?.name || ''),
       item.variant?.sku || '',
       item.quantity,
-      longestDim > 0 ? longestDim.toFixed(2) : '',
-      height > 0 ? height.toFixed(2) : '',
+      L > 0 ? L.toFixed(2) : '',
+      W > 0 ? W.toFixed(2) : '',
+      H > 0 ? H.toFixed(2) : '',
       cuFt > 0 ? cuFt.toFixed(3) : '',
       weight > 0 ? weight : '',
       esc(pickup),
@@ -655,8 +655,7 @@ export default function OrderDetailPage() {
                   <TH align="right">Cost Price</TH>
                   <TH align="right">Sale Price</TH>
                   <TH align="right">Disc. Price</TH>
-                  <TH align="right">Longest Dim</TH>
-                  <TH align="right">Height</TH>
+                  <TH align="right">Dimensions (L×W×H)</TH>
                   <TH align="right">Cu.Ft</TH>
                   <TH align="right">Weight</TH>
                 </tr>
@@ -666,7 +665,7 @@ export default function OrderDetailPage() {
                   const costPrice = item.variant?.price?.cost ?? null;
                   const salePrice = item.price;
                   const discountedPrice = discountRatio > 0 ? salePrice * (1 - discountRatio) : null;
-                  const { longestDim, height, cuFt, weight, uomDist } = getPackagingDims(item);
+                  const { L, W, H, cuFt, weight, uomDist } = getPackagingDims(item);
                   const dimUnit = uomDist === 'in' ? '"' : ' cm';
 
                   return (
@@ -723,10 +722,9 @@ export default function OrderDetailPage() {
                         )}
                       </TD>
                       <TD align="right" className="tabular-nums text-muted-foreground whitespace-nowrap">
-                        {longestDim > 0 ? `${longestDim.toFixed(1)}${dimUnit}` : '—'}
-                      </TD>
-                      <TD align="right" className="tabular-nums text-muted-foreground whitespace-nowrap">
-                        {height > 0 ? `${height.toFixed(1)}${dimUnit}` : '—'}
+                        {L > 0 && W > 0 && H > 0
+                          ? `${L.toFixed(1)}×${W.toFixed(1)}×${H.toFixed(1)}${dimUnit}`
+                          : '—'}
                       </TD>
                       <TD align="right" className="tabular-nums text-muted-foreground">
                         {cuFt > 0 ? cuFt.toFixed(2) : '—'}
