@@ -278,6 +278,8 @@ export const getAllOrders = async (req, res) => {
         OR: [
           { orderNumber: { contains: search, mode: 'insensitive' } },
           { trackingNumber: { contains: search, mode: 'insensitive' } },
+          { guestEmail: { contains: search, mode: 'insensitive' } },
+          { customer: { user: { email: { contains: search, mode: 'insensitive' } } } },
         ],
       }),
     };
