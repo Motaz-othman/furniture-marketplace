@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -246,10 +247,12 @@ function TD({ children, align = 'left', className = '' }) {
 
 function ItemThumb({ item }) {
   return item.product?.mainImage ? (
-    <img
+    <Image
       src={item.product.mainImage}
       alt=""
-      className="w-7 h-7 rounded object-cover border shrink-0"
+      width={28}
+      height={28}
+      className="rounded object-cover border shrink-0"
     />
   ) : (
     <div className="w-7 h-7 rounded bg-muted flex items-center justify-center border shrink-0">
@@ -670,10 +673,12 @@ export default function OrderDetailPage() {
                       <TD>
                         <div className="flex items-center gap-3">
                           {item.product?.mainImage ? (
-                            <img
+                            <Image
                               src={item.product.mainImage}
                               alt={item.product.name}
-                              className="w-10 h-10 rounded object-cover border shrink-0"
+                              width={40}
+                              height={40}
+                              className="rounded object-cover border shrink-0"
                             />
                           ) : (
                             <div className="w-10 h-10 rounded bg-muted flex items-center justify-center border shrink-0">

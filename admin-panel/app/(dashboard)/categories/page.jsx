@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -221,10 +222,11 @@ function CategoryDialog({ open, onClose, category, allCategories }) {
 
             {form.imageUrl ? (
               <div className="relative w-full rounded-lg overflow-hidden border bg-muted" style={{ aspectRatio: '4/3' }}>
-                <img
+                <Image
                   src={form.imageUrl}
                   alt="Category"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <Button
@@ -396,10 +398,12 @@ export default function CategoriesPage() {
                 <TableRow key={cat.id}>
                   <TableCell>
                     {cat.imageUrl ? (
-                      <img
+                      <Image
                         src={cat.imageUrl}
                         alt={cat.name}
-                        className="w-12 h-9 rounded object-cover border"
+                        width={48}
+                        height={36}
+                        className="rounded object-cover border"
                       />
                     ) : (
                       <div className="w-12 h-9 rounded bg-muted border flex items-center justify-center">

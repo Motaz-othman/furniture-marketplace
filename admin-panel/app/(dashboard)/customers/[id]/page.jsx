@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getCustomerDetail } from '@/lib/services/customers';
@@ -123,7 +124,7 @@ export default function CustomerDetailPage() {
                     <TableCell className="text-sm">
                       <div className="flex items-center gap-1.5">
                         {order.items?.[0]?.product?.mainImage ? (
-                          <img src={order.items[0].product.mainImage} alt="" className="w-7 h-7 rounded object-cover border" />
+                          <Image src={order.items[0].product.mainImage} alt="" width={28} height={28} className="rounded object-cover border" />
                         ) : (
                           <div className="w-7 h-7 rounded bg-muted flex items-center justify-center">
                             <Package className="h-3 w-3 text-muted-foreground" />

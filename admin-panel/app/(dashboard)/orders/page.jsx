@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -265,10 +266,12 @@ export default function OrdersPage() {
                   <TableCell className="text-sm">
                     <div className="flex items-center gap-1.5">
                       {order.items?.[0]?.product?.mainImage ? (
-                        <img
+                        <Image
                           src={order.items[0].product.mainImage}
                           alt=""
-                          className="w-8 h-8 rounded object-cover border"
+                          width={32}
+                          height={32}
+                          className="rounded object-cover border"
                         />
                       ) : (
                         <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">

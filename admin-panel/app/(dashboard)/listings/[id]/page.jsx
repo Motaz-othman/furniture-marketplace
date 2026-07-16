@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -280,7 +281,7 @@ export default function EditListingPage() {
       {/* Product image + quick info */}
       <div className="flex gap-4 items-start">
         {product?.mainImage ? (
-          <img src={product.mainImage} alt={product.name} className="w-24 h-24 rounded-lg object-cover border" />
+          <Image src={product.mainImage} alt={product.name} width={96} height={96} className="rounded-lg object-cover border" />
         ) : (
           <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center border">
             <Package className="h-8 w-8 text-muted-foreground" />
@@ -672,7 +673,7 @@ export default function EditListingPage() {
                           return (
                             <td key={i} className="py-2.5 px-4 text-sm border-r last:border-r-0">
                               {img?.url ? (
-                                <img src={img.url} alt={v.name || `Variant ${i + 1}`} className="w-20 h-20 rounded object-cover border" />
+                                <Image src={img.url} alt={v.name || `Variant ${i + 1}`} width={80} height={80} className="rounded object-cover border" />
                               ) : '—'}
                             </td>
                           );
@@ -682,7 +683,7 @@ export default function EditListingPage() {
                           {(() => {
                             const img = mainImages.find((m) => m.variantProductIds?.includes(v0?.externalProductId));
                             return (img?.url || product.mainImage) ? (
-                              <img src={img?.url || product.mainImage} alt={product.name} className="w-20 h-20 rounded object-cover border" />
+                              <Image src={img?.url || product.mainImage} alt={product.name} width={80} height={80} className="rounded object-cover border" />
                             ) : '—';
                           })()}
                         </td>

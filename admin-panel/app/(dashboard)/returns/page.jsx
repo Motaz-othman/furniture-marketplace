@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -91,10 +92,12 @@ function ExpandedRow({ rr, colSpan }) {
               return (
                 <div key={ri.id} className="flex items-start gap-3 text-sm">
                   {item?.product?.mainImage ? (
-                    <img
+                    <Image
                       src={item.product.mainImage}
                       alt=""
-                      className="w-10 h-10 rounded object-cover border shrink-0 mt-0.5"
+                      width={40}
+                      height={40}
+                      className="rounded object-cover border shrink-0 mt-0.5"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded bg-muted flex items-center justify-center border shrink-0 mt-0.5">
@@ -311,10 +314,12 @@ export default function ReturnsPage() {
                     <TableCell className="text-sm">
                       <div className="flex items-center gap-2">
                         {firstItem?.product?.mainImage ? (
-                          <img
+                          <Image
                             src={firstItem.product.mainImage}
                             alt=""
-                            className="w-8 h-8 rounded object-cover border shrink-0"
+                            width={32}
+                            height={32}
+                            className="rounded object-cover border shrink-0"
                           />
                         ) : (
                           <div className="w-8 h-8 rounded bg-muted flex items-center justify-center border shrink-0">

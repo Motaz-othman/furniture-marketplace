@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getRawProduct, createListing, getCategories, setMainImage } from '@/lib/services/storefront';
@@ -437,10 +438,12 @@ export default function ProductDetailPage() {
                               disabled={mainImageMutation.isPending}
                               className={`relative group rounded overflow-hidden border-2 transition-all focus:outline-none ${isMain ? 'border-primary' : 'border-transparent hover:border-muted-foreground'}`}
                             >
-                              <img
+                              <Image
                                 src={img.url}
                                 alt={`${product.name} ${i + 1}`}
-                                className="w-20 h-20 object-cover"
+                                width={80}
+                                height={80}
+                                className="object-cover"
                               />
                               {isMain ? (
                                 <span className="absolute top-1 left-1 bg-primary text-primary-foreground rounded p-0.5">
