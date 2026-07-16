@@ -1,13 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getReturnRequests, updateReturnRequest } from '@/lib/services/returns';
+import { useQuery } from '@tanstack/react-query';
+import { getReturnRequests } from '@/lib/services/returns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -65,19 +63,7 @@ function refundTotal(rr) {
 
 // ── Expanded row ───────────────────────────────────────────────────────────────
 
-function ExpandedRow({ rr, colSpan }) {
-  const queryClient = useQueryClient();
-  const [notes, setNotes] = useState(rr.adminNotes || '');
-
-  const mutation = useMutation({
-    mutationFn: ({ status }) => updateReturnRequest(rr.id, status, notes || undefined),
-    onSuccess: (_, { status }) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-returns'] });
-      toast.success(`Return request ${status.toLowerCase()}`);
-    },
-    onError: (err) => toast.error(err.response?.data?.error || 'Failed to update'),
-  });
-
+function ExpandedRow({ rr, colSpan, onViewOrder }) {
   return (
     <TableRow className="bg-muted/30 hover:bg-muted/30">
       <TableCell colSpan={colSpan} className="pb-4 pt-0 px-8">
@@ -118,52 +104,16 @@ function ExpandedRow({ rr, colSpan }) {
             })}
           </div>
 
-          {/* Admin notes (editable for PENDING/APPROVED) */}
-          {(rr.status === 'PENDING' || rr.status === 'APPROVED') && (
-            <Textarea
-              rows={2}
-              placeholder="Admin note to customer (optional)…"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="text-sm"
-            />
-          )}
-          {rr.adminNotes && rr.status !== 'PENDING' && rr.status !== 'APPROVED' && (
+          {/* Admin notes (read-only) */}
+          {rr.adminNotes && (
             <p className="text-xs text-muted-foreground italic border-l-2 pl-3">{rr.adminNotes}</p>
           )}
 
-          {/* Actions */}
-          <div className="flex gap-2 flex-wrap">
-            {rr.status === 'PENDING' && (
-              <>
-                <Button
-                  size="sm"
-                  disabled={mutation.isPending}
-                  onClick={() => mutation.mutate({ status: 'APPROVED' })}
-                >
-                  Approve
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  disabled={mutation.isPending}
-                  onClick={() => mutation.mutate({ status: 'REJECTED' })}
-                >
-                  Reject
-                </Button>
-              </>
-            )}
-            {rr.status === 'APPROVED' && (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={mutation.isPending}
-                onClick={() => mutation.mutate({ status: 'REFUNDED' })}
-              >
-                Mark as Refunded
-              </Button>
-            )}
-          </div>
+          {/* Link to order for actions */}
+          <Button size="sm" variant="outline" onClick={onViewOrder}>
+            View Order to Approve / Reject
+            <ExternalLink className="h-3 w-3 ml-1.5" />
+          </Button>
         </div>
       </TableCell>
     </TableRow>
@@ -200,10 +150,6 @@ export default function ReturnsPage() {
     setExpandedId((prev) => (prev === id ? null : id));
   }
 
-  const pendingCount = activeTab === 'ALL'
-    ? returnRequests.filter((r) => r.status === 'PENDING').length
-    : null;
-
   return (
     <div className="space-y-6">
 
@@ -212,9 +158,6 @@ export default function ReturnsPage() {
         <h1 className="text-2xl font-semibold">Return Requests</h1>
         <p className="text-sm text-muted-foreground mt-1">
           {pagination.total ?? '—'} total requests
-          {pendingCount > 0 && (
-            <span className="ml-2 text-yellow-600 font-medium">· {pendingCount} pending action</span>
-          )}
         </p>
       </div>
 
@@ -349,7 +292,12 @@ export default function ReturnsPage() {
 
                 if (isExpanded) {
                   rows.push(
-                    <ExpandedRow key={`${rr.id}-expanded`} rr={rr} colSpan={7} />
+                    <ExpandedRow
+                      key={`${rr.id}-expanded`}
+                      rr={rr}
+                      colSpan={7}
+                      onViewOrder={() => router.push(`/orders/${rr.orderId}`)}
+                    />
                   );
                 }
 
