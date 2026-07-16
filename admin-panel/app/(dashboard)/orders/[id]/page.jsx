@@ -640,13 +640,24 @@ export default function OrderDetailPage() {
       </div>
 
       {/* ── Table 1: Order Items ── */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="text-base">Order Items ({order.items?.length ?? 0})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-full text-sm" style={{ tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '220px' }} />
+                <col style={{ width: '110px' }} />
+                <col style={{ width: '56px' }} />
+                <col style={{ width: '96px' }} />
+                <col style={{ width: '96px' }} />
+                <col style={{ width: '96px' }} />
+                <col style={{ width: '148px' }} />
+                <col style={{ width: '72px' }} />
+                <col style={{ width: '96px' }} />
+              </colgroup>
               <thead>
                 <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
                   <TH>Product</TH>
@@ -670,8 +681,8 @@ export default function OrderDetailPage() {
 
                   return (
                     <tr key={item.id} className="hover:bg-muted/20 transition-colors">
-                      <TD>
-                        <div className="flex items-center gap-3">
+                      <TD className="overflow-hidden">
+                        <div className="flex items-center gap-2 overflow-hidden">
                           {item.product?.mainImage ? (
                             <Image
                               src={item.product.mainImage}
@@ -685,15 +696,12 @@ export default function OrderDetailPage() {
                               <Package className="h-4 w-4 text-muted-foreground" />
                             </div>
                           )}
-                          <div className="min-w-0">
-                            <div
-                              className="font-medium truncate max-w-[200px]"
-                              title={item.product?.name}
-                            >
+                          <div className="min-w-0 overflow-hidden">
+                            <div className="font-medium truncate" title={item.product?.name}>
                               {item.product?.name || '—'}
                             </div>
                             {item.variant?.name && (
-                              <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                              <div className="text-xs text-muted-foreground truncate">
                                 {item.variant.name}
                               </div>
                             )}
@@ -742,13 +750,19 @@ export default function OrderDetailPage() {
       </Card>
 
       {/* ── Table 2: Shipment Management ── */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="text-base">Shipment Management</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-full text-sm" style={{ tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '220px' }} />
+                <col style={{ width: '130px' }} />
+                <col style={{ width: 'auto' }} />
+                <col style={{ width: '160px' }} />
+              </colgroup>
               <thead>
                 <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
                   <TH>Item</TH>
@@ -763,11 +777,11 @@ export default function OrderDetailPage() {
                   const suggestedType = getSuggestedShipType(item);
                   return (
                     <tr key={item.id} className="hover:bg-muted/20 transition-colors">
-                      <TD>
-                        <div className="flex items-center gap-2">
+                      <TD className="overflow-hidden">
+                        <div className="flex items-center gap-2 overflow-hidden">
                           <ItemThumb item={item} />
                           <span
-                            className="truncate max-w-[180px] font-medium"
+                            className="truncate font-medium min-w-0"
                             title={item.product?.name}
                           >
                             {item.product?.name || '—'}
@@ -875,13 +889,20 @@ export default function OrderDetailPage() {
       </Card>
 
       {/* ── Table 3: Delivery Routing ── */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="text-base">Delivery Routing</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-full text-sm" style={{ tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '220px' }} />
+                <col style={{ width: '160px' }} />
+                <col style={{ width: '200px' }} />
+                <col style={{ width: '160px' }} />
+                <col style={{ width: '110px' }} />
+              </colgroup>
               <thead>
                 <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
                   <TH>Item</TH>
@@ -896,11 +917,11 @@ export default function OrderDetailPage() {
                   const pickup = item.product?.brand || item.product?.provider;
                   return (
                     <tr key={item.id} className="hover:bg-muted/20 transition-colors">
-                      <TD>
-                        <div className="flex items-center gap-2">
+                      <TD className="overflow-hidden">
+                        <div className="flex items-center gap-2 overflow-hidden">
                           <ItemThumb item={item} />
                           <span
-                            className="truncate max-w-[180px] font-medium"
+                            className="truncate font-medium min-w-0"
                             title={item.product?.name}
                           >
                             {item.product?.name || '—'}
