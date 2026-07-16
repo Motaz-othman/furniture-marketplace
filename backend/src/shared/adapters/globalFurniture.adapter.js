@@ -266,3 +266,16 @@ export function parseGlobalFurnitureCatalog({ dataCsv, inventoryCsv }) {
 
   return records;
 }
+
+/**
+ * Parse just the Search Results (inventory) CSV for a stock+price refresh.
+ * Returns an array of { sku, qtyAvailable, whsPrice } — one entry per row.
+ */
+export function parseGfwInventory(inventoryCsv) {
+  const map = buildInventoryMap(inventoryCsv);
+  return Array.from(map.entries()).map(([sku, inv]) => ({
+    sku,
+    qtyAvailable: inv.qtyAvailable,
+    whsPrice: inv.whsPrice,
+  }));
+}

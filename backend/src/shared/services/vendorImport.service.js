@@ -13,6 +13,8 @@
 import prisma from '../config/db.js';
 import { migrateMediaToS3, migrateMediaToS3Raw, clearSyncCache } from './s3.service.js';
 import { parseAcmePriceAndInventory } from '../adapters/acme.adapter.js';
+import { parseGfwInventory } from '../adapters/globalFurniture.adapter.js';
+import { parseUwInventory } from '../adapters/unitedweavers.adapter.js';
 import { fetchCollectionImages, verifyDropboxToken } from '../adapters/gfwDropboxAssets.js';
 
 // ─── Lock / progress state ────────────────────────────────────────
@@ -638,6 +640,181 @@ export async function refreshAcmePricing({ priceCsv, inventoryCsv }) {
     await prisma.syncLog.create({
       data: {
         source: 'ACME',
+        type: 'PRICE_REFRESH',
+        status: 'FAILED',
+        itemsTotal: records.length,
+        itemsSynced: updated,
+        itemsFailed: failed,
+        errors: { message: err.message },
+      },
+    });
+    throw err;
+  } finally {
+    releaseLock();
+  }
+}
+
+// ─── GFW Inventory Refresh ────────────────────────────────────────────────────
+
+export async function refreshGfwInventory({ inventoryCsv }) {
+  const { acquireLock, releaseLock } = makeVendorLock('GFW_REFRESH');
+  acquireLock();
+
+  const records = parseGfwInventory(inventoryCsv);
+  let updated = 0, skipped = 0, failed = 0;
+  const errors = [];
+  const startTime = Date.now();
+
+  try {
+    for (const rec of records) {
+      try {
+        const variant = await prisma.productVariant.findFirst({
+          where: { sku: rec.sku, product: { source: 'GFW' } },
+          select: { id: true, productId: true },
+        });
+
+        if (!variant) { skipped++; continue; }
+
+        await prisma.productVariant.update({
+          where: { id: variant.id },
+          data: {
+            stockQuantity: rec.qtyAvailable,
+            ...(rec.whsPrice != null && { price: { update: { cost: rec.whsPrice } } }),
+          },
+        });
+
+        updated++;
+      } catch (err) {
+        failed++;
+        errors.push({ sku: rec.sku, message: err.message });
+        console.error(`[VendorImport:GFW_REFRESH] Failed "${rec.sku}": ${err.message}`);
+      }
+    }
+
+    // Recompute totalStock per product in bulk after all variants are updated
+    const affectedProductIds = await prisma.productVariant.findMany({
+      where: { sku: { in: records.map(r => r.sku) }, product: { source: 'GFW' } },
+      select: { productId: true },
+      distinct: ['productId'],
+    }).then(rows => rows.map(r => r.productId));
+
+    for (const productId of affectedProductIds) {
+      const agg = await prisma.productVariant.aggregate({
+        where: { productId },
+        _sum: { stockQuantity: true },
+      });
+      await prisma.product.update({
+        where: { id: productId },
+        data: { totalStock: agg._sum.stockQuantity ?? 0 },
+      });
+    }
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+    await prisma.syncLog.create({
+      data: {
+        source: 'GFW',
+        type: 'PRICE_REFRESH',
+        status: 'SUCCESS',
+        itemsTotal: records.length,
+        itemsSynced: updated,
+        itemsFailed: failed,
+        errors: errors.length ? { errors } : null,
+        data: { skipped },
+      },
+    });
+
+    return { source: 'GFW', status: 'SUCCESS', elapsed, total: records.length, updated, skipped, failed, errors };
+  } catch (err) {
+    await prisma.syncLog.create({
+      data: {
+        source: 'GFW',
+        type: 'PRICE_REFRESH',
+        status: 'FAILED',
+        itemsTotal: records.length,
+        itemsSynced: updated,
+        itemsFailed: failed,
+        errors: { message: err.message },
+      },
+    });
+    throw err;
+  } finally {
+    releaseLock();
+  }
+}
+
+// ─── UW Inventory Refresh ─────────────────────────────────────────────────────
+
+export async function refreshUwInventory({ inventoryCsv }) {
+  const { acquireLock, releaseLock } = makeVendorLock('UW_REFRESH');
+  acquireLock();
+
+  const records = parseUwInventory(inventoryCsv);
+  let updated = 0, skipped = 0, failed = 0;
+  const errors = [];
+  const startTime = Date.now();
+
+  try {
+    for (const rec of records) {
+      try {
+        const variant = await prisma.productVariant.findFirst({
+          where: { upc: rec.upc, product: { source: 'UW' } },
+          select: { id: true, productId: true },
+        });
+
+        if (!variant) { skipped++; continue; }
+
+        await prisma.productVariant.update({
+          where: { id: variant.id },
+          data: { stockQuantity: rec.onHandQty },
+        });
+
+        updated++;
+      } catch (err) {
+        failed++;
+        errors.push({ upc: rec.upc, message: err.message });
+        console.error(`[VendorImport:UW_REFRESH] Failed "${rec.upc}": ${err.message}`);
+      }
+    }
+
+    // Recompute totalStock per product in bulk after all variants are updated
+    const affectedProductIds = await prisma.productVariant.findMany({
+      where: { upc: { in: records.map(r => r.upc).filter(Boolean) }, product: { source: 'UW' } },
+      select: { productId: true },
+      distinct: ['productId'],
+    }).then(rows => rows.map(r => r.productId));
+
+    for (const productId of affectedProductIds) {
+      const agg = await prisma.productVariant.aggregate({
+        where: { productId },
+        _sum: { stockQuantity: true },
+      });
+      await prisma.product.update({
+        where: { id: productId },
+        data: { totalStock: agg._sum.stockQuantity ?? 0 },
+      });
+    }
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+    await prisma.syncLog.create({
+      data: {
+        source: 'UW',
+        type: 'PRICE_REFRESH',
+        status: 'SUCCESS',
+        itemsTotal: records.length,
+        itemsSynced: updated,
+        itemsFailed: failed,
+        errors: errors.length ? { errors } : null,
+        data: { skipped },
+      },
+    });
+
+    return { source: 'UW', status: 'SUCCESS', elapsed, total: records.length, updated, skipped, failed, errors };
+  } catch (err) {
+    await prisma.syncLog.create({
+      data: {
+        source: 'UW',
         type: 'PRICE_REFRESH',
         status: 'FAILED',
         itemsTotal: records.length,

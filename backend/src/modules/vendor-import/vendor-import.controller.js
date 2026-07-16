@@ -2,7 +2,7 @@ import prisma from '../../shared/config/db.js';
 import { parseAcmeCatalog } from '../../shared/adapters/acme.adapter.js';
 import { parseGlobalFurnitureCatalog } from '../../shared/adapters/globalFurniture.adapter.js';
 import { parseUnitedWeaversRugs } from '../../shared/adapters/unitedweavers.adapter.js';
-import { runVendorImport, refreshAcmePricing, getImportStatus, syncGfwDropboxAssets, getDropboxSyncStatus, resetGfwDropboxSync, syncUwImagesToS3, getUwImageSyncStatus } from '../../shared/services/vendorImport.service.js';
+import { runVendorImport, refreshAcmePricing, refreshGfwInventory, refreshUwInventory, getImportStatus, syncGfwDropboxAssets, getDropboxSyncStatus, resetGfwDropboxSync, syncUwImagesToS3, getUwImageSyncStatus } from '../../shared/services/vendorImport.service.js';
 import { toCSVBuffer } from '../../shared/adapters/excelToCSV.js';
 
 function buf(file) {
@@ -150,6 +150,46 @@ export const refreshAcme = async (req, res) => {
   } catch (error) {
     console.error('ACME refresh error:', error);
     res.status(400).json({ error: error.message || 'Failed to start ACME refresh' });
+  }
+};
+
+// ─── POST /gfw/refresh ──────────────────────────────────────────────
+
+export const refreshGfw = async (req, res) => {
+  try {
+    const files = req.files || {};
+    if (!files.inventoryCsv?.[0]) {
+      return res.status(400).json({ error: 'Missing required file: inventoryCsv' });
+    }
+
+    res.json({ message: 'GFW inventory refresh started' });
+
+    refreshGfwInventory({
+      inventoryCsv: buf(files.inventoryCsv[0]),
+    }).catch(err => console.error('Background GFW refresh failed:', err.message));
+  } catch (error) {
+    console.error('GFW refresh error:', error);
+    res.status(400).json({ error: error.message || 'Failed to start GFW refresh' });
+  }
+};
+
+// ─── POST /uw/refresh ───────────────────────────────────────────────
+
+export const refreshUw = async (req, res) => {
+  try {
+    const files = req.files || {};
+    if (!files.inventoryCsv?.[0]) {
+      return res.status(400).json({ error: 'Missing required file: inventoryCsv' });
+    }
+
+    res.json({ message: 'UW inventory refresh started' });
+
+    refreshUwInventory({
+      inventoryCsv: buf(files.inventoryCsv[0]),
+    }).catch(err => console.error('Background UW refresh failed:', err.message));
+  } catch (error) {
+    console.error('UW refresh error:', error);
+    res.status(400).json({ error: error.message || 'Failed to start UW refresh' });
   }
 };
 

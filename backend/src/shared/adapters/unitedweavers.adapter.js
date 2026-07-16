@@ -355,3 +355,14 @@ export function parseUnitedWeaversRugs({ catalogCsv, inventoryCsv }) {
 
   return records;
 }
+
+/**
+ * Parse just the UW Inventory CSV for a stock-only refresh.
+ * Returns an array of { upc, onHandQty } — one entry per UPC row.
+ */
+export function parseUwInventory(inventoryCsv) {
+  const rows = parseInventoryCsv(inventoryCsv);
+  return rows
+    .map(row => ({ upc: normalizeUpc(row.upc), onHandQty: parseNumber(row.onHandQty) || 0 }))
+    .filter(r => r.upc);
+}

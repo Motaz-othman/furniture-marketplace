@@ -28,6 +28,20 @@ export async function refreshAcme({ priceCsv, inventoryCsv }) {
   return data;
 }
 
+export async function refreshGlobalFurniture({ inventoryCsv }) {
+  const formData = new FormData();
+  formData.append('inventoryCsv', inventoryCsv);
+  const { data } = await api.post('/admin/vendor-import/gfw/refresh', formData);
+  return data;
+}
+
+export async function refreshUnitedWeavers({ inventoryCsv }) {
+  const formData = new FormData();
+  formData.append('inventoryCsv', inventoryCsv);
+  const { data } = await api.post('/admin/vendor-import/uw/refresh', formData);
+  return data;
+}
+
 export async function clearGlobalFurnitureProducts() {
   const { data } = await api.delete('/admin/vendor-import/gfw/products');
   return data;

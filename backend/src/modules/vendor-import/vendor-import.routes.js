@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { getStatus, getLogs, importAcme, refreshAcme, importGlobalFurniture, clearGlobalFurnitureProducts, importUnitedWeavers, triggerGfwDropboxSync, resetGfwDropboxSyncHandler, syncUwImages, getUwPendingImages, migrateUwProductImages, getUwPendingCompress, compressUwProductImages } from './vendor-import.controller.js';
+import { getStatus, getLogs, importAcme, refreshAcme, importGlobalFurniture, refreshGfw, clearGlobalFurnitureProducts, importUnitedWeavers, refreshUw, triggerGfwDropboxSync, resetGfwDropboxSyncHandler, syncUwImages, getUwPendingImages, migrateUwProductImages, getUwPendingCompress, compressUwProductImages } from './vendor-import.controller.js';
 import { authenticate, adminOnly } from '../../shared/middleware/auth.middleware.js';
 
 const router = Router();
@@ -42,6 +42,14 @@ router.post('/acme/refresh', upload.fields([
   { name: 'priceCsv', maxCount: 1 },
   { name: 'inventoryCsv', maxCount: 1 },
 ]), refreshAcme);
+
+router.post('/gfw/refresh', upload.fields([
+  { name: 'inventoryCsv', maxCount: 1 },
+]), refreshGfw);
+
+router.post('/uw/refresh', upload.fields([
+  { name: 'inventoryCsv', maxCount: 1 },
+]), refreshUw);
 
 router.delete('/gfw/products', clearGlobalFurnitureProducts);
 router.post('/gfw/dropbox-sync', triggerGfwDropboxSync);
