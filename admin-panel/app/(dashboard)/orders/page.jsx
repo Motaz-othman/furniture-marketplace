@@ -25,9 +25,10 @@ import {
 } from '@/components/ui/table';
 import { Search, X, Package, Download } from 'lucide-react';
 
-const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+const STATUS_OPTIONS = ['DRAFT', 'PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 
 const STATUS_VARIANT = {
+  DRAFT:      'outline',
   PENDING:    'outline',
   CONFIRMED:  'secondary',
   PROCESSING: 'secondary',
@@ -38,6 +39,7 @@ const STATUS_VARIANT = {
 };
 
 const STATUS_COLOR = {
+  DRAFT:      'text-gray-500 border-gray-300',
   PENDING:    'text-yellow-600 border-yellow-300',
   CONFIRMED:  'text-blue-600 border-blue-300',
   PROCESSING: 'text-purple-600 border-purple-300',

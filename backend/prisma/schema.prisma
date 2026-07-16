@@ -15,6 +15,7 @@ enum Role {
 }
 
 enum OrderStatus {
+  DRAFT
   PENDING
   CONFIRMED
   PROCESSING
@@ -220,7 +221,7 @@ model Order {
   customerId      String?
   addressId       String
   orderNumber     String      @unique
-  status          OrderStatus @default(PENDING)
+  status          OrderStatus @default(DRAFT)
   subtotal        Float
   tax             Float       @default(0)
   shippingCost    Float       @default(0)

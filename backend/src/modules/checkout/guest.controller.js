@@ -218,6 +218,7 @@ export const guestCheckout = async (req, res) => {
           customerId,
           addressId: guestAddress.id,
           orderNumber: generateOrderNumber(),
+          status: 'DRAFT',
           guestEmail: email,
           guestFirstName: firstName,
           guestLastName: lastName,

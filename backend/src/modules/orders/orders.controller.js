@@ -83,6 +83,7 @@ export const createOrder = async (req, res) => {
           customerId,
           addressId,
           orderNumber: generateOrderNumber(),
+          status: 'DRAFT',
           subtotal,
           tax,
           shippingCost,
@@ -273,7 +274,7 @@ export const cancelOrder = async (req, res) => {
     if (!order || order.customerId !== customerId) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    if (order.status !== 'PENDING') {
+    if (!['DRAFT', 'PENDING'].includes(order.status)) {
       return res.status(400).json({ error: `Cannot cancel order with status: ${order.status}` });
     }
 
