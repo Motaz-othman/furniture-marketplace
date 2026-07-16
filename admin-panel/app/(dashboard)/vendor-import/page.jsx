@@ -14,8 +14,6 @@ import {
   resetGfwDropboxSync,
   getUwPendingImages,
   migrateUwProductImages,
-  getUwPendingCompress,
-  compressUwProductImages,
 } from '@/lib/services/vendorImport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -95,7 +93,7 @@ export default function VendorImportPage() {
   const [uwInventory, setUwInventory] = useState(null);
 
   // UW 3-step pipeline state
-  const [uwStep, setUwStep] = useState(0);      // 0=idle 1=uploading 2=migrating 3=compressing 4=done
+  const [uwStep, setUwStep] = useState(0);      // 0=idle 1=uploading CSV 2=migrating images 3=done
   const [uwDone, setUwDone] = useState(0);
   const [uwTotal, setUwTotal] = useState(0);
   const [uwCurrent, setUwCurrent] = useState('');
@@ -146,16 +144,12 @@ export default function VendorImportPage() {
       }
       if (stopRef.current) { setUwStep(0); return; }
 
-      // Step 2 — Migrate Dropbox → S3 JPEG
+      // Step 2 — Migrate Dropbox → S3 (WebP/AVIF served by Next.js + Cloudflare CDN at request time)
       setUwStep(2);
       await runLoop(getUwPendingImages, migrateUwProductImages);
       if (stopRef.current) { setUwStep(0); return; }
 
-      // Step 3 — Compress JPEG → WebP
       setUwStep(3);
-      await runLoop(getUwPendingCompress, compressUwProductImages);
-
-      setUwStep(4);
       setUwCurrent('');
       refetchPending();
     } catch {
@@ -173,8 +167,6 @@ export default function VendorImportPage() {
       await runLoop(getUwPendingImages, migrateUwProductImages);
       if (stopRef.current) { setUwStep(0); return; }
       setUwStep(3);
-      await runLoop(getUwPendingCompress, compressUwProductImages);
-      setUwStep(4);
       setUwCurrent('');
       refetchPending();
     } catch {
@@ -269,7 +261,7 @@ export default function VendorImportPage() {
   const acmeImportDisabled = isRunning || acmeImportMutation.isPending || !acmeSpec || !acmeImages || !acmePrice || !acmeInventory;
   const acmeRefreshDisabled = isRunning || acmeRefreshMutation.isPending || !refreshPrice || !refreshInventory;
   const gfwImportDisabled = isRunning || gfwImportMutation.isPending || !gfwData || !gfwInventory;
-  const uwPipelineRunning = uwStep > 0 && uwStep < 4;
+  const uwPipelineRunning = uwStep > 0 && uwStep < 3;
   const uwImportDisabled = isRunning || uwImportMutation.isPending || !uwCatalog || !uwInventory || uwPipelineRunning;
 
   return (
@@ -505,12 +497,12 @@ export default function VendorImportPage() {
             <CardContent className="space-y-6">
 
               {/* File pickers + start button — shown when idle or done */}
-              {(uwStep === 0 || uwStep === 4) && (
+              {(uwStep === 0 || uwStep === 3) && (
                 <div className="space-y-4">
-                  {uwStep === 4 && (
+                  {uwStep === 3 && (
                     <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
                       <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                        Pipeline complete — all 3 steps finished.
+                        Pipeline complete — products imported and images on S3.
                         {uwErrors > 0 && <span className="text-red-500 ml-2">({uwErrors} error{uwErrors > 1 ? 's' : ''})</span>}
                       </p>
                     </div>
@@ -522,7 +514,7 @@ export default function VendorImportPage() {
                   <div className="flex flex-wrap gap-2">
                     <Button onClick={handleUwImport} disabled={uwImportDisabled}>
                       <Upload className="h-4 w-4 mr-1" />
-                      {uwStep === 4 ? 'Import Another Catalog' : 'Start Import'}
+                      {uwStep === 3 ? 'Import Another Catalog' : 'Start Import'}
                     </Button>
                     {pendingRes?.pending > 0 && uwStep === 0 && (
                       <Button variant="outline" onClick={runImagePipelineOnly} disabled={uwPipelineRunning}>
@@ -543,7 +535,6 @@ export default function VendorImportPage() {
                   {[
                     { num: 1, label: 'Upload products to database' },
                     { num: 2, label: 'Migrate images: Dropbox → S3' },
-                    { num: 3, label: 'Compress images to WebP' },
                   ].map(step => {
                     const isActive = uwStep === step.num;
                     const isDone = uwStep > step.num;
