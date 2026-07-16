@@ -28,7 +28,6 @@ const nextConfig = {
     // Without this Next.js defaults to 60 s, causing repeated S3 fetches.
     minimumCacheTTL: 2_592_000,
     formats: ['image/avif', 'image/webp'],
-    quality: 80,
     remotePatterns: [
       {
         protocol: 'https',
