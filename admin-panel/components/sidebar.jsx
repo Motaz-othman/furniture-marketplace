@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth';
-import { Package, ShoppingBag, RefreshCw, Users, LogOut, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud, LayoutDashboard, UserCircle, Tag, RotateCcw, Truck, Percent } from 'lucide-react';
+import { Package, ShoppingBag, Users, LogOut, Cloud, ClipboardList, Settings, LayoutGrid, UploadCloud, LayoutDashboard, UserCircle, Tag, RotateCcw, Truck, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -46,7 +46,6 @@ const navSections = [
   {
     label: 'System',
     items: [
-      { href: '/sync', label: 'Sync Management', icon: RefreshCw },
       { href: '/gigiga-calculator', label: 'Gigiga Calculator', icon: Cloud },
       { href: '/settings', label: 'Storefront Settings', icon: Settings },
     ],
