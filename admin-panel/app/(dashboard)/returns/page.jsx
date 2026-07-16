@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getReturnRequests } from '@/lib/services/returns';
@@ -15,7 +16,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Package, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
