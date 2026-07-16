@@ -273,11 +273,13 @@ export const getAllOrders = async (req, res) => {
 
     let matchingCustomerIds = [];
     if (search) {
-      const matchingCustomers = await prisma.customer.findMany({
-        where: { user: { email: { contains: search, mode: 'insensitive' } } },
-        select: { id: true },
+      const matchingUsers = await prisma.user.findMany({
+        where: { email: { contains: search, mode: 'insensitive' } },
+        select: { customer: { select: { id: true } } },
       });
-      matchingCustomerIds = matchingCustomers.map((c) => c.id);
+      matchingCustomerIds = matchingUsers
+        .map((u) => u.customer?.id)
+        .filter(Boolean);
     }
 
     const where = {
