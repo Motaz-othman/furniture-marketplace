@@ -1,5 +1,71 @@
 import db from '../../shared/config/db.js';
 
+// ─── Pricing Settings ────────────────────────────────────────────────
+
+export const DEFAULT_PRICING_SETTINGS = {
+  deliveryTiers: [
+    { id: 1,  label: 'Parcel XS',       maxWeight: 3,    rate: 22  },
+    { id: 2,  label: 'Parcel small',    maxWeight: 7,    rate: 32  },
+    { id: 3,  label: 'Parcel medium',   maxWeight: 15,   rate: 45  },
+    { id: 4,  label: 'Parcel large',    maxWeight: 30,   rate: 62  },
+    { id: 5,  label: 'Parcel oversized',maxWeight: 50,   rate: 88  },
+    { id: 6,  label: 'Parcel heavy+',   maxWeight: 70,   rate: 115 },
+    { id: 7,  label: 'LTL light',       maxWeight: 150,  rate: 185 },
+    { id: 8,  label: 'LTL standard',    maxWeight: 250,  rate: 310 },
+    { id: 9,  label: 'LTL heavy',       maxWeight: 400,  rate: 460 },
+    { id: 10, label: 'LTL oversized',   maxWeight: 600,  rate: 620 },
+    { id: 11, label: 'LTL max',         maxWeight: null, rate: 750 },
+  ],
+  whiteGloveTiers: [
+    { id: 1, label: 'Simple (no assembly)',               maxWeight: 30,   price: 99  },
+    { id: 2, label: 'Basic (chairs, small tables)',       maxWeight: 100,  price: 149 },
+    { id: 3, label: 'Standard (sofas, beds, dressers)',   maxWeight: 250,  price: 229 },
+    { id: 4, label: 'Complex (sectionals, dining sets)',  maxWeight: 500,  price: 329 },
+    { id: 5, label: 'Full suite (bedroom/dining room)',   maxWeight: null, price: 449 },
+  ],
+  marketingPercent: 12,
+  marginPercent: 25,
+  lastRecalculatedAt: null,
+};
+
+export function getDeliveryRate(weightLbs, tiers) {
+  const sorted = [...tiers].sort((a, b) => (a.maxWeight ?? Infinity) - (b.maxWeight ?? Infinity));
+  for (const tier of sorted) {
+    if (tier.maxWeight === null || weightLbs <= tier.maxWeight) return tier.rate;
+  }
+  return sorted[sorted.length - 1].rate;
+}
+
+export function getWhiteGloveRate(weightLbs, tiers) {
+  const sorted = [...tiers].sort((a, b) => (a.maxWeight ?? Infinity) - (b.maxWeight ?? Infinity));
+  for (const tier of sorted) {
+    if (tier.maxWeight === null || weightLbs <= tier.maxWeight) return tier.price;
+  }
+  return sorted[sorted.length - 1].price;
+}
+
+export function calcDisplayPrice(cost, weightLbs, mapPrice, pricingSettings) {
+  const { deliveryTiers, marketingPercent, marginPercent } = pricingSettings;
+  const divisor = 1 - marketingPercent / 100 - marginPercent / 100;
+  const deliveryCost = Math.min(getDeliveryRate(weightLbs, deliveryTiers), cost);
+  const formulaPrice = (cost + deliveryCost) / divisor;
+  const validMap = mapPrice && mapPrice > cost * 1.1 ? mapPrice : null;
+  const finalPrice = validMap ? Math.max(formulaPrice, validMap) : formulaPrice;
+  return Math.round(finalPrice * 100) / 100;
+}
+
+function extractWeight(packaging) {
+  if (!packaging) return 0;
+  const boxes = Array.isArray(packaging) ? packaging : [packaging];
+  let total = 0;
+  for (const b of boxes) {
+    const w = b.weight ?? b.packageWeight ?? b.shippingWeight ?? 0;
+    const unit = (b.unitOfMeasureWeight || b.weightUnit || 'lbs').toLowerCase();
+    total += unit === 'kg' ? w * 2.205 : w;
+  }
+  return total;
+}
+
 export const DEFAULT_DELIVERY_PRICING = {
   smallParcel: [
     { key: 'GROUND',   label: 'Ground Shipping', description: 'Delivered within 7–14 business days once shipped', price: 0 },
@@ -108,5 +174,93 @@ export async function updateSettings(req, res) {
     res.json(record.settings);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update settings' });
+  }
+}
+
+// ─── Pricing Settings endpoints ──────────────────────────────────────
+
+export async function getPricingSettings(req, res) {
+  try {
+    const record = await db.siteSettings.findUnique({ where: { id: 'main' } });
+    const pricing = record?.settings?.pricingSettings || DEFAULT_PRICING_SETTINGS;
+    res.json(pricing);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch pricing settings' });
+  }
+}
+
+export async function updatePricingSettings(req, res) {
+  try {
+    const record = await db.siteSettings.findUnique({ where: { id: 'main' } });
+    const current = record?.settings || {};
+    const updated = { ...current, pricingSettings: req.body };
+    await db.siteSettings.upsert({
+      where: { id: 'main' },
+      update: { settings: updated },
+      create: { id: 'main', settings: updated },
+    });
+    res.json(req.body);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update pricing settings' });
+  }
+}
+
+export async function recalculateAllPrices(req, res) {
+  try {
+    const record = await db.siteSettings.findUnique({ where: { id: 'main' } });
+    const pricingSettings = record?.settings?.pricingSettings || DEFAULT_PRICING_SETTINGS;
+
+    const listings = await db.storefrontListing.findMany({
+      select: {
+        id: true,
+        product: {
+          select: {
+            variants: {
+              select: { price: true, packaging: true },
+              orderBy: { rank: 'asc' },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    const updates = [];
+    let skipped = 0;
+
+    for (const listing of listings) {
+      const variant = listing.product?.variants?.[0];
+      const cost = variant?.price?.cost;
+      const weight = extractWeight(variant?.packaging);
+      if (!cost || cost <= 0 || weight <= 0) { skipped++; continue; }
+
+      const map = variant?.price?.mapPrice;
+      const displayPrice = calcDisplayPrice(cost, weight, map, pricingSettings);
+      updates.push({ id: listing.id, displayPrice });
+    }
+
+    // Batch update in chunks of 50
+    const BATCH = 50;
+    for (let i = 0; i < updates.length; i += BATCH) {
+      await db.$transaction(
+        updates.slice(i, i + BATCH).map(u =>
+          db.storefrontListing.update({ where: { id: u.id }, data: { displayPrice: u.displayPrice } })
+        )
+      );
+    }
+
+    // Save lastRecalculatedAt
+    const currentSettings = record?.settings || {};
+    const ps = { ...(currentSettings.pricingSettings || DEFAULT_PRICING_SETTINGS), lastRecalculatedAt: new Date().toISOString() };
+    await db.siteSettings.upsert({
+      where: { id: 'main' },
+      update: { settings: { ...currentSettings, pricingSettings: ps } },
+      create: { id: 'main', settings: { ...currentSettings, pricingSettings: ps } },
+    });
+
+    res.json({ updated: updates.length, skipped, total: listings.length });
+  } catch (err) {
+    console.error('Recalculate prices error:', err);
+    res.status(500).json({ error: 'Failed to recalculate prices' });
   }
 }

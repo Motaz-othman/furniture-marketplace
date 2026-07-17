@@ -23,3 +23,18 @@ export async function uploadTaxRatesCsv(file) {
   });
   return data;
 }
+
+export async function getPricingSettings() {
+  const { data } = await api.get('/settings/pricing');
+  return data;
+}
+
+export async function updatePricingSettings(body) {
+  const { data } = await api.put('/settings/pricing', body);
+  return data;
+}
+
+export async function recalculateAllPrices() {
+  const { data } = await api.post('/settings/pricing/recalculate');
+  return data;
+}
