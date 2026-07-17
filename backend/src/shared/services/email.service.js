@@ -3,6 +3,14 @@ import dotenv from 'dotenv';
 import prisma from '../config/db.js';
 dotenv.config();
 
+const TEST_DOMAINS = ['playwright.com', 'example.com', 'test.com', 'mailtest.com', 'fakeemail.com'];
+
+function isTestEmail(email) {
+  if (!email) return true;
+  const domain = email.split('@')[1]?.toLowerCase();
+  return !domain || TEST_DOMAINS.includes(domain);
+}
+
 function createTransporter() {
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
@@ -35,6 +43,7 @@ async function getEmailConfig() {
 
 // Send password reset email
 export const sendPasswordResetEmail = async (email, resetToken) => {
+  if (isTestEmail(email)) return;
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
   const { from, fromName } = await getEmailConfig();
 
@@ -74,6 +83,7 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
 
 // Send email verification link on account creation
 export const sendVerificationEmail = async (email, verifyToken, firstName) => {
+  if (isTestEmail(email)) return;
   const verifyUrl = `${process.env.FRONTEND_URL || 'https://livipoint.com'}/verify-email?token=${verifyToken}`;
   const { from, fromName } = await getEmailConfig();
 
@@ -125,7 +135,7 @@ export const sendVerificationEmail = async (email, verifyToken, firstName) => {
 // Send order confirmation email
 export const sendOrderConfirmationEmail = async (order) => {
   const to = order.guestEmail || order.customer?.user?.email;
-  if (!to) return;
+  if (!to || isTestEmail(to)) return;
 
   const { from, fromName } = await getEmailConfig();
   const firstName = order.guestFirstName || order.customer?.user?.firstName || 'Customer';
@@ -461,7 +471,7 @@ export const sendReturnRequestEmail = async (order, returnRequest) => {
 // Send order status update email to customer (key milestones only)
 export const sendOrderStatusEmail = async (order, status) => {
   const to = order.guestEmail || order.customer?.user?.email;
-  if (!to) return;
+  if (!to || isTestEmail(to)) return;
 
   const STATUS_CONFIG = {
     CONFIRMED: {
@@ -561,7 +571,7 @@ export const sendOrderStatusEmail = async (order, status) => {
 
 // Send shipment tracking notification to customer
 export const sendShippingTrackingEmail = async ({ to, firstName, orderNumber, orderId, carrier, trackingNumber, trackingUrl }) => {
-  if (!to) return;
+  if (!to || isTestEmail(to)) return;
 
   const { from, fromName } = await getEmailConfig();
   const siteUrl = process.env.FRONTEND_URL || 'https://livipoint.com';
@@ -630,7 +640,7 @@ export const sendShippingTrackingEmail = async ({ to, firstName, orderNumber, or
 
 // Send return status update email to customer (APPROVED, REJECTED, REFUNDED)
 export const sendReturnStatusEmail = async ({ email, firstName, orderNumber, orderId, status, adminNotes }) => {
-  if (!email) return;
+  if (!email || isTestEmail(email)) return;
 
   const STATUS_CONFIG = {
     APPROVED: {
