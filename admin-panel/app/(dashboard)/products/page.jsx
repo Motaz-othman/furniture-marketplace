@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getRawProducts, getRawProductFilters, createListing, bulkCreateListings, getCategories } from '@/lib/services/storefront';
+import { getPricingSettings } from '@/lib/services/settings';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +58,12 @@ export default function ProductsPage() {
   }));
   const [activeTab, setActiveTab] = useState('all');
 
+  const { data: pricingSettings } = useQuery({
+    queryKey: ['pricing-settings'],
+    queryFn: getPricingSettings,
+    staleTime: 5 * 60_000,
+  });
+
   // Cursor stack for back navigation: [null, cursor1, cursor2, ...]
   const [cursorStack, setCursorStack] = useState([null]);
   const [stackIndex, setStackIndex] = useState(0);
@@ -71,7 +78,7 @@ export default function ProductsPage() {
   const [selected, setSelected] = useState(new Set());
   const [addDialog, setAddDialog] = useState(null);
   const [bulkDialog, setBulkDialog] = useState(false);
-  const [formData, setFormData] = useState({ mainCategoryId: '', subCategoryId: '', marginPercent: '', variantPrices: {}, isPublished: true });
+  const [formData, setFormData] = useState({ mainCategoryId: '', subCategoryId: '', isPublished: true });
   const [bulkData, setBulkData] = useState({ markupPercent: '30', isPublished: false });
 
   // Sync state to URL
@@ -149,7 +156,7 @@ export default function ProductsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['raw-products'] });
       setAddDialog(null);
-      setFormData({ mainCategoryId: '', subCategoryId: '', marginPercent: '', variantPrices: {}, isPublished: true });
+      setFormData({ mainCategoryId: '', subCategoryId: '', isPublished: true });
       toast.success('Product added to storefront');
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Failed to add'),
@@ -200,27 +207,6 @@ export default function ProductsPage() {
     }];
   }
 
-  function calcVariantPrice(variant, marginPct) {
-    const pct = parseFloat(marginPct);
-    const cost = variant?.price?.cost;
-    const map = variant?.price?.mapPrice;
-    // Compute from cost when we have both cost and a valid margin
-    if (cost != null && !isNaN(pct) && pct >= 0) return (cost * (1 + pct / 100)).toFixed(2);
-    // Otherwise fall back to MAP, then retailPrice
-    if (map != null) return map.toFixed(2);
-    const retail = variant?.price?.retailPrice;
-    if (retail != null) return retail.toFixed(2);
-    return '';
-  }
-
-  function initVariantPrices(displayVariants, marginPct) {
-    const vp = {};
-    for (const v of displayVariants) {
-      vp[v.id] = calcVariantPrice(v, marginPct);
-    }
-    return vp;
-  }
-
   function handleAdd(e, product) {
     e.stopPropagation();
     let mainCategoryId = '';
@@ -233,31 +219,8 @@ export default function ProductsPage() {
         mainCategoryId = product.category.id;
       }
     }
-    const displayVariants = getDisplayVariants(product);
-    // Derive initial markup % from the first row that has both cost and MAP.
-    // Default to 50% when no MAP is available.
-    const ref = displayVariants.find((v) => v.price?.cost && v.price?.mapPrice);
-    let marginPercent = '50';
-    if (ref) {
-      marginPercent = ((ref.price.mapPrice - ref.price.cost) / ref.price.cost * 100).toFixed(0);
-    }
-    setFormData({
-      mainCategoryId,
-      subCategoryId,
-      marginPercent,
-      variantPrices: initVariantPrices(displayVariants, marginPercent),
-      isPublished: true,
-    });
+    setFormData({ mainCategoryId, subCategoryId, isPublished: true });
     setAddDialog(product);
-  }
-
-  function handleMarginChange(value) {
-    const displayVariants = getDisplayVariants(addDialog);
-    setFormData((f) => ({
-      ...f,
-      marginPercent: value,
-      variantPrices: initVariantPrices(displayVariants, value),
-    }));
   }
 
   function handleMainCategoryChange(value) {
@@ -265,21 +228,9 @@ export default function ProductsPage() {
   }
 
   function submitAdd() {
-    const vp = {};
-    for (const [id, price] of Object.entries(formData.variantPrices)) {
-      if (price && id !== PRODUCT_ROW_ID) vp[id] = parseFloat(price);
-    }
-    // No-variant products: use the synthetic product row price as displayPrice directly
-    const productRowPrice = formData.variantPrices[PRODUCT_ROW_ID];
-    const variantPriceValues = Object.values(vp);
-    const displayPrice = productRowPrice
-      ? parseFloat(productRowPrice)
-      : variantPriceValues.length > 0 ? Math.min(...variantPriceValues) : undefined;
     const body = {
       productId: addDialog.id,
       isPublished: formData.isPublished,
-      ...(displayPrice != null && { displayPrice }),
-      ...(Object.keys(vp).length > 0 && { variantPrices: vp }),
     };
     const categoryId = formData.subCategoryId || formData.mainCategoryId;
     if (categoryId) body.categoryId = categoryId;
@@ -620,25 +571,7 @@ export default function ProductsPage() {
               <div className="space-y-4">
                 <p className="text-sm font-medium">{addDialog.name}</p>
 
-                {/* Global Markup % */}
-                <div className="flex items-center gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Markup % (from cost — updates all variants)</Label>
-                    <div className="relative w-28">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="1"
-                        className="pr-7"
-                        value={formData.marginPercent}
-                        onChange={(e) => handleMarginChange(e.target.value)}
-                      />
-                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pricing table — always shown, uses a synthetic product row when no variants */}
+                {/* Pricing reference — read only, auto-calculated by backend */}
                 <div className="border rounded-md overflow-auto max-h-56">
                   <table className="w-full text-xs">
                     <thead className="bg-muted sticky top-0 z-10">
@@ -646,18 +579,16 @@ export default function ProductsPage() {
                         <th className="px-3 py-2 text-left font-medium text-muted-foreground">Variant</th>
                         <th className="px-3 py-2 text-right font-medium text-muted-foreground">Cost</th>
                         <th className="px-3 py-2 text-right font-medium text-muted-foreground">MAP</th>
-                        <th className="px-3 py-2 text-right font-medium text-muted-foreground w-32">Display Price</th>
                       </tr>
                     </thead>
                     <tbody>
                       {displayVariants.map((v) => {
                         const cost = v.price?.cost;
                         const map = v.price?.mapPrice;
-                        const displayVal = formData.variantPrices[v.id] ?? '';
                         return (
                           <tr key={v.id} className="border-t">
                             <td className="px-3 py-1.5">
-                              <div className="font-medium truncate max-w-[160px]" title={v.name || v.sku}>
+                              <div className="font-medium truncate max-w-[200px]" title={v.name || v.sku}>
                                 {v.name || v.sku || '—'}
                               </div>
                               {v.name && v.sku && (
@@ -670,26 +601,27 @@ export default function ProductsPage() {
                             <td className="px-3 py-1.5 text-right text-muted-foreground">
                               {map != null ? formatPrice(map) : '—'}
                             </td>
-                            <td className="px-3 py-1.5">
-                              <div className="relative">
-                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[11px]">$</span>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  className="pl-4 h-7 text-xs text-right"
-                                  value={displayVal}
-                                  onChange={(e) => setFormData((f) => ({
-                                    ...f,
-                                    variantPrices: { ...f.variantPrices, [v.id]: e.target.value },
-                                  }))}
-                                />
-                              </div>
-                            </td>
                           </tr>
                         );
                       })}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Auto-price notice */}
+                <div className="rounded-md bg-muted/50 border px-3 py-2.5 text-xs text-muted-foreground space-y-0.5">
+                  <p className="font-medium text-foreground text-sm">Display price will be auto-calculated</p>
+                  <p>
+                    Formula: (Cost + Delivery tier) ÷ {pricingSettings
+                      ? (1 - pricingSettings.marketingPercent / 100 - pricingSettings.marginPercent / 100).toFixed(2)
+                      : '0.63'
+                    } &nbsp;→&nbsp; max(result, MAP)
+                  </p>
+                  {pricingSettings && (
+                    <p className="text-[11px]">
+                      Marketing {pricingSettings.marketingPercent}% · Margin {pricingSettings.marginPercent}% · from Price Settings
+                    </p>
+                  )}
                 </div>
 
                 {/* Main Category */}
