@@ -72,7 +72,7 @@ export default function ProductsPage() {
   const [addDialog, setAddDialog] = useState(null);
   const [bulkDialog, setBulkDialog] = useState(false);
   const [formData, setFormData] = useState({ mainCategoryId: '', subCategoryId: '', isPublished: true });
-  const [bulkData, setBulkData] = useState({ markupPercent: '30', isPublished: false });
+  const [bulkData, setBulkData] = useState({ isPublished: false });
 
   // Sync state to URL
   const updateUrl = useCallback((newSearch, newFilters) => {
@@ -161,7 +161,7 @@ export default function ProductsPage() {
       queryClient.invalidateQueries({ queryKey: ['raw-products'] });
       setBulkDialog(false);
       setSelected(new Set());
-      setBulkData({ markupPercent: '30', isPublished: false });
+      setBulkData({ isPublished: false });
       toast.success(`${res.created} listings created${res.skipped ? `, ${res.skipped} skipped` : ''}`);
     },
     onError: (err) => toast.error(err.response?.data?.error || 'Bulk add failed'),
@@ -220,15 +220,10 @@ export default function ProductsPage() {
   }
 
   function submitBulk() {
-    const markup = parseFloat(bulkData.markupPercent);
-    const body = {
+    bulkMutation.mutate({
       productIds: [...selected],
       isPublished: bulkData.isPublished,
-    };
-    if (markup > 0) {
-      body.pricingRule = { type: 'markup', percent: markup };
-    }
-    bulkMutation.mutate(body);
+    });
   }
 
   function formatPrice(price) {
@@ -613,16 +608,8 @@ export default function ProductsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Adding <strong>{selected.size}</strong> products to storefront
+              Adding <strong>{selected.size}</strong> products to storefront. Display prices will be auto-calculated from Price Settings.
             </p>
-            <div className="space-y-2">
-              <Label>Markup % (applied as pricing rule)</Label>
-              <Input
-                type="number"
-                value={bulkData.markupPercent}
-                onChange={(e) => setBulkData((d) => ({ ...d, markupPercent: e.target.value }))}
-              />
-            </div>
             <div className="flex items-center gap-2">
               <Checkbox
                 id="bulkPublish"
