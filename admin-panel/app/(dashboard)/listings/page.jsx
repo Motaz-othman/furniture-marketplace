@@ -34,56 +34,17 @@ import {
 import { Pencil, Trash2, Package, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-function InlineEdit({ value, onSave, type = 'number', placeholder, prefix }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
-  const inputRef = useRef(null);
+function stockLevel(total) {
+  if (total == null || total < 0) return null;
+  if (total === 0) return { label: 'Out', cls: 'text-red-700 bg-red-50 border-red-200' };
+  if (total <= 10) return { label: 'Low', cls: 'text-orange-600 bg-orange-50 border-orange-200' };
+  if (total <= 50) return { label: 'Medium', cls: 'text-yellow-600 bg-yellow-50 border-yellow-200' };
+  return { label: 'High', cls: 'text-green-700 bg-green-50 border-green-200' };
+}
 
-  function startEdit() {
-    setDraft(value != null ? String(value) : '');
-    setEditing(true);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  }
-
-  function commit() {
-    setEditing(false);
-    const parsed = type === 'number'
-      ? (draft.trim() === '' ? null : Number(draft))
-      : draft.trim() || null;
-    if (parsed !== value) onSave(parsed);
-  }
-
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') commit();
-    if (e.key === 'Escape') setEditing(false);
-  }
-
-  if (editing) {
-    return (
-      <Input
-        ref={inputRef}
-        type={type}
-        step={type === 'number' ? '0.01' : undefined}
-        className="h-7 w-24 text-sm"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={handleKeyDown}
-      />
-    );
-  }
-
-  return (
-    <button
-      onClick={startEdit}
-      className="block text-sm hover:bg-muted px-1.5 py-0.5 rounded cursor-pointer text-left min-w-15"
-      title="Click to edit"
-    >
-      {value != null ? `${prefix || ''}${type === 'number' && prefix === '$' ? Number(value).toFixed(2) : value}` : (
-        <span className="text-muted-foreground italic">{placeholder || 'Set'}</span>
-      )}
-    </button>
-  );
+function discountPct(displayPrice, discountedPrice) {
+  if (!displayPrice || !discountedPrice || discountedPrice >= displayPrice) return null;
+  return Math.round((1 - discountedPrice / displayPrice) * 100);
 }
 
 export default function ListingsPage() {
@@ -213,24 +174,6 @@ export default function ListingsPage() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['listings'] }),
   });
 
-  const fieldMutation = useMutation({
-    mutationFn: ({ id, data }) => updateListing(id, data),
-    onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: cacheKey });
-      const previous = queryClient.getQueryData(cacheKey);
-      queryClient.setQueryData(cacheKey, (old) => {
-        if (!old) return old;
-        return { ...old, data: old.data.map((l) => (l.id === id ? { ...l, ...data } : l)) };
-      });
-      return { previous };
-    },
-    onError: (err, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(cacheKey, context.previous);
-      toast.error(err.response?.data?.error || 'Update failed');
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['listings'] }),
-  });
-
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteListing(id),
     onSuccess: () => {
@@ -287,34 +230,8 @@ export default function ListingsPage() {
     toggleMutation.mutate({ id: listing.id, field, value: !listing[field] });
   }
 
-  function formatPrice(val) {
-    return val != null ? `$${Number(val).toFixed(2)}` : '—';
-  }
-
   function displayName(listing) {
     return listing.displayName || listing.product?.name || 'Unnamed';
-  }
-
-  function saveVariantPrice(listing, variantId, price) {
-    const current = listing.variantPrices || {};
-    const updated = { ...current };
-    if (price == null) {
-      delete updated[variantId];
-    } else {
-      updated[variantId] = price;
-    }
-    fieldMutation.mutate({ id: listing.id, data: { variantPrices: updated } });
-  }
-
-  function saveVariantStock(listing, variantId, qty) {
-    const current = listing.variantStocks || {};
-    const updated = { ...current };
-    if (qty == null) {
-      delete updated[variantId];
-    } else {
-      updated[variantId] = parseInt(qty);
-    }
-    fieldMutation.mutate({ id: listing.id, data: { variantStocks: updated } });
   }
 
   return (
@@ -475,197 +392,121 @@ export default function ListingsPage() {
               <TableHead className="w-16">Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Brand</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Cost</TableHead>
-              <TableHead>Display Price</TableHead>
-              <TableHead>Discounted Price</TableHead>
-              <TableHead>Available Stock</TableHead>
-              <TableHead>My Stock</TableHead>
-              <TableHead className="text-center w-16 px-1">Published</TableHead>
-              <TableHead className="text-center w-16 px-1">Trending</TableHead>
-              <TableHead className="text-center w-20 px-1">New Arrival</TableHead>
+              <TableHead className="w-28">Discount</TableHead>
+              <TableHead className="w-32">Available Stock</TableHead>
+              <TableHead className="text-center w-24">Published</TableHead>
+              <TableHead className="text-center w-24">Trending</TableHead>
               <TableHead className="w-24">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : listings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   No listings found. Add products from the Wondersign Products page.
                 </TableCell>
               </TableRow>
             ) : (
-              listings.map((listing) => (
-                <TableRow key={listing.id} data-state={selected.has(listing.id) ? 'selected' : undefined}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selected.has(listing.id)}
-                      onCheckedChange={() => toggleSelect(listing.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {listing.product?.mainImage ? (
-                      <div className="relative w-10 h-10 rounded overflow-hidden">
-                        <Image
-                          src={listing.product.mainImage}
-                          alt={displayName(listing)}
-                          fill
-                          sizes="40px"
-                          className="object-cover"
-                          loading="lazy"
-                          unoptimized={!listing.product.mainImage.includes('amazonaws.com')}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div
-                      className="font-medium text-primary hover:underline cursor-pointer"
-                      onClick={() => router.push(`/listings/${listing.id}`)}
-                    >
-                      {displayName(listing)}
-                    </div>
-                    {listing.displayName && (
-                      <div className="text-xs text-muted-foreground">
-                        Raw: {listing.product?.name}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {listing.product?.brand || '—'}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {listing.product?.variants?.length > 0 ? (
-                      <div className="space-y-1">
-                        {listing.product.variants.map((v) => (
-                          <div key={v.id} className="text-xs text-muted-foreground whitespace-nowrap h-7 flex items-center">
-                            {v.sku || '—'}
-                          </div>
-                        ))}
-                      </div>
-                    ) : '—'}
-                  </TableCell>
-                  {/* Cost (read-only supplier cost) */}
-                  <TableCell>
-                    {listing.product?.variants?.length > 0 ? (
-                      <div className="space-y-0.5">
-                        {listing.product.variants.map((v) => (
-                          <div key={v.id} className="text-xs text-muted-foreground whitespace-nowrap h-7 flex items-center">
-                            {formatPrice(v.price?.cost)}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">
-                        {formatPrice(listing.product?.variants?.[0]?.price?.cost)}
-                      </span>
-                    )}
-                  </TableCell>
-                  {/* Display Price (editable selling price with margin) */}
-                  <TableCell>
-                    {listing.product?.variants?.length > 0 ? (
-                      <div className="space-y-1">
-                        {listing.product.variants.map((v) => (
-                          <InlineEdit
-                            key={v.id}
-                            value={listing.variantPrices?.[v.id] ?? listing.displayPrice ?? null}
-                            placeholder={formatPrice(v.price?.retailPrice)}
-                            prefix="$"
-                            onSave={(val) => saveVariantPrice(listing, v.id, val)}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <InlineEdit
-                        value={listing.displayPrice}
-                        placeholder={formatPrice(listing.product?.minPrice)}
-                        prefix="$"
-                        onSave={(val) => fieldMutation.mutate({ id: listing.id, data: { displayPrice: val } })}
+              listings.map((listing) => {
+                const totalStock = listing.product?.totalStock ?? null;
+                const level = stockLevel(totalStock);
+                const pct = discountPct(listing.displayPrice, listing.discountedPrice);
+                return (
+                  <TableRow key={listing.id} data-state={selected.has(listing.id) ? 'selected' : undefined}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selected.has(listing.id)}
+                        onCheckedChange={() => toggleSelect(listing.id)}
                       />
-                    )}
-                  </TableCell>
-                  {/* Discounted Price (editable sale price) */}
-                  <TableCell>
-                    <InlineEdit
-                      value={listing.discountedPrice}
-                      placeholder="—"
-                      prefix="$"
-                      onSave={(val) => fieldMutation.mutate({ id: listing.id, data: { discountedPrice: val } })}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {listing.product?.variants?.length > 0 ? (
-                      <div className="space-y-1">
-                        {listing.product.variants.map((v) => (
-                          <div key={v.id} className="text-xs text-muted-foreground h-7 flex items-center">
-                            {v.stockQuantity ?? 0}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-sm">{listing.product?.totalStock ?? '—'}</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {listing.product?.variants?.length > 0 ? (
-                      <div className="space-y-1">
-                        {listing.product.variants.map((v) => (
-                          <InlineEdit
-                            key={v.id}
-                            value={listing.variantStocks?.[v.id] ?? null}
-                            placeholder={String(v.stockQuantity ?? 0)}
-                            onSave={(val) => saveVariantStock(listing, v.id, val)}
+                    </TableCell>
+                    <TableCell>
+                      {listing.product?.mainImage ? (
+                        <div className="relative w-10 h-10 rounded overflow-hidden">
+                          <Image
+                            src={listing.product.mainImage}
+                            alt={displayName(listing)}
+                            fill
+                            sizes="40px"
+                            className="object-cover"
+                            loading="lazy"
+                            unoptimized={!listing.product.mainImage.includes('amazonaws.com')}
                           />
-                        ))}
-                      </div>
-                    ) : (
-                      <InlineEdit
-                        value={listing.displayStock}
-                        placeholder={String(listing.product?.totalStock ?? 0)}
-                        onSave={(val) => fieldMutation.mutate({ id: listing.id, data: { displayStock: val != null ? parseInt(val) : null } })}
-                      />
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Switch size="sm" checked={listing.isPublished} onCheckedChange={() => handleToggle(listing, 'isPublished')} />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Switch size="sm" checked={listing.isTrending} onCheckedChange={() => handleToggle(listing, 'isTrending')} />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Switch size="sm" checked={listing.isNewArrival} onCheckedChange={() => handleToggle(listing, 'isNewArrival')} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                          <Package className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div
+                        className="font-medium text-primary hover:underline cursor-pointer"
                         onClick={() => router.push(`/listings/${listing.id}`)}
                       >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="text-destructive"
-                        onClick={() => setDeleteTarget(listing)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                        {displayName(listing)}
+                      </div>
+                      {listing.displayName && (
+                        <div className="text-xs text-muted-foreground">
+                          {listing.product?.name}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {listing.product?.brand || '—'}
+                    </TableCell>
+                    <TableCell>
+                      {pct != null ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-green-700 bg-green-50 border border-green-200">
+                          {pct}% off
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {level ? (
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium border ${level.cls}`}>
+                          {level.label}
+                          {totalStock != null && <span className="opacity-70">({totalStock})</span>}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Switch size="sm" checked={listing.isPublished} onCheckedChange={() => handleToggle(listing, 'isPublished')} />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Switch size="sm" checked={listing.isTrending} onCheckedChange={() => handleToggle(listing, 'isTrending')} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => router.push(`/listings/${listing.id}`)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => setDeleteTarget(listing)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
