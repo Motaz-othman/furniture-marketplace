@@ -194,11 +194,14 @@ export default function ProductsPage() {
     let mainCategoryId = '';
     let subCategoryId = '';
     if (product.category) {
-      if (product.category.parentId) {
-        mainCategoryId = product.category.parentId;
-        subCategoryId = product.category.id;
+      const catId = product.category.id;
+      // Search the loaded categories tree: if this category appears as a child, derive parent from the tree
+      const parentCat = categories.find((c) => c.children?.some((ch) => ch.id === catId));
+      if (parentCat) {
+        mainCategoryId = parentCat.id;
+        subCategoryId = catId;
       } else {
-        mainCategoryId = product.category.id;
+        mainCategoryId = catId;
       }
     }
     setFormData({ mainCategoryId, subCategoryId, isPublished: true });
