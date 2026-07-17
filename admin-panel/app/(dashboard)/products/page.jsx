@@ -576,6 +576,14 @@ export default function ProductsPage() {
             variant="outline"
             size="sm"
             disabled={stackIndex === 0}
+            onClick={() => { setCursorStack([null]); setStackIndex(0); }}
+          >
+            «
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={stackIndex === 0}
             onClick={() => setStackIndex((i) => i - 1)}
           >
             Previous
