@@ -57,7 +57,7 @@ export default function ProductsPage() {
   }));
   const [activeTab, setActiveTab] = useState('all');
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
 
   function switchTab(tab) {
     setActiveTab(tab);
@@ -71,10 +71,11 @@ export default function ProductsPage() {
   const [bulkData, setBulkData] = useState({ isPublished: false });
 
   // Sync state to URL
-  const updateUrl = useCallback((newSearch, newFilters) => {
+  const updateUrl = useCallback((newSearch, newFilters, newPage) => {
     const params = new URLSearchParams();
     if (newSearch) params.set('search', newSearch);
     Object.entries(newFilters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    if (newPage && newPage > 1) params.set('page', newPage);
     const qs = params.toString();
     router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
   }, [pathname, router]);
@@ -83,10 +84,14 @@ export default function ProductsPage() {
     const t = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
-      updateUrl(search, filters);
+      updateUrl(search, filters, 1);
     }, 300);
     return () => clearTimeout(t);
   }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    updateUrl(debouncedSearch, filters, page);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
 
@@ -122,7 +127,7 @@ export default function ProductsPage() {
     const next = { ...filters, [key]: value };
     setFilters(next);
     setPage(1);
-    updateUrl(debouncedSearch, next);
+    updateUrl(debouncedSearch, next, 1);
   }
 
   function clearFilters() {
