@@ -47,7 +47,7 @@ export default function CustomerDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/customers')}>
+        <Button variant="ghost" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-1" /> Customers
         </Button>
       </div>
