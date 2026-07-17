@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getCustomers } from '@/lib/services/customers';
 import { Input } from '@/components/ui/input';
@@ -29,14 +29,34 @@ const STATUS_COLOR = {
 
 export default function CustomersPage() {
   const router = useRouter();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || '');
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
+  const didMount = useRef(false);
+
+  const updateUrl = useCallback((s, p) => {
+    const params = new URLSearchParams();
+    if (s) params.set('search', s);
+    if (p > 1) params.set('page', p);
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+  }, [pathname, router]);
+
+  useEffect(() => {
+    if (!didMount.current) return;
+    clearTimeout(window._csTimeout);
+    window._csTimeout = setTimeout(() => { setDebouncedSearch(search); setPage(1); updateUrl(search, 1); }, 300);
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!didMount.current) { didMount.current = true; return; }
+    updateUrl(debouncedSearch, page);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSearch(val) {
     setSearch(val);
-    clearTimeout(window._csTimeout);
-    window._csTimeout = setTimeout(() => { setDebouncedSearch(val); setPage(1); }, 300);
   }
 
   const { data, isLoading } = useQuery({

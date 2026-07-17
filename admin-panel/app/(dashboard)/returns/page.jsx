@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getReturnRequests } from '@/lib/services/returns';
 import { Button } from '@/components/ui/button';
@@ -124,9 +124,25 @@ function ExpandedRow({ rr, colSpan, onViewOrder }) {
 
 export default function ReturnsPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('ALL');
-  const [page, setPage] = useState(1);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'ALL');
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
   const [expandedId, setExpandedId] = useState(null);
+  const didMount = useRef(false);
+
+  const updateUrl = useCallback((tab, p) => {
+    const params = new URLSearchParams();
+    if (tab && tab !== 'ALL') params.set('tab', tab);
+    if (p > 1) params.set('page', p);
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+  }, [pathname, router]);
+
+  useEffect(() => {
+    if (!didMount.current) { didMount.current = true; return; }
+    updateUrl(activeTab, page);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const params = { page, limit: 20 };
   if (activeTab !== 'ALL') params.status = activeTab;
@@ -144,6 +160,7 @@ export default function ReturnsPage() {
     setActiveTab(tab);
     setPage(1);
     setExpandedId(null);
+    updateUrl(tab, 1);
   }
 
   function toggleExpand(id) {

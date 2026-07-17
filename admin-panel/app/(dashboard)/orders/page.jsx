@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getOrders } from '@/lib/services/orders';
 import { Button } from '@/components/ui/button';
@@ -109,16 +109,34 @@ function exportOrdersCSV(orders) {
 
 export default function OrdersPage() {
   const router = useRouter();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [status, setStatus] = useState('');
-  const [page, setPage] = useState(1);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || '');
+  const [status, setStatus] = useState(() => searchParams.get('status') || '');
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
   const [exporting, setExporting] = useState(false);
+  const didMount = useRef(false);
+
+  const updateUrl = useCallback((s, st, p) => {
+    const params = new URLSearchParams();
+    if (s) params.set('search', s);
+    if (st) params.set('status', st);
+    if (p > 1) params.set('page', p);
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+  }, [pathname, router]);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    if (!didMount.current) return;
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); updateUrl(search, status, 1); }, 300);
     return () => clearTimeout(t);
-  }, [search]);
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!didMount.current) { didMount.current = true; return; }
+    updateUrl(debouncedSearch, status, page);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const params = { page, limit: 20 };
   if (debouncedSearch) params.search = debouncedSearch;
@@ -196,7 +214,7 @@ export default function OrdersPage() {
             className="pl-9"
           />
         </div>
-        <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+        <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); updateUrl(debouncedSearch, v, 1); }}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUsers, updateUser, deleteUser } from '@/lib/services/users';
 import { Button } from '@/components/ui/button';
@@ -61,12 +62,31 @@ function formatDate(dateStr) {
 }
 
 export default function UsersPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [roleFilter, setRoleFilter] = useState(() => searchParams.get('role') || 'all');
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || 'all');
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
   const [deleteDialog, setDeleteDialog] = useState(null);
+  const didMount = useRef(false);
+
+  const updateUrl = useCallback((s, role, status, p) => {
+    const params = new URLSearchParams();
+    if (s) params.set('search', s);
+    if (role && role !== 'all') params.set('role', role);
+    if (status && status !== 'all') params.set('status', status);
+    if (p > 1) params.set('page', p);
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+  }, [pathname, router]);
+
+  useEffect(() => {
+    if (!didMount.current) { didMount.current = true; return; }
+    updateUrl(search, roleFilter, statusFilter, page);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-users', search, roleFilter, statusFilter, page],
@@ -117,6 +137,7 @@ export default function UsersPage() {
     setRoleFilter('all');
     setStatusFilter('all');
     setPage(1);
+    router.replace(pathname, { scroll: false });
   };
 
   const hasFilters = search || roleFilter !== 'all' || statusFilter !== 'all';
@@ -137,11 +158,11 @@ export default function UsersPage() {
           <Input
             placeholder="Search by name, email, phone..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); updateUrl(e.target.value, roleFilter, statusFilter, 1); }}
             className="pl-9"
           />
         </div>
-        <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(1); }}>
+        <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(1); updateUrl(search, v, statusFilter, 1); }}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Role" />
           </SelectTrigger>
@@ -152,7 +173,7 @@ export default function UsersPage() {
             <SelectItem value="ADMIN">Admin</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); updateUrl(search, roleFilter, v, 1); }}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>

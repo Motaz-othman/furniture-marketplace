@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { getListings, updateListing, deleteListing, bulkUpdateListings, bulkDeleteListings, getCategories, getRawProductFilters } from '@/lib/services/storefront';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,17 +88,45 @@ function InlineEdit({ value, onSave, type = 'number', placeholder, prefix }) {
 
 export default function ListingsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('search') || '');
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
+  const didMount = useRef(false);
+
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('source') || 'all');
+  const [filters, setFilters] = useState({
+    status: searchParams.get('status') || '',
+    brand: searchParams.get('brand') || '',
+    categoryId: searchParams.get('categoryId') || '',
+    isTrending: searchParams.get('isTrending') || '',
+    isNewArrival: searchParams.get('isNewArrival') || '',
+    minPrice: searchParams.get('minPrice') || '',
+    maxPrice: searchParams.get('maxPrice') || '',
+  });
+
+  const updateUrl = useCallback((s, tab, f, p) => {
+    const params = new URLSearchParams();
+    if (s) params.set('search', s);
+    if (tab && tab !== 'all') params.set('source', tab);
+    Object.entries(f).forEach(([k, v]) => { if (v) params.set(k, v); });
+    if (p > 1) params.set('page', p);
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+  }, [pathname, router]);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    if (!didMount.current) return;
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); updateUrl(search, activeTab, filters, 1); }, 300);
     return () => clearTimeout(t);
-  }, [search]);
-  const [activeTab, setActiveTab] = useState('all');
-  const [filters, setFilters] = useState({ status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' });
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!didMount.current) { didMount.current = true; return; }
+    updateUrl(debouncedSearch, activeTab, filters, page);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [selected, setSelected] = useState(new Set());
   const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false);
@@ -109,20 +137,26 @@ export default function ListingsPage() {
   const hasActiveFilters = Object.values(filters).some(Boolean) || activeTab !== 'all';
 
   function setFilter(key, value) {
-    setFilters(f => ({ ...f, [key]: value }));
+    const next = { ...filters, [key]: value };
+    setFilters(next);
     setPage(1);
+    updateUrl(debouncedSearch, activeTab, next, 1);
   }
 
   function switchTab(tab) {
     setActiveTab(tab);
     setPage(1);
+    updateUrl(debouncedSearch, tab, filters, 1);
   }
 
   function clearFilters() {
-    setFilters({ status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' });
+    const empty = { status: '', brand: '', categoryId: '', isTrending: '', isNewArrival: '', minPrice: '', maxPrice: '' };
+    setFilters(empty);
     setSearch('');
+    setDebouncedSearch('');
     setActiveTab('all');
     setPage(1);
+    router.replace(pathname, { scroll: false });
   }
 
   const queryParams = { page, limit: 20 };
