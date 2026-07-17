@@ -57,15 +57,11 @@ export default function ProductsPage() {
   }));
   const [activeTab, setActiveTab] = useState('all');
 
-  // Cursor stack for back navigation: [null, cursor1, cursor2, ...]
-  const [cursorStack, setCursorStack] = useState([null]);
-  const [stackIndex, setStackIndex] = useState(0);
-  const currentCursor = cursorStack[stackIndex];
+  const [page, setPage] = useState(1);
 
   function switchTab(tab) {
     setActiveTab(tab);
-    setCursorStack([null]);
-    setStackIndex(0);
+    setPage(1);
   }
 
   const [selected, setSelected] = useState(new Set());
@@ -86,8 +82,7 @@ export default function ProductsPage() {
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedSearch(search);
-      setCursorStack([null]);
-      setStackIndex(0);
+      setPage(1);
       updateUrl(search, filters);
     }, 300);
     return () => clearTimeout(t);
@@ -96,10 +91,10 @@ export default function ProductsPage() {
   const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
 
   const { data: productsRes, isLoading, isFetching } = useQuery({
-    queryKey: ['raw-products', debouncedSearch, currentCursor, activeFilters, activeTab],
+    queryKey: ['raw-products', debouncedSearch, page, activeFilters, activeTab],
     queryFn: () => getRawProducts({
       search: debouncedSearch,
-      cursor: currentCursor || undefined,
+      page,
       limit: 20,
       ...activeFilters,
       ...(activeTab !== 'all' ? { source: activeTab } : {}),
@@ -126,8 +121,7 @@ export default function ProductsPage() {
   function setFilter(key, value) {
     const next = { ...filters, [key]: value };
     setFilters(next);
-    setCursorStack([null]);
-    setStackIndex(0);
+    setPage(1);
     updateUrl(debouncedSearch, next);
   }
 
@@ -136,8 +130,7 @@ export default function ProductsPage() {
     setFilters(empty);
     setSearch('');
     setDebouncedSearch('');
-    setCursorStack([null]);
-    setStackIndex(0);
+    setPage(1);
     setActiveTab('all');
     router.replace(pathname, { scroll: false });
   }
@@ -501,40 +494,15 @@ export default function ProductsPage() {
         </Table>
       </div>
 
-      {(stackIndex > 0 || productsRes?.pagination?.hasMore) && (
+      {productsRes?.pagination?.totalPages > 1 && (
         <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={stackIndex === 0}
-            onClick={() => { setCursorStack([null]); setStackIndex(0); }}
-          >
-            «
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={stackIndex === 0}
-            onClick={() => setStackIndex((i) => i - 1)}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!productsRes?.pagination?.hasMore}
-            onClick={() => {
-              const nextCursor = productsRes.pagination.nextCursor;
-              setCursorStack((s) => {
-                const next = s.slice(0, stackIndex + 1);
-                next.push(nextCursor);
-                return next;
-              });
-              setStackIndex((i) => i + 1);
-            }}
-          >
-            Next
-          </Button>
+          <p className="text-sm text-muted-foreground mr-2">
+            Page {productsRes.pagination.page} of {productsRes.pagination.totalPages} ({productsRes.pagination.totalCount} products)
+          </p>
+          <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(1)}>«</Button>
+          <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
+          <Button variant="outline" size="sm" disabled={!productsRes.pagination.hasMore} onClick={() => setPage(p => p + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={!productsRes.pagination.hasMore} onClick={() => setPage(productsRes.pagination.totalPages)}>»</Button>
         </div>
       )}
 

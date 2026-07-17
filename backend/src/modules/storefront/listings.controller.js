@@ -440,8 +440,10 @@ export const getRawProductById = async (req, res) => {
 
 export const getRawProducts = async (req, res) => {
   try {
-    const { cursor, limit = 20, search, status, source, brand, categoryId, collection, minPrice, maxPrice, acmeStatus, stock } = req.query;
+    const { page = 1, limit = 20, search, status, source, brand, categoryId, collection, minPrice, maxPrice, acmeStatus, stock } = req.query;
     const limitNum = Math.min(parseInt(limit), 100);
+    const pageNum = Math.max(1, parseInt(page));
+    const skip = (pageNum - 1) * limitNum;
 
     const where = {};
     if (search) {
@@ -511,37 +513,38 @@ export const getRawProducts = async (req, res) => {
       if (maxPrice) where.minPrice.lte = parseFloat(maxPrice);
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        brand: true,
-        collection: true,
-        minPrice: true,
-        maxPrice: true,
-        mainImage: true,
-        totalStock: true,
-        isActive: true,
-        acmeStatus: true,
-        source: true,
-        externalId: true,
-        category: { select: { id: true, name: true, slug: true, parentId: true } },
-        variants: { select: { id: true, sku: true, name: true, price: true }, orderBy: { rank: 'asc' } },
-        _count: { select: { variants: true } },
-        storefront: { select: { id: true, isPublished: true } },
-      },
-      orderBy: { name: 'asc' },
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      take: limitNum + 1, // fetch one extra to know if there's a next page
-    });
+    const [products, totalCount] = await prisma.$transaction([
+      prisma.product.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          brand: true,
+          collection: true,
+          minPrice: true,
+          maxPrice: true,
+          mainImage: true,
+          totalStock: true,
+          isActive: true,
+          acmeStatus: true,
+          source: true,
+          externalId: true,
+          category: { select: { id: true, name: true, slug: true, parentId: true } },
+          variants: { select: { id: true, sku: true, name: true, price: true }, orderBy: { rank: 'asc' } },
+          _count: { select: { variants: true } },
+          storefront: { select: { id: true, isPublished: true } },
+        },
+        orderBy: { name: 'asc' },
+        skip,
+        take: limitNum,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-    const hasMore = products.length > limitNum;
-    const page = hasMore ? products.slice(0, limitNum) : products;
-    const nextCursor = hasMore ? page[page.length - 1].id : null;
+    const totalPages = Math.ceil(totalCount / limitNum);
 
-    const enriched = page.map(p => ({
+    const enriched = products.map(p => ({
       ...p,
       hasListing: !!p.storefront,
       isOnStorefront: p.storefront?.isPublished ?? false,
@@ -550,9 +553,11 @@ export const getRawProducts = async (req, res) => {
     res.json({
       data: enriched,
       pagination: {
+        page: pageNum,
         limit: limitNum,
-        nextCursor,
-        hasMore,
+        totalCount,
+        totalPages,
+        hasMore: pageNum < totalPages,
       },
     });
   } catch (error) {
