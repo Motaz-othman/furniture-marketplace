@@ -1,4 +1,5 @@
 import prisma from '../../shared/config/db.js';
+import { calcDisplayPrice, extractWeight, loadPricingSettings } from '../../shared/utils/pricing.js';
 import { invalidateListingCache } from '../products/products.controller.js';
 
 // ─── Get all storefront listings (admin) ─────────────────────────────
@@ -143,10 +144,17 @@ export const createListing = async (req, res) => {
       sortOrder,
     } = req.body;
 
-    // Verify product exists
+    // Verify product exists and fetch first variant for auto-pricing
     const product = await prisma.product.findUnique({
       where: { id: productId },
-      select: { id: true, name: true },
+      select: {
+        id: true, name: true,
+        variants: {
+          select: { price: true, packaging: true },
+          orderBy: { rank: 'asc' },
+          take: 1,
+        },
+      },
     });
 
     if (!product) {
@@ -162,6 +170,18 @@ export const createListing = async (req, res) => {
       return res.status(400).json({ error: 'Storefront listing already exists for this product' });
     }
 
+    // Auto-calculate display price if not explicitly provided
+    let resolvedDisplayPrice = displayPrice != null ? parseFloat(displayPrice) : null;
+    if (resolvedDisplayPrice == null) {
+      const variant = product.variants?.[0];
+      const cost = variant?.price?.cost;
+      const weight = extractWeight(variant?.packaging);
+      if (cost > 0 && weight > 0) {
+        const pricingSettings = await loadPricingSettings();
+        resolvedDisplayPrice = calcDisplayPrice(cost, weight, variant?.price?.mapPrice, pricingSettings);
+      }
+    }
+
     const parsedDiscountedPrice = discountedPrice != null ? parseFloat(discountedPrice) : null;
 
     const listing = await prisma.storefrontListing.create({
@@ -170,7 +190,7 @@ export const createListing = async (req, res) => {
         displayName: displayName || null,
         displayDescription: displayDescription || null,
         displayImages: displayImages || null,
-        displayPrice: displayPrice != null ? parseFloat(displayPrice) : null,
+        displayPrice: resolvedDisplayPrice,
         discountedPrice: parsedDiscountedPrice,
         compareAtPrice: compareAtPrice != null ? parseFloat(compareAtPrice) : null,
         pricingRule: pricingRule || null,
@@ -343,12 +363,33 @@ export const bulkCreateListings = async (req, res) => {
       return res.json({ message: 'All products already have listings', created: 0 });
     }
 
+    // Load pricing settings once, then fetch all new products' first variants for auto-pricing
+    const [pricingSettings, products] = await Promise.all([
+      loadPricingSettings(),
+      prisma.product.findMany({
+        where: { id: { in: newIds } },
+        select: {
+          id: true,
+          variants: {
+            select: { price: true, packaging: true },
+            orderBy: { rank: 'asc' },
+            take: 1,
+          },
+        },
+      }),
+    ]);
+    const productMap = new Map(products.map(p => [p.id, p]));
+
     const result = await prisma.storefrontListing.createMany({
-      data: newIds.map(productId => ({
-        productId,
-        isPublished,
-        pricingRule: pricingRule || null,
-      })),
+      data: newIds.map(productId => {
+        const variant = productMap.get(productId)?.variants?.[0];
+        const cost = variant?.price?.cost;
+        const weight = extractWeight(variant?.packaging);
+        const autoPrice = (cost > 0 && weight > 0)
+          ? calcDisplayPrice(cost, weight, variant?.price?.mapPrice, pricingSettings)
+          : null;
+        return { productId, isPublished, pricingRule: pricingRule || null, displayPrice: autoPrice };
+      }),
     });
 
     invalidateListingCache();
