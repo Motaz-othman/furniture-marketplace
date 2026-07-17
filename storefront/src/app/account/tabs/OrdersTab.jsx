@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { getCustomerOrders } from '@/lib/api/orders';
 import { Package } from '@/components/ui/Icons';
 import { getItemStatus, ITEM_STATUS_LABEL, ITEM_STATUS_STYLE } from '@/lib/itemStatus';
@@ -28,11 +29,27 @@ function ItemStatusBadge({ item }) {
 }
 
 export default function OrdersTab() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
   const [pagination, setPagination] = useState({ totalPages: 1 });
   const [expandedId, setExpandedId] = useState(null);
+  const didMount = useRef(false);
+
+  const updateUrl = useCallback((p) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (p > 1) params.set('page', p);
+    else params.delete('page');
+    router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ''}#orders`, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (!didMount.current) { didMount.current = true; return; }
+    updateUrl(page);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
