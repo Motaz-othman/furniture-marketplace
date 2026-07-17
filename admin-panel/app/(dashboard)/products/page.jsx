@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getRawProducts, getRawProductFilters, createListing, bulkCreateListings, getCategories } from '@/lib/services/storefront';
@@ -58,6 +58,7 @@ export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState('all');
 
   const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1'));
+  const didMount = useRef(false);
 
   function switchTab(tab) {
     setActiveTab(tab);
@@ -81,6 +82,8 @@ export default function ProductsPage() {
   }, [pathname, router]);
 
   useEffect(() => {
+    // Skip first mount — search is already in the URL
+    if (!didMount.current) return;
     const t = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
@@ -90,6 +93,8 @@ export default function ProductsPage() {
   }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // Skip first mount — page is already in the URL
+    if (!didMount.current) { didMount.current = true; return; }
     updateUrl(debouncedSearch, filters, page);
   }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
