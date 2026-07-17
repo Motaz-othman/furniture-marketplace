@@ -187,18 +187,7 @@ export default function ProductsPage() {
 
   // When a product has no variants, synthesize a single product-level row so the
   // pricing table always appears with the same Cost | MAP | Display Price layout.
-  const PRODUCT_ROW_ID = '__product__';
 
-  function getDisplayVariants(product) {
-    const variants = product?.variants || [];
-    if (variants.length > 0) return variants;
-    return [{
-      id: PRODUCT_ROW_ID,
-      name: product?.name || 'Product',
-      sku: null,
-      price: { cost: null, mapPrice: null, retailPrice: product?.minPrice ?? null },
-    }];
-  }
 
   function handleAdd(e, product) {
     e.stopPropagation();
@@ -558,52 +547,11 @@ export default function ProductsPage() {
             <DialogTitle>Add to Storefront</DialogTitle>
           </DialogHeader>
           {addDialog && (() => {
-            const displayVariants = getDisplayVariants(addDialog);
             const subCategories = categories.find((c) => c.id === formData.mainCategoryId)?.children || [];
             return (
               <div className="space-y-4">
                 <p className="text-sm font-medium">{addDialog.name}</p>
 
-                {/* Pricing reference — read only, display price auto-calculated by backend */}
-                <div className="border rounded-md overflow-auto max-h-56">
-                  <table className="w-full text-xs">
-                    <thead className="bg-muted sticky top-0 z-10">
-                      <tr>
-                        <th className="px-3 py-2 text-left font-medium text-muted-foreground">Variant</th>
-                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">Cost</th>
-                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">MAP</th>
-                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">Display Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {displayVariants.map((v) => {
-                        const cost = v.price?.cost;
-                        const map = v.price?.mapPrice;
-                        return (
-                          <tr key={v.id} className="border-t">
-                            <td className="px-3 py-1.5">
-                              <div className="font-medium truncate max-w-[160px]" title={v.name || v.sku}>
-                                {v.name || v.sku || '—'}
-                              </div>
-                              {v.name && v.sku && (
-                                <div className="font-mono text-muted-foreground text-[10px]">{v.sku}</div>
-                              )}
-                            </td>
-                            <td className="px-3 py-1.5 text-right text-muted-foreground">
-                              {cost != null ? formatPrice(cost) : '—'}
-                            </td>
-                            <td className="px-3 py-1.5 text-right text-muted-foreground">
-                              {map != null ? formatPrice(map) : '—'}
-                            </td>
-                            <td className="px-3 py-1.5 text-right text-muted-foreground italic">
-                              Auto
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
 
                 {/* Main Category */}
                 <div className="space-y-2">
