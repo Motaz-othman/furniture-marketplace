@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getRawProducts, getRawProductFilters, createListing, bulkCreateListings, getCategories } from '@/lib/services/storefront';
-import { getPricingSettings } from '@/lib/services/settings';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,12 +56,6 @@ export default function ProductsPage() {
     acmeStatus: searchParams.get('acmeStatus') || '',
   }));
   const [activeTab, setActiveTab] = useState('all');
-
-  const { data: pricingSettings } = useQuery({
-    queryKey: ['pricing-settings'],
-    queryFn: getPricingSettings,
-    staleTime: 5 * 60_000,
-  });
 
   // Cursor stack for back navigation: [null, cursor1, cursor2, ...]
   const [cursorStack, setCursorStack] = useState([null]);
@@ -571,7 +564,7 @@ export default function ProductsPage() {
               <div className="space-y-4">
                 <p className="text-sm font-medium">{addDialog.name}</p>
 
-                {/* Pricing reference — read only, auto-calculated by backend */}
+                {/* Pricing reference — read only, display price auto-calculated by backend */}
                 <div className="border rounded-md overflow-auto max-h-56">
                   <table className="w-full text-xs">
                     <thead className="bg-muted sticky top-0 z-10">
@@ -579,6 +572,7 @@ export default function ProductsPage() {
                         <th className="px-3 py-2 text-left font-medium text-muted-foreground">Variant</th>
                         <th className="px-3 py-2 text-right font-medium text-muted-foreground">Cost</th>
                         <th className="px-3 py-2 text-right font-medium text-muted-foreground">MAP</th>
+                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">Display Price</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -588,7 +582,7 @@ export default function ProductsPage() {
                         return (
                           <tr key={v.id} className="border-t">
                             <td className="px-3 py-1.5">
-                              <div className="font-medium truncate max-w-[200px]" title={v.name || v.sku}>
+                              <div className="font-medium truncate max-w-[160px]" title={v.name || v.sku}>
                                 {v.name || v.sku || '—'}
                               </div>
                               {v.name && v.sku && (
@@ -601,27 +595,14 @@ export default function ProductsPage() {
                             <td className="px-3 py-1.5 text-right text-muted-foreground">
                               {map != null ? formatPrice(map) : '—'}
                             </td>
+                            <td className="px-3 py-1.5 text-right text-muted-foreground italic">
+                              Auto
+                            </td>
                           </tr>
                         );
                       })}
                     </tbody>
                   </table>
-                </div>
-
-                {/* Auto-price notice */}
-                <div className="rounded-md bg-muted/50 border px-3 py-2.5 text-xs text-muted-foreground space-y-0.5">
-                  <p className="font-medium text-foreground text-sm">Display price will be auto-calculated</p>
-                  <p>
-                    Formula: (Cost + Delivery tier) ÷ {pricingSettings
-                      ? (1 - pricingSettings.marketingPercent / 100 - pricingSettings.marginPercent / 100).toFixed(2)
-                      : '0.63'
-                    } &nbsp;→&nbsp; max(result, MAP)
-                  </p>
-                  {pricingSettings && (
-                    <p className="text-[11px]">
-                      Marketing {pricingSettings.marketingPercent}% · Margin {pricingSettings.marginPercent}% · from Price Settings
-                    </p>
-                  )}
                 </div>
 
                 {/* Main Category */}
