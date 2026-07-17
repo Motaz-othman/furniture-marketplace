@@ -118,11 +118,13 @@ export default function PriceSettingsPage() {
   const [whiteGloveTiers, setWhiteGloveTiers] = useState(null);
   const [marketingPct,    setMarketingPct]    = useState(null);
   const [marginPct,       setMarginPct]       = useState(null);
+  const [safetyMargin,    setSafetyMargin]    = useState(null);
 
-  const dTiers  = deliveryTiers   ?? settings.deliveryTiers;
-  const wTiers  = whiteGloveTiers ?? settings.whiteGloveTiers;
-  const mktPct  = marketingPct    ?? settings.marketingPercent;
-  const mgnPct  = marginPct       ?? settings.marginPercent;
+  const dTiers     = deliveryTiers   ?? settings.deliveryTiers;
+  const wTiers     = whiteGloveTiers ?? settings.whiteGloveTiers;
+  const mktPct     = marketingPct    ?? settings.marketingPercent;
+  const mgnPct     = marginPct       ?? settings.marginPercent;
+  const sftyMargin = safetyMargin    ?? settings.stockSafetyMargin ?? 0;
   const divisor = calcDivisor(mktPct, mgnPct);
   const validFormula = divisor > 0 && divisor < 1;
 
@@ -135,6 +137,7 @@ export default function PriceSettingsPage() {
       whiteGloveTiers: wTiers,
       marketingPercent: mktPct,
       marginPercent: mgnPct,
+      stockSafetyMargin: sftyMargin,
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pricing-settings'] });
@@ -280,6 +283,35 @@ export default function PriceSettingsPage() {
                 </div>
               );
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Stock Safety Margin ────────────────────────── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Stock Safety Margin</CardTitle>
+          <CardDescription>
+            Units subtracted from the vendor&apos;s available stock before showing to customers. Prevents overselling when vendor numbers are delayed.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Safety Margin (units)</label>
+            <p className="text-xs text-muted-foreground">
+              My Stock shown to customers = Vendor Stock − Safety Margin (minimum 0). Per-listing overrides in the listing editor take precedence.
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                value={sftyMargin}
+                onChange={e => { setSafetyMargin(Math.max(0, parseInt(e.target.value) || 0)); markDirty(); }}
+                className="w-24"
+              />
+              <span className="text-sm text-muted-foreground">units</span>
+            </div>
           </div>
         </CardContent>
       </Card>

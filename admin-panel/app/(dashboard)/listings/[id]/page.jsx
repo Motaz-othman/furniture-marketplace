@@ -149,7 +149,6 @@ export default function EditListingPage() {
     categoryId: '',
     isPublished: false,
     isTrending: false,
-    isNewArrival: false,
   });
 
   useEffect(() => {
@@ -166,7 +165,6 @@ export default function EditListingPage() {
         categoryId: listing.categoryId || '',
         isPublished: listing.isPublished,
         isTrending: listing.isTrending,
-        isNewArrival: listing.isNewArrival,
       });
     }
   }, [listing]);
@@ -195,7 +193,6 @@ export default function EditListingPage() {
       categoryId: form.categoryId || null,
       isPublished: form.isPublished,
       isTrending: form.isTrending,
-      isNewArrival: form.isNewArrival,
     };
     updateMutation.mutate(body);
   }
@@ -381,18 +378,19 @@ export default function EditListingPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="displayStock">My Stock</Label>
+                  <Label htmlFor="displayStock">My Stock (override)</Label>
                   <Input
                     id="displayStock"
                     type="number"
                     step="1"
                     min="0"
-                    placeholder={product?.totalStock?.toString() || '0'}
+                    placeholder={String(listing.effectiveStock ?? 0)}
                     value={form.displayStock}
                     onChange={(e) => updateField('displayStock', e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Available stock from supplier: {product?.totalStock ?? 0}. Leave empty to use raw stock.
+                    Vendor stock: {product?.totalStock ?? 0} — Safety margin: {listing.stockSafetyMargin ?? 0} → Effective: <strong>{listing.effectiveStock ?? 0}</strong>.
+                    Leave empty to use the computed effective stock. Set in <a href="/price-settings" className="underline">Price Settings</a>.
                   </p>
                 </div>
               </CardContent>
@@ -493,12 +491,14 @@ export default function EditListingPage() {
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
-                  <Label>New Arrival</Label>
-                  <Switch
-                    checked={form.isNewArrival}
-                    onCheckedChange={(v) => updateField('isNewArrival', v)}
-                  />
+                  <Label className="text-muted-foreground">New Arrival</Label>
+                  <Badge variant={listing.isNewArrival ? 'default' : 'secondary'}>
+                    {listing.isNewArrival ? 'Yes' : 'No'}
+                  </Badge>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Auto-set on creation. Cleared when Trending is on, restored when turned off within 30 days.
+                </p>
               </CardContent>
             </Card>
 

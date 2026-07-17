@@ -414,7 +414,7 @@ export default function ListingsPage() {
               </TableRow>
             ) : (
               listings.map((listing) => {
-                const totalStock = listing.product?.totalStock ?? null;
+                const totalStock = listing.effectiveStock ?? listing.product?.totalStock ?? null;
                 const level = stockLevel(totalStock);
                 const pct = discountPct(listing.displayPrice, listing.discountedPrice);
                 return (

@@ -23,6 +23,7 @@ export const DEFAULT_PRICING_SETTINGS = {
   ],
   marketingPercent: 12,
   marginPercent: 25,
+  stockSafetyMargin: 0,
 };
 
 export function getDeliveryRate(weightLbs, tiers) {

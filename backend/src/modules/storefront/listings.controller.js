@@ -47,7 +47,7 @@ export const getAllListings = async (req, res) => {
       where.product = { ...(where.product || {}), minPrice: priceFilter };
     }
 
-    const [listings, total] = await Promise.all([
+    const [listings, total, pricingSettings] = await Promise.all([
       prisma.storefrontListing.findMany({
         where,
         include: {
@@ -76,10 +76,18 @@ export const getAllListings = async (req, res) => {
         take: limitNum,
       }),
       prisma.storefrontListing.count({ where }),
+      loadPricingSettings(),
     ]);
 
+    const safetyMargin = pricingSettings.stockSafetyMargin ?? 0;
+    const enriched = listings.map((l) => ({
+      ...l,
+      effectiveStock: l.displayStock ?? Math.max(0, (l.product?.totalStock ?? 0) - safetyMargin),
+      stockSafetyMargin: safetyMargin,
+    }));
+
     res.json({
-      data: listings,
+      data: enriched,
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -116,7 +124,15 @@ export const getListingById = async (req, res) => {
       return res.status(404).json({ error: 'Listing not found' });
     }
 
-    res.json({ data: listing });
+    const pricingSettings = await loadPricingSettings();
+    const safetyMargin = pricingSettings.stockSafetyMargin ?? 0;
+    const enriched = {
+      ...listing,
+      effectiveStock: listing.displayStock ?? Math.max(0, (listing.product?.totalStock ?? 0) - safetyMargin),
+      stockSafetyMargin: safetyMargin,
+    };
+
+    res.json({ data: enriched });
   } catch (error) {
     console.error('Get listing error:', error);
     res.status(500).json({ error: 'Failed to get listing' });
@@ -184,6 +200,8 @@ export const createListing = async (req, res) => {
 
     const parsedDiscountedPrice = discountedPrice != null ? parseFloat(discountedPrice) : null;
 
+    const resolvedIsTrending = isTrending ?? false;
+
     const listing = await prisma.storefrontListing.create({
       data: {
         productId,
@@ -198,8 +216,8 @@ export const createListing = async (req, res) => {
         categoryId: categoryId || null,
         isPublished: isPublished ?? false,
         isOnSale: parsedDiscountedPrice != null,
-        isTrending: isTrending ?? false,
-        isNewArrival: isNewArrival ?? false,
+        isTrending: resolvedIsTrending,
+        isNewArrival: !resolvedIsTrending,
         sortOrder: sortOrder ?? 0,
       },
       include: {
@@ -225,7 +243,7 @@ export const updateListing = async (req, res) => {
       displayName, displayDescription, displayImages,
       displayPrice, discountedPrice, compareAtPrice,
       pricingRule, variantPrices, variantStocks,
-      categoryId, isPublished, isTrending, isNewArrival,
+      categoryId, isPublished, isTrending,
       sortOrder, displayStock,
     } = req.body;
 
@@ -235,9 +253,22 @@ export const updateListing = async (req, res) => {
     if (displayImages !== undefined) updateData.displayImages = displayImages;
     if (categoryId !== undefined) updateData.categoryId = categoryId;
     if (isPublished !== undefined) updateData.isPublished = isPublished;
-    if (isTrending !== undefined) updateData.isTrending = isTrending;
-    if (isNewArrival !== undefined) updateData.isNewArrival = isNewArrival;
     if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
+
+    // Trending and New Arrival are linked: turning trending on clears new arrival,
+    // turning it off restores new arrival if the listing is still recent (≤30 days)
+    if (isTrending !== undefined) {
+      updateData.isTrending = isTrending;
+      if (isTrending === true) {
+        updateData.isNewArrival = false;
+      } else {
+        const existing = await prisma.storefrontListing.findUnique({ where: { id }, select: { createdAt: true } });
+        const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        if (existing && existing.createdAt >= cutoff) {
+          updateData.isNewArrival = true;
+        }
+      }
+    }
     if (pricingRule !== undefined) updateData.pricingRule = pricingRule;
     if (variantPrices !== undefined) updateData.variantPrices = variantPrices;
     if (variantStocks !== undefined) updateData.variantStocks = variantStocks;
@@ -303,7 +334,7 @@ export const bulkUpdateListings = async (req, res) => {
     if (!Array.isArray(listingIds) || listingIds.length === 0) {
       return res.status(400).json({ error: 'listingIds array is required' });
     }
-    const allowed = ['isPublished', 'isTrending', 'isNewArrival', 'categoryId'];
+    const allowed = ['isPublished', 'isTrending', 'categoryId'];
     const updateData = Object.fromEntries(
       Object.entries(data || {}).filter(([k]) => allowed.includes(k))
     );
@@ -388,7 +419,7 @@ export const bulkCreateListings = async (req, res) => {
         const autoPrice = (cost > 0 && weight > 0)
           ? calcDisplayPrice(cost, weight, variant?.price?.mapPrice, pricingSettings)
           : null;
-        return { productId, isPublished, pricingRule: pricingRule || null, displayPrice: autoPrice };
+        return { productId, isPublished, pricingRule: pricingRule || null, displayPrice: autoPrice, isNewArrival: true };
       }),
     });
 
