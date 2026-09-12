@@ -102,6 +102,7 @@
   padding: 0 40px;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: start;
   gap: 80px;
   margin-bottom: 80px;
 }
@@ -109,8 +110,9 @@
 /* Image Gallery Section */
 .product-gallery-section {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .gallery-main-image {
@@ -119,6 +121,8 @@
   border-radius: 12px;
   overflow: hidden;
   aspect-ratio: 4/5;
+  flex: 1;
+  min-width: 0;
 }
 
 .gallery-main-image img {
@@ -163,9 +167,14 @@
 }
 
 .gallery-thumbnails {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 56px;
+  flex-shrink: 0;
+  max-height: 600px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .thumbnail {
@@ -178,6 +187,7 @@
   padding: 0;
   transition: all 0.2s;
   aspect-ratio: 1/1;
+  flex-shrink: 0;
 }
 
 .thumbnail img {
@@ -785,6 +795,27 @@
 }
 
 /* Responsive Design */
+
+/* Roomier thumbnail rail once there's more width to spare */
+@media (min-width: 769px) {
+  .product-gallery-section {
+    gap: 20px;
+  }
+
+  .gallery-thumbnails {
+    gap: 12px;
+    width: 88px;
+  }
+}
+
+/* Keep the gallery in view while scrolling the info column, desktop only */
+@media (min-width: 1025px) {
+  .product-gallery-section {
+    position: sticky;
+    top: 20px;
+  }
+}
+
 @media (max-width: 1024px) {
   .product-detail-container {
     grid-template-columns: 1fr;
@@ -811,10 +842,6 @@
 
   .price-current {
     font-size: 1.75rem;
-  }
-
-  .gallery-thumbnails {
-    grid-template-columns: repeat(3, 1fr);
   }
 
   .tabs-nav {
@@ -857,10 +884,6 @@
 
   .price-current {
     font-size: 1.5rem;
-  }
-
-  .gallery-thumbnails {
-    grid-template-columns: repeat(2, 1fr);
   }
 
   .related-products-grid {
@@ -1066,16 +1089,6 @@
 
 /* Mobile responsive enhancements */
 @media (max-width: 768px) {
-  /* Show gallery dots on mobile/tablet */
-  .gallery-mobile-dots {
-    display: flex;
-  }
-
-  /* Hide thumbnail strip on mobile - use swipe instead */
-  .gallery-thumbnails {
-    display: none;
-  }
-
   /* Show sticky add to cart on mobile */
   .sticky-add-to-cart {
     display: block;
@@ -1150,7 +1163,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.95);
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1163,13 +1176,13 @@
   right: 16px;
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.5);
   border: none;
   border-radius: 50%;
   color: #fff;
   font-size: 24px;
   cursor: pointer;
-  z-index: 1001;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1177,7 +1190,7 @@
 }
 
 .zoom-close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .zoom-hint {
@@ -1223,7 +1236,10 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  z-index: 1001;
+  z-index: 1;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 32px;
 }
 
 .zoom-nav-btn {
@@ -1251,7 +1267,7 @@
 }
 
 .zoom-image-counter {
-  color: rgba(255, 255, 255, 0.8);
+  color: #fff;
   font-size: 14px;
   font-weight: 500;
   min-width: 60px;

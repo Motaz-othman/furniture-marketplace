@@ -42,7 +42,7 @@
     font-family: var(--font-inter), var(--font-sans), system-ui, -apple-system, sans-serif;
     font-size: 16px;
     line-height: 1.5;
-    overflow-x: hidden;
+    overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

@@ -341,6 +341,16 @@ export default function ProductDetailContent({ slug, initialProduct, initialPare
     setZoomPosition({ x: 0, y: 0 });
   }, []);
 
+  // Close zoom modal on Escape key
+  useEffect(() => {
+    if (!isZoomOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeZoom();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isZoomOpen, closeZoom]);
+
   useEffect(() => {
     if (product && !selectedVariant && product.variants && product.variants.length > 0) {
       setSelectedVariant(product.variants[0]);

@@ -259,18 +259,14 @@
       top: 100%;
     }
     
-    /* Add padding for fixed header */
-    .hero {
-      margin-top: 60px;
-    }
-    
     /* Mobile Bottom Nav */
     .mobile-bottom-nav {
       display: flex;
     }
-    
+
+    /* Clears the fixed mobile header (~61px tall) */
     main {
-      padding-top: 56px;
+      padding-top: 61px;
       padding-bottom: 70px;
     }
 
