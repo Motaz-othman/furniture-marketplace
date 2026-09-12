@@ -137,6 +137,59 @@
   font-weight: 500;
 }
 
+.verification-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.verification-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 40px;
+  white-space: nowrap;
+}
+
+.verification-badge.verified {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.verification-badge.unverified {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.verification-sent-text {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.verification-resend-btn {
+  padding: 5px 14px;
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.verification-resend-btn:hover:not(:disabled) {
+  border-color: var(--text-main);
+}
+
+.verification-resend-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Account Form */
 .account-form {
   display: flex;
