@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '@/context/AuthContext';
 import { resendVerification } from '@/lib/api/auth';
+
+const DISMISS_KEY_PREFIX = 'email-verify-banner-dismissed-';
 
 export default function EmailVerificationBanner() {
   const { user } = useContext(AuthContext);
@@ -10,7 +12,30 @@ export default function EmailVerificationBanner() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
 
+  // MainLayout (and this banner) remounts on every page navigation, resetting
+  // local state — without this, dismissing the banner only lasted until the
+  // next page. Persist per-user so it actually stays dismissed.
+  useEffect(() => {
+    if (!user) return;
+    try {
+      if (localStorage.getItem(DISMISS_KEY_PREFIX + user.id) === 'true') {
+        setDismissed(true);
+      }
+    } catch {
+      // localStorage unavailable (e.g. private browsing) — dismissal just won't persist
+    }
+  }, [user]);
+
   if (!user || user.emailVerified || dismissed) return null;
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    try {
+      localStorage.setItem(DISMISS_KEY_PREFIX + user.id, 'true');
+    } catch {
+      // localStorage unavailable — dismissal just won't persist across pages
+    }
+  };
 
   const handleResend = async () => {
     setSending(true);
@@ -62,7 +87,7 @@ export default function EmailVerificationBanner() {
         </button>
       )}
       <button
-        onClick={() => setDismissed(true)}
+        onClick={handleDismiss}
         aria-label="Dismiss"
         style={{
           background: 'none',
