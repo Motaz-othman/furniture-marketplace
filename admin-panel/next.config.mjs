@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ["192.168.1.247"],
-  turbopack: false,
+  allowedDevOrigins: ["192.168.1.189"],
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2_592_000,

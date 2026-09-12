@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_OPTIONS=--no-deprecation next dev --webpack",
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev --webpack",
     "build": "next build",
-    "start": "NODE_OPTIONS=--no-deprecation next start",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "lint": "next lint",
     "lighthouse": "npx @lhci/cli@0.14 autorun --config=../lighthouserc.cjs"
   },
@@ -27,11 +27,12 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.0",
+    "cross-env": "^7.0.3",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.1",
     "postcss": "^8.5.6",
-    "@tailwindcss/postcss": "^4.1.18",
     "tailwindcss": "^4.1.18"
   }
 }

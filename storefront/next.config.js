@@ -17,7 +17,7 @@ const csp = [
 ].join('; ');
 
 const nextConfig = {
-  allowedDevOrigins: ['192.168.1.247'],
+  allowedDevOrigins: ['192.168.1.189'],
   compress: true,
   poweredByHeader: false,
   experimental: {

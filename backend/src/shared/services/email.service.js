@@ -44,7 +44,7 @@ async function getEmailConfig() {
 // Send password reset email
 export const sendPasswordResetEmail = async (email, resetToken) => {
   if (isTestEmail(email)) return;
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
   const { from, fromName } = await getEmailConfig();
 
   const mailOptions = {

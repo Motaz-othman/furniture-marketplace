@@ -3,7 +3,6 @@ import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
-import { exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -36,6 +35,7 @@ import { syncGfwDropboxAssets } from './shared/services/vendorImport.service.js'
 import cron from 'node-cron';
 import { registry } from './integrations/index.js';
 import integrationsRoutes from './integrations/router.js';
+import { killPort } from '../scripts/free-port.js';
 
 
 
@@ -225,10 +225,9 @@ const startServer = async () => {
     if (err.code === 'EADDRINUSE') {
       if (!isProduction) {
         console.warn(`Port ${PORT} in use — killing existing process...`);
-        exec(`lsof -ti:${PORT} | xargs kill -9`, () => {
-          server.close();
-          setTimeout(() => server.listen(PORT), 500);
-        });
+        killPort(PORT);
+        server.close();
+        setTimeout(() => server.listen(PORT), 500);
       } else {
         console.error(`Port ${PORT} already in use. Exiting.`);
         process.exit(1);
